@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
                            request.nextUrl.pathname.startsWith('/appointments') ||
                            request.nextUrl.pathname.startsWith('/sara') ||
                            request.nextUrl.pathname.startsWith('/knowledge') ||
-                           request.nextUrl.pathname.startsWith('/portal')
+                           request.nextUrl.pathname.startsWith('/profile')
 
   if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url))

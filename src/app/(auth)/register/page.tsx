@@ -81,8 +81,19 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Crea tu cuenta</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Crea tu cuenta médica</h2>
         <p className="text-gray-500 mt-1">Únete a MedSara y transforma tu práctica médica</p>
+      </div>
+
+      {/* Patient notice */}
+      <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-xl text-sm">
+        <p className="text-teal-800 font-medium mb-0.5">¿Eres paciente?</p>
+        <p className="text-teal-700">
+          No necesitas registrarte. Busca a tu médico y agenda tu cita con Sara.{' '}
+          <Link href="/buscar-medico" className="font-semibold underline hover:text-teal-900">
+            Buscar mi médico →
+          </Link>
+        </p>
       </div>
 
       {error && (

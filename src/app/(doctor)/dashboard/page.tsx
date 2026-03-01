@@ -93,10 +93,10 @@ export default async function DashboardPage() {
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {greeting}, Dra. {firstName} 👋
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {greeting}, {firstName} 👋
           </h1>
-          <p className="text-gray-500 mt-1">Aquí tienes el resumen de hoy.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Aquí tienes el resumen de hoy.</p>
         </div>
 
         {/* Stats */}
@@ -104,29 +104,29 @@ export default async function DashboardPage() {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700"
             >
               <div
                 className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl mb-4`}
               >
                 {stat.icon}
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-              <p className="text-gray-500 text-sm mt-1">{stat.label}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Quick actions + Sara promo */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-bold text-gray-900 mb-4">Acciones Rápidas</h2>
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <h2 className="font-bold text-gray-900 dark:text-white mb-4">Acciones Rápidas</h2>
             <div className="flex flex-wrap gap-3">
               {quickActions.map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="flex items-center gap-2 bg-gray-50 hover:bg-primary/5 border border-gray-200 hover:border-primary/30 text-gray-700 hover:text-primary px-5 py-3 rounded-xl font-medium text-sm transition-colors"
+                  className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 hover:bg-primary/5 dark:hover:bg-primary/10 border border-gray-200 dark:border-gray-600 hover:border-primary/30 text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary px-5 py-3 rounded-xl font-medium text-sm transition-colors"
                 >
                   <span>{action.icon}</span>
                   {action.label}
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
 
             {/* Today's appointments */}
             <div className="mt-6">
-              <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+              <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-sm">
                 Citas de hoy ({todayAppointments.length})
               </h3>
 

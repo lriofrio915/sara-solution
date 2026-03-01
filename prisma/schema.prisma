@@ -71,6 +71,8 @@ model Doctor {
   avatarUrl String?
   bio       String?
   address   String?
+  whatsapp  String?
+  schedules String?
 
   // Supabase auth user ID
   authId String? @unique

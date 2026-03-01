@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import LogoutButton from '@/components/LogoutButton'
+import DarkModeToggle from '@/components/DarkModeToggle'
 import { getInitials } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,7 @@ const navItems = [
   { href: '/appointments', icon: '📅', label: 'Citas' },
   { href: '/sara', icon: '✨', label: 'Sara IA' },
   { href: '/knowledge', icon: '📚', label: 'Conocimiento' },
+  { href: '/profile', icon: '👤', label: 'Mi Perfil' },
 ]
 
 export default async function DoctorLayout({ children }: { children: React.ReactNode }) {
@@ -39,18 +41,14 @@ export default async function DoctorLayout({ children }: { children: React.React
     }
 
     const initials = getInitials(doctor.name)
-    const nameParts = doctor.name.split(' ')
-    const displayName =
-      nameParts.length >= 2
-        ? `Dra. ${nameParts[nameParts.length - 1]}`
-        : `Dra. ${nameParts[0]}`
+    const firstName = doctor.name.split(' ')[0]
 
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-100 shadow-sm flex flex-col">
-          {/* Logo */}
-          <div className="p-6 border-b border-gray-100">
+        <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 shadow-sm flex flex-col">
+          {/* Logo + dark toggle */}
+          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <Image
                 src="https://i.ibb.co/pjdT6ncH/logo-de-la-doctora-medrano.png"
@@ -59,10 +57,11 @@ export default async function DoctorLayout({ children }: { children: React.React
                 height={40}
                 className="rounded-full"
               />
-              <div>
-                <p className="font-bold text-gray-900 text-sm">MedSara</p>
-                <p className="text-gray-400 text-xs">Panel Médico</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 dark:text-white text-sm">MedSara</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs">Panel Médico</p>
               </div>
+              <DarkModeToggle />
             </div>
           </div>
 
@@ -72,7 +71,7 @@ export default async function DoctorLayout({ children }: { children: React.React
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-colors font-medium text-sm"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-primary/5 dark:hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm"
               >
                 <span className="text-lg">{item.icon}</span>
                 {item.label}
@@ -81,7 +80,7 @@ export default async function DoctorLayout({ children }: { children: React.React
           </nav>
 
           {/* Sara quick access */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100 dark:border-gray-700">
             <Link
               href="/sara"
               className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-semibold text-sm hover:opacity-90 transition-opacity"
@@ -92,14 +91,24 @@ export default async function DoctorLayout({ children }: { children: React.React
           </div>
 
           {/* User info + logout */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {initials}
-              </div>
+              {doctor.avatarUrl ? (
+                <Image
+                  src={doctor.avatarUrl}
+                  alt={firstName}
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                  {initials}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 text-sm truncate">{displayName}</p>
-                <p className="text-gray-400 text-xs truncate">{doctor.specialty}</p>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{firstName}</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs truncate">{doctor.specialty}</p>
               </div>
               <LogoutButton />
             </div>
