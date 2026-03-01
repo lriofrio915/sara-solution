@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 
+export const dynamic = 'force-dynamic'
+
 interface Message {
   id: string
   role: 'user' | 'assistant'

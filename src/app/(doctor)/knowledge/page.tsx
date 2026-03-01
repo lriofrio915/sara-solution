@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 
+export const dynamic = 'force-dynamic'
+
 interface KnowledgeDoc {
   id: string
   name: string

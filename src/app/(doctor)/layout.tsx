@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import LogoutButton from '@/components/LogoutButton'
 import { getInitials } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 const navItems = [
   { href: '/dashboard', icon: '📊', label: 'Dashboard' },
   { href: '/patients', icon: '👥', label: 'Pacientes' },

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { formatTime } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Dashboard' }
 
 const appointmentTypeLabel: Record<string, string> = {
