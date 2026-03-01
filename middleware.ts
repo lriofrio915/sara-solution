@@ -1,12 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-
-// Rutas que requieren autenticación
-const PROTECTED_PATHS = ['/dashboard', '/patients', '/appointments', '/sara', '/portal']
-
-// Rutas de autenticación (redirigen si ya estás logueado)
-const AUTH_PATHS = ['/login', '/register']
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -20,53 +13,40 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
-    },
+    }
   )
 
-  // IMPORTANTE: usar getUser() (valida token con Supabase) en lugar de getSession()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const path = request.nextUrl.pathname
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
+                      request.nextUrl.pathname.startsWith('/register')
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
+                           request.nextUrl.pathname.startsWith('/patients') ||
+                           request.nextUrl.pathname.startsWith('/appointments') ||
+                           request.nextUrl.pathname.startsWith('/sara') ||
+                           request.nextUrl.pathname.startsWith('/knowledge') ||
+                           request.nextUrl.pathname.startsWith('/portal')
 
-  const isProtected = PROTECTED_PATHS.some((p) => path === p || path.startsWith(p + '/'))
-  const isAuthPage = AUTH_PATHS.some((p) => path === p || path.startsWith(p + '/'))
-
-  // Sin sesión intentando acceder a ruta protegida → /login
-  if (isProtected && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  if (!user && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Con sesión intentando acceder a login/register → /dashboard
-  if (isAuthPage && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+  if (user && isAuthRoute) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Aplica a todas las rutas excepto:
-     * - _next/static (archivos estáticos)
-     * - _next/image (optimización de imágenes)
-     * - favicon.ico
-     * - archivos con extensión (imágenes, fuentes, etc.)
-     * - /api/* (las API routes manejan su propia auth)
-     */
-    '/((?!_next/static|_next/image|favicon\\.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

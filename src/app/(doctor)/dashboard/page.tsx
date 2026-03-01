@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getDoctorByAuthId } from '@/lib/queries'
 import { prisma } from '@/lib/prisma'
 import { formatTime } from '@/lib/utils'
@@ -17,7 +17,7 @@ const appointmentTypeLabel: Record<string, string> = {
 }
 
 export default async function DashboardPage() {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

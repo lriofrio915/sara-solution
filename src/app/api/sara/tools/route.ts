@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getDoctorByAuthId } from '@/lib/queries'
 import { executeTool } from '@/lib/sara-tools'
 
 // POST /api/sara/tools
 // Body: { toolName: string, args: Record<string, unknown> }
 export async function POST(req: NextRequest) {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

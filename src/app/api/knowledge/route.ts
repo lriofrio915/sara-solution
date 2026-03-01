@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getDoctorByAuthId } from '@/lib/queries'
 import { prisma } from '@/lib/prisma'
@@ -11,7 +11,7 @@ const MAX_TEXT_LENGTH = 100_000 // chars — reasonable limit for DB storage
 // Returns list of knowledge documents for the authenticated doctor
 
 export async function GET() {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -34,7 +34,7 @@ export async function GET() {
 // Uploads a file to Supabase Storage and saves metadata + extracted text to DB
 
 export async function POST(req: NextRequest) {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 // ─── DELETE /api/knowledge?id=xxx ─────────────────────────────────────────────
 
 export async function DELETE(req: NextRequest) {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

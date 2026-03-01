@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getDoctorByAuthId } from '@/lib/queries'
 import LogoutButton from '@/components/LogoutButton'
 import { getInitials } from '@/lib/utils'
@@ -15,7 +15,7 @@ const navItems = [
 ]
 
 export default async function DoctorLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getDoctorByAuthId } from '@/lib/queries'
 import { askSara, type SaraMessage } from '@/lib/sara'
 import { prisma } from '@/lib/prisma'
@@ -9,7 +9,7 @@ import { prisma } from '@/lib/prisma'
 // Returns: SSE stream with events
 export async function POST(req: NextRequest) {
   // Auth
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
