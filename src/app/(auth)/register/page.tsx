@@ -39,13 +39,12 @@ export default function RegisterPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim()
 
     // 1. Crear usuario en Supabase Auth
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim() } },
     })
 
     if (signUpError) {
@@ -59,11 +58,12 @@ export default function RegisterPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: fullName,
+        userId: data.user?.id,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         specialty: form.specialty,
         email: form.email,
         phone: form.phone || null,
-        authId: data.user?.id,
       }),
     })
 

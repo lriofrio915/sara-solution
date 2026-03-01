@@ -7,5 +7,5 @@ import { prisma } from '@/lib/prisma'
  * (ej: layout + page no hacen doble query a la BD).
  */
 export const getDoctorByAuthId = cache(async (authId: string) => {
-  return prisma.doctor.findUnique({ where: { authId } })
+  return prisma.doctor.findUnique({ where: { id: authId } })
 })
