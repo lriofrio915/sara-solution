@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,11 @@ export async function POST(request: NextRequest) {
         active: true,
       },
     })
+
+    // Send welcome email (non-blocking — don't fail registration if email fails)
+    sendWelcomeEmail(doctor.email, doctor.name).catch((err) =>
+      console.error('Welcome email error:', err),
+    )
 
     return NextResponse.json({ doctor }, { status: 201 })
   } catch (error) {
