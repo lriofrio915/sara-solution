@@ -14,6 +14,7 @@ export async function GET() {
       where: { OR: [{ id: user.id }, { email: user.email! }] },
       select: {
         id: true,
+        slug: true,
         name: true,
         specialty: true,
         email: true,
@@ -23,6 +24,7 @@ export async function GET() {
         address: true,
         whatsapp: true,
         schedules: true,
+        services: true,
       },
     })
 
@@ -41,7 +43,7 @@ export async function PATCH(req: Request) {
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { name, specialty, phone, bio, avatarUrl, address, whatsapp, schedules } = body
+    const { name, specialty, phone, bio, avatarUrl, address, whatsapp, schedules, services } = body
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
@@ -59,9 +61,11 @@ export async function PATCH(req: Request) {
         ...(address !== undefined && { address: address || null }),
         ...(whatsapp !== undefined && { whatsapp: whatsapp || null }),
         ...(schedules !== undefined && { schedules: schedules || null }),
+        ...(services !== undefined && { services: services || null }),
       },
       select: {
         id: true,
+        slug: true,
         name: true,
         specialty: true,
         email: true,
@@ -71,6 +75,7 @@ export async function PATCH(req: Request) {
         address: true,
         whatsapp: true,
         schedules: true,
+        services: true,
       },
     })
 

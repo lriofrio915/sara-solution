@@ -73,6 +73,7 @@ model Doctor {
   address   String?
   whatsapp  String?
   schedules String?
+  services  String?
 
   // Supabase auth user ID
   authId String? @unique

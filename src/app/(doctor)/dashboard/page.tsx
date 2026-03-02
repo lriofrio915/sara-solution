@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { formatTime } from '@/lib/utils'
+import PublicPageCard from '@/components/PublicPageCard'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -117,7 +118,7 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {/* Quick actions + Sara promo */}
+        {/* Quick actions + Sara promo + public page */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h2 className="font-bold text-gray-900 dark:text-white mb-4">Acciones Rápidas</h2>
@@ -192,23 +193,32 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Sara promo */}
-          <div
-            className="rounded-2xl p-6 text-white"
-            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-          >
-            <div className="text-4xl mb-4">✨</div>
-            <h2 className="font-bold text-xl mb-2">Hola, soy Sara</h2>
-            <p className="text-blue-100 text-sm leading-relaxed mb-6">
-              Tu asistente médica IA. Puedo ayudarte a registrar pacientes, agendar citas, buscar
-              historiales y redactar recetas con solo pedírmelo.
-            </p>
-            <Link
-              href="/sara"
-              className="flex items-center justify-center gap-2 bg-white text-primary font-semibold px-5 py-3 rounded-xl hover:bg-blue-50 transition-colors text-sm"
+          {/* Right column: Sara promo + public page */}
+          <div className="flex flex-col gap-6">
+            {/* Sara promo */}
+            <div
+              className="rounded-2xl p-6 text-white"
+              style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
             >
-              🤖 Hablar con Sara
-            </Link>
+              <div className="text-4xl mb-4">✨</div>
+              <h2 className="font-bold text-xl mb-2">Hola, soy Sara</h2>
+              <p className="text-blue-100 text-sm leading-relaxed mb-6">
+                Tu asistente médica IA. Puedo ayudarte a registrar pacientes, agendar citas, buscar
+                historiales y redactar recetas con solo pedírmelo.
+              </p>
+              <Link
+                href="/sara"
+                className="flex items-center justify-center gap-2 bg-white text-primary font-semibold px-5 py-3 rounded-xl hover:bg-blue-50 transition-colors text-sm"
+              >
+                🤖 Hablar con Sara
+              </Link>
+            </div>
+
+            {/* Public page card */}
+            <PublicPageCard
+              slug={doctor.slug}
+              appUrl={process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}
+            />
           </div>
         </div>
       </div>
