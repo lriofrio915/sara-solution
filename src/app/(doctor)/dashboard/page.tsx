@@ -92,6 +92,18 @@ export default async function DashboardPage() {
 
     return (
       <div className="p-8">
+        {/* Incomplete profile banner */}
+        {!doctor.bio && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+            <p className="text-blue-800">
+              👋 Completa tu perfil para activar tu página pública
+            </p>
+            <a href="/onboarding" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+              Completar perfil
+            </a>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import LogoutButton from '@/components/LogoutButton'
@@ -39,13 +38,6 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     if (!doctor) {
       redirect('/login')
-    }
-
-    // First-login detection: redirect to onboarding if bio is missing
-    const headersList = await headers()
-    const pathname = headersList.get('x-pathname') ?? ''
-    if (!doctor.bio && !pathname.startsWith('/onboarding')) {
-      redirect('/onboarding')
     }
 
     const initials = getInitials(doctor.name)
