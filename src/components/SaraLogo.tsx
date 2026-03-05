@@ -9,8 +9,8 @@ interface SaraLogoProps {
 export default function SaraLogo({ dark = false, size = 'md', href = '/' }: SaraLogoProps) {
   const iconSize = size === 'sm' ? 32 : 36
   const textSize = size === 'sm' ? 'text-sm' : 'text-lg'
-  const textColor = dark ? 'text-white' : 'text-gray-900'
-  const subColor = dark ? 'text-white/60' : 'text-gray-400'
+  const textColor = dark ? 'text-white' : 'text-gray-900 dark:text-white'
+  const subColor = dark ? 'text-white/60' : 'text-gray-400 dark:text-gray-400'
 
   return (
     <Link href={href} className="flex items-center gap-2.5 flex-shrink-0">
