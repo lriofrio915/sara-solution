@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import SaraLogo from '@/components/SaraLogo'
 import { formatDateTime } from '@/lib/utils'
 

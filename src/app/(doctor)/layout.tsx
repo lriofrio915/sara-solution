@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
+
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import LogoutButton from '@/components/LogoutButton'

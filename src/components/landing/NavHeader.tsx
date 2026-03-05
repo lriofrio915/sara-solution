@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import SaraLogo from '@/components/SaraLogo'
 
 export default function NavHeader() {
