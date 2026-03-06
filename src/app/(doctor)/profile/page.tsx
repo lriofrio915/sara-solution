@@ -69,7 +69,7 @@ export default function ProfilePage() {
   }
 
   async function copyLink() {
-    const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://sara.consultorio.site'}/${form.slug}`
+    const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -357,7 +357,7 @@ export default function ProfilePage() {
             </label>
             <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition">
               <span className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm border-r border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                sara.consultorio.site/
+                consultorio.site/
               </span>
               <input
                 type="text"
@@ -377,12 +377,12 @@ export default function ProfilePage() {
               <p className="text-xs text-blue-500 font-semibold mb-2 uppercase tracking-wide">Tu link público</p>
               <div className="flex items-center gap-2">
                 <a
-                  href={`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://sara.consultorio.site'}/${form.slug}`}
+                  href={`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 text-blue-700 dark:text-blue-400 text-sm font-mono truncate hover:underline"
                 >
-                  {`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://sara.consultorio.site'}/${form.slug}`}
+                  {`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`}
                 </a>
                 <button
                   type="button"
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   {/* Facebook */}
                   <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://sara.consultorio.site'}/${form.slug}`)}`}
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1877F2] hover:bg-[#1664d8] text-white rounded-lg text-xs font-semibold transition-colors"
@@ -411,7 +411,7 @@ export default function ProfilePage() {
                   </a>
                   {/* LinkedIn */}
                   <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://sara.consultorio.site'}/${form.slug}`)}`}
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A66C2] hover:bg-[#0958a8] text-white rounded-lg text-xs font-semibold transition-colors"

@@ -14,7 +14,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
       <h1>Hola ${name} 👋</h1>
       <p>Tu cuenta en Sara ha sido creada exitosamente.</p>
       <p>Ya puedes iniciar sesión en
-         <a href="https://sara.consultorio.site/login">sara.consultorio.site</a>
+         <a href="https://consultorio.site/login">consultorio.site</a>
       </p>
     `,
   })
