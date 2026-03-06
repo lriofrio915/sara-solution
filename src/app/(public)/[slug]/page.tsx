@@ -8,13 +8,11 @@ export const dynamic = 'force-dynamic'
 type Props = { params: { slug: string } }
 
 function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 }
+
+// Íconos médicos variados — se asignan por índice, nunca se repite el mismo consecutivamente
+const SERVICE_ICONS = ['🫀','🧠','🩺','💊','🩻','🔬','🩹','🧬','💉','🏥','👁️','🦴','🫁','🩸','🧪','🌡️','🦷','🫂']
 
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
   return (
@@ -27,12 +25,17 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
-    select: { name: true, specialty: true, bio: true },
+    select: { name: true, specialty: true, bio: true, avatarUrl: true },
   })
   if (!doctor) return { title: 'Médico no encontrado' }
   return {
     title: `${doctor.name} | ${doctor.specialty}`,
     description: doctor.bio ?? `Agenda tu cita con ${doctor.name}, especialista en ${doctor.specialty}.`,
+    openGraph: {
+      title: `${doctor.name} — ${doctor.specialty}`,
+      description: doctor.bio ?? '',
+      images: doctor.avatarUrl ? [doctor.avatarUrl] : [],
+    },
   }
 }
 
@@ -40,136 +43,154 @@ export default async function DoctorPublicPage({ params }: Props) {
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: {
-      id: true,
-      name: true,
-      specialty: true,
-      bio: true,
-      avatarUrl: true,
-      address: true,
-      whatsapp: true,
-      schedules: true,
-      services: true,
-      phone: true,
+      id: true, name: true, specialty: true, bio: true,
+      avatarUrl: true, address: true, whatsapp: true,
+      schedules: true, services: true, phone: true,
     },
   })
 
   if (!doctor) notFound()
 
-  const initials = getInitials(doctor.name)
-
-  // Parse services (newline-separated)
+  const initials     = getInitials(doctor.name)
+  const firstName    = doctor.name.split(' ')[0]
   const servicesList = doctor.services
     ? doctor.services.split('\n').map((s) => s.trim()).filter(Boolean)
     : []
-
-  // Parse schedules (newline-separated)
   const scheduleLines = doctor.schedules
     ? doctor.schedules.split('\n').map((s) => s.trim()).filter(Boolean)
     : []
 
-  const whatsappNumber = doctor.whatsapp ? doctor.whatsapp.replace(/\D/g, '') : null
-  const whatsappUrl = whatsappNumber
+  const whatsappNumber = doctor.whatsapp?.replace(/\D/g, '') ?? null
+  const whatsappUrl    = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=Hola+${encodeURIComponent(doctor.name)}%2C+me+gustar%C3%ADa+agendar+una+cita`
     : null
 
+  // Avatar reutilizable
+  const AvatarLg = () => doctor.avatarUrl ? (
+    <img src={doctor.avatarUrl} alt={doctor.name}
+      className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-white font-bold text-5xl"
+      style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
+      {initials}
+    </div>
+  )
+
+  const AvatarSm = () => doctor.avatarUrl ? (
+    <img src={doctor.avatarUrl} alt={doctor.name}
+      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+  ) : (
+    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+      style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
+      {initials}
+    </div>
+  )
+
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
-      {/* Sticky header */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+
+      {/* ── STICKY HEADER ── */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {doctor.avatarUrl ? (
-              <img
-                src={doctor.avatarUrl}
-                alt={doctor.name}
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-              />
-            ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-              >
-                {initials}
-              </div>
-            )}
+            <AvatarSm />
             <div>
               <p className="font-bold text-gray-900 text-sm leading-tight">{doctor.name}</p>
               <p className="text-blue-600 text-xs font-medium">{doctor.specialty}</p>
             </div>
           </div>
-          <Link
-            href={`/${params.slug}/chat`}
-            className="text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-md hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-          >
-            Agendar cita
+          <Link href={`/${params.slug}/chat`}
+            className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-md hover:opacity-90 transition-all hover:-translate-y-0.5 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
+            <span>📅</span>
+            Reservar cita
           </Link>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        {/* Hero */}
-        <section className="text-center mb-14">
-          <div className="flex justify-center mb-6">
-            {doctor.avatarUrl ? (
-              <img
-                src={doctor.avatarUrl}
-                alt={doctor.name}
-                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
-              />
-            ) : (
-              <div
-                className="w-32 h-32 rounded-full flex items-center justify-center text-white font-bold text-4xl shadow-xl border-4 border-white"
-                style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-              >
-                {initials}
+      <main className="max-w-5xl mx-auto px-4">
+
+        {/* ── HERO ── */}
+        <section className="py-12 md:py-20">
+          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
+
+            {/* Foto del doctor — prominente */}
+            <div className="flex-shrink-0 relative">
+              {/* Anillo decorativo */}
+              <div className="absolute inset-0 rounded-full scale-110 opacity-20"
+                style={{ background: 'linear-gradient(135deg, #2563EB, #0D9488)' }} />
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative z-10">
+                <AvatarLg />
               </div>
-            )}
-          </div>
+              {/* Badge de especialidad */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap
+                bg-white border border-gray-100 shadow-lg rounded-full px-4 py-1.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-xs font-semibold text-gray-700">Disponible para citas</span>
+              </div>
+            </div>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{doctor.name}</h1>
-          <p className="text-blue-600 font-semibold text-lg mb-5">{doctor.specialty}</p>
+            {/* Texto */}
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-2">
+                {doctor.specialty}
+              </p>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
+                {doctor.name}
+              </h1>
+              {doctor.bio && (
+                <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-xl">
+                  {doctor.bio}
+                </p>
+              )}
 
-          {doctor.bio && (
-            <p className="text-gray-600 max-w-xl mx-auto leading-relaxed text-base">{doctor.bio}</p>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            <Link
-              href={`/${params.slug}/chat`}
-              className="flex items-center justify-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 transition-all hover:-translate-y-0.5 text-base"
-              style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-            >
-              <span>📅</span>
-              Agendar mi cita con Sara
-            </Link>
-            {whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold px-8 py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5 text-base"
-              >
-                <WhatsAppIcon size={20} />
-                WhatsApp
-              </a>
-            )}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                <Link href={`/${params.slug}/chat`}
+                  className="flex items-center justify-center gap-2.5 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 transition-all hover:-translate-y-0.5 text-base"
+                  style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
+                  <span>📅</span>
+                  Reservar mi cita
+                </Link>
+                {whatsappUrl && (
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold px-8 py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5 text-base">
+                    <WhatsAppIcon size={20} />
+                    Escribir por WhatsApp
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Info cards */}
+        {/* ── TRUST BADGES ── */}
+        <div className="flex flex-wrap justify-center gap-6 pb-12 border-b border-gray-100">
+          {[
+            { icon: '🕐', label: 'Atención 24/7' },
+            { icon: '🔒', label: 'Datos protegidos' },
+            { icon: '⚡', label: 'Respuesta inmediata' },
+            { icon: '📋', label: 'Sin filas de espera' },
+          ].map((b) => (
+            <div key={b.label} className="flex items-center gap-2 text-gray-500 text-sm">
+              <span className="text-xl">{b.icon}</span>
+              <span className="font-medium">{b.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── HORARIOS + UBICACIÓN ── */}
         {(scheduleLines.length > 0 || doctor.address) && (
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <div className="grid md:grid-cols-2 gap-6 py-12">
             {scheduleLines.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-xl">🕐</span>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
                   Horarios de atención
                 </h2>
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {scheduleLines.map((line, i) => (
-                    <li key={i} className="text-gray-600 text-sm flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                    <li key={i} className="flex items-start gap-3 text-gray-600 text-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
                       {line}
                     </li>
                   ))}
@@ -178,17 +199,15 @@ export default async function DoctorPublicPage({ params }: Props) {
             )}
 
             {doctor.address && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-xl">📍</span>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">📍</span>
                   Ubicación
                 </h2>
-                <p className="text-gray-600 text-sm leading-relaxed mb-3">{doctor.address}</p>
+                <p className="text-gray-600 text-sm leading-relaxed mb-4">{doctor.address}</p>
                 {doctor.phone && (
-                  <a
-                    href={`tel:${doctor.phone}`}
-                    className="flex items-center gap-2 text-gray-600 text-sm hover:text-blue-600 transition-colors"
-                  >
+                  <a href={`tel:${doctor.phone}`}
+                    className="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors">
                     <span>📞</span>
                     {doctor.phone}
                   </a>
@@ -198,66 +217,81 @@ export default async function DoctorPublicPage({ params }: Props) {
           </div>
         )}
 
-        {/* Services */}
+        {/* ── SERVICIOS ── */}
         {servicesList.length > 0 && (
-          <section className="mb-12">
-            <h2 className="font-bold text-gray-900 text-2xl mb-6 text-center">Servicios</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <section className="pb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Servicios</h2>
+              <p className="text-gray-400 text-sm">Todo lo que {firstName} ofrece para tu bienestar</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {servicesList.map((service, i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md hover:border-blue-100 transition-all"
-                >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 text-xl"
-                    style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}
-                  >
-                    ⚕️
+                <div key={i}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md hover:-translate-y-1 hover:border-blue-100 transition-all duration-200 group">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform"
+                    style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
+                    {SERVICE_ICONS[i % SERVICE_ICONS.length]}
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">{service}</p>
+                  <p className="font-semibold text-gray-800 text-sm leading-snug">{service}</p>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* CTA section */}
-        <section
-          className="rounded-3xl p-10 text-center text-white mb-8"
-          style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}
-        >
-          <div className="text-4xl mb-3">✨</div>
-          <h2 className="text-2xl font-bold mb-3">¿Listo para cuidar tu salud?</h2>
-          <p className="text-white/80 mb-6 max-w-md mx-auto">
-            Agenda tu cita ahora mismo. Mi asistente Sara te atenderá al instante, los 7 días de la semana.
-          </p>
-          <Link
-            href={`/${params.slug}/chat`}
-            className="inline-flex items-center gap-2 bg-white font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg text-blue-600"
-          >
-            <span>💬</span>
-            Hablar con Sara
-          </Link>
+        {/* ── CTA CON FOTO DEL DOCTOR ── */}
+        <section className="mb-12 rounded-3xl overflow-hidden shadow-xl"
+          style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)' }}>
+          <div className="flex flex-col md:flex-row items-center">
+
+            {/* Foto del doctor — lado izquierdo */}
+            <div className="w-full md:w-64 h-56 md:h-auto flex-shrink-0 relative overflow-hidden">
+              {doctor.avatarUrl ? (
+                <img src={doctor.avatarUrl} alt={doctor.name}
+                  className="w-full h-full object-cover object-top md:absolute md:inset-0" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-20">
+                  <div className="text-white text-8xl font-bold">{initials}</div>
+                </div>
+              )}
+              {/* Gradiente de transición */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-blue-800/60 hidden md:block" />
+            </div>
+
+            {/* Texto + botón */}
+            <div className="flex-1 p-8 md:p-12 text-white text-center md:text-left">
+              <p className="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">
+                Atención personalizada
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                ¿Listo para cuidar tu salud?
+              </h2>
+              <p className="text-white/75 mb-7 max-w-md leading-relaxed">
+                {firstName} cuenta con un asistente digital disponible los 7 días de la semana para atenderte, responder tus dudas y agendar tu cita.
+              </p>
+              <Link href={`/${params.slug}/chat`}
+                className="inline-flex items-center gap-2.5 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg text-base">
+                <span>💬</span>
+                Consultar disponibilidad
+              </Link>
+            </div>
+          </div>
         </section>
+
       </main>
 
-      {/* Footer */}
+      {/* ── FOOTER ── */}
       <footer className="border-t border-gray-100 bg-white py-6 text-center text-gray-400 text-xs">
-        <p>Asistente médico potenciado por Sara IA · MedSara</p>
+        <p>Página gestionada con <span className="font-semibold text-gray-500">consultorio.site</span></p>
       </footer>
 
-      {/* WhatsApp float */}
+      {/* ── WHATSAPP FLOAT ── */}
       {whatsappUrl && (
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="WhatsApp"
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
-        >
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group">
           <WhatsAppIcon size={28} />
           <span className="absolute right-16 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            Escríbenos
+            Escríbenos por WhatsApp
           </span>
         </a>
       )}
