@@ -11,6 +11,22 @@ function getInitials(name: string) {
   return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
+// Palabras de título profesional que se eliminan del nombre para mostrarlo corto
+const TITLE_WORDS = new Set([
+  'medico','médico','medica','médica','cirujano','cirujana',
+  'doctor','doctora','especialista','licenciado','licenciada',
+  'ing','lic','dr','dra','dr.','dra.',
+])
+const FEMININE_WORDS = new Set(['médica','medica','cirujana','doctora','licenciada','dra','dra.'])
+
+// "Medico Cirujano Luis Eduardo Riofrio Lopez" → "Dr. Luis Riofrio"
+function formatDoctorName(fullName: string): string {
+  const isFeminine = fullName.split(' ').some((w) => FEMININE_WORDS.has(w.toLowerCase()))
+  const parts = fullName.split(' ').filter((w) => !TITLE_WORDS.has(w.toLowerCase()))
+  const shortName = parts.slice(0, 2).join(' ')
+  return `${isFeminine ? 'Dra.' : 'Dr.'} ${shortName}`
+}
+
 // Íconos médicos variados — se asignan por índice, nunca se repite el mismo consecutivamente
 const SERVICE_ICONS = ['🫀','🧠','🩺','💊','🩻','🔬','🩹','🧬','💉','🏥','👁️','🦴','🫁','🩸','🧪','🌡️','🦷','🫂']
 
@@ -51,8 +67,9 @@ export default async function DoctorPublicPage({ params }: Props) {
 
   if (!doctor) notFound()
 
-  const initials     = getInitials(doctor.name)
-  const firstName    = doctor.name.split(' ')[0]
+  const initials      = getInitials(doctor.name)
+  const displayName   = formatDoctorName(doctor.name)
+  const firstName     = displayName  // usado en WhatsApp y saludos
   const servicesList = doctor.services
     ? doctor.services.split('\n').map((s) => s.trim()).filter(Boolean)
     : []
@@ -62,7 +79,7 @@ export default async function DoctorPublicPage({ params }: Props) {
 
   const whatsappNumber = doctor.whatsapp?.replace(/\D/g, '') ?? null
   const whatsappUrl    = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=Hola+${encodeURIComponent(doctor.name)}%2C+me+gustar%C3%ADa+agendar+una+cita`
+    ? `https://wa.me/${whatsappNumber}?text=Hola+${encodeURIComponent(displayName)}%2C+me+gustar%C3%ADa+agendar+una+cita`
     : null
 
   // Avatar reutilizable
@@ -95,7 +112,7 @@ export default async function DoctorPublicPage({ params }: Props) {
           <div className="flex items-center gap-3">
             <AvatarSm />
             <div>
-              <p className="font-bold text-gray-900 text-sm leading-tight">{doctor.name}</p>
+              <p className="font-bold text-gray-900 text-sm leading-tight">{displayName}</p>
               <p className="text-blue-600 text-xs font-medium">{doctor.specialty}</p>
             </div>
           </div>
@@ -136,7 +153,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                 {doctor.specialty}
               </p>
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
-                {doctor.name}
+                {displayName}
               </h1>
               {doctor.bio && (
                 <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-xl">
