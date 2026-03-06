@@ -299,7 +299,7 @@ export default async function DoctorPublicPage({ params }: Props) {
 
       {/* ── FOOTER ── */}
       <footer className="border-t border-gray-100 bg-white py-6 text-center text-gray-400 text-xs">
-        <p>Página gestionada con <span className="font-semibold text-gray-500">consultorio.site</span></p>
+        <p>Página gestionada con <a href="https://www.consultorio.site" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-500 hover:text-blue-600 transition-colors">consultorio.site</a></p>
       </footer>
 
       {/* ── WHATSAPP FLOAT ── */}
