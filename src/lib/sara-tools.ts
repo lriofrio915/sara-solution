@@ -579,7 +579,7 @@ async function createReminder(args: Record<string, unknown>, doctorId: string): 
 async function searchKnowledge(args: Record<string, unknown>, doctorId: string): Promise<ToolResult> {
   try {
     const query = args.query as string
-    const limit = Math.min((args.limit as number) || 3, 10)
+    const limit = Math.min((args.limit as number) || 5, 10)
 
     if (!query) return { success: false, error: 'El término de búsqueda es requerido' }
 
@@ -597,18 +597,26 @@ async function searchKnowledge(args: Record<string, unknown>, doctorId: string):
       },
     })
 
-    // Return relevant excerpts (first 500 chars around the match)
+    // Return relevant excerpts — up to 2000 chars around the best match
     const results = docs.map((doc) => {
       const lowerContent = doc.textContent.toLowerCase()
       const lowerQuery = query.toLowerCase()
       const idx = lowerContent.indexOf(lowerQuery)
-      const start = Math.max(0, idx - 100)
-      const end = Math.min(doc.textContent.length, idx + 400)
-      const excerpt = (start > 0 ? '...' : '') + doc.textContent.slice(start, end) + (end < doc.textContent.length ? '...' : '')
+
+      let excerpt: string
+      if (idx === -1) {
+        // No direct match (full-text search may have matched via icontains) — return beginning
+        excerpt = doc.textContent.slice(0, 2000) + (doc.textContent.length > 2000 ? '...' : '')
+      } else {
+        const start = Math.max(0, idx - 200)
+        const end = Math.min(doc.textContent.length, idx + 1800)
+        excerpt = (start > 0 ? '...' : '') + doc.textContent.slice(start, end) + (end < doc.textContent.length ? '...' : '')
+      }
 
       return {
         documentName: doc.name,
         excerpt,
+        totalChars: doc.textContent.length,
         createdAt: doc.createdAt,
       }
     })

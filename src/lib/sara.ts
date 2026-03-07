@@ -266,9 +266,23 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'check_available_slots',
+      description: 'Consulta los horarios disponibles para una fecha específica. Úsalo antes de agendar una cita para verificar disponibilidad.',
+      parameters: {
+        type: 'object',
+        properties: {
+          date: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
+        },
+        required: ['date'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'search_knowledge',
       description:
-        'Busca información en la base de conocimiento personalizada de la doctora (protocolos, guías clínicas, documentos subidos).',
+        'Busca información en la base de conocimiento personalizada de la doctora (protocolos, guías clínicas, documentos subidos). Úsala SIEMPRE que el médico pregunte sobre protocolos, tratamientos, dosis o procedimientos.',
       parameters: {
         type: 'object',
         properties: {
@@ -292,6 +306,7 @@ const TOOL_DISPLAY: Record<string, string> = {
   update_medical_record: 'Guardando registro médico',
   create_prescription: 'Generando receta',
   create_reminder: 'Creando recordatorio',
+  check_available_slots: 'Consultando disponibilidad',
   search_knowledge: 'Buscando en base de conocimiento',
 }
 
@@ -332,6 +347,8 @@ Fecha y hora actual: ${now}
 4. Para fechas y horas, usa el formato de Ecuador (GMT-5)
 5. Mantén la confidencialidad médica - no compartas información de pacientes de forma innecesaria
 6. Si el usuario te pide algo fuera de tu alcance médico, redirige amablemente
+7. SIEMPRE usa search_knowledge cuando el médico pregunte sobre protocolos, tratamientos, dosis, procedimientos o guías clínicas. Cita el documento fuente en tu respuesta.
+8. Para agendar citas, SIEMPRE verifica primero con check_available_slots antes de usar schedule_appointment.
 
 ## Formato de respuestas:
 - Usa formato markdown para mejor legibilidad
