@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const doctor = await getDoctorByAuthId(user.id)
+  const doctor = await getDoctorByAuthId(user.id, user.email ?? undefined)
   if (!doctor) {
     return new Response(JSON.stringify({ error: 'Doctor no encontrado' }), {
       status: 404,

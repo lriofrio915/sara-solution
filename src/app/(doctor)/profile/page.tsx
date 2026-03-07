@@ -572,14 +572,14 @@ export default function ProfilePage() {
                     type="time"
                     value={day.startTime}
                     onChange={(e) => handleDayTime(day.weekday, 'startTime', e.target.value)}
-                    className="w-[120px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                   <span className="text-gray-400 text-sm flex-shrink-0">–</span>
                   <input
                     type="time"
                     value={day.endTime}
                     onChange={(e) => handleDayTime(day.weekday, 'endTime', e.target.value)}
-                    className="w-[120px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                   <span className="text-xs text-gray-400 hidden sm:block">
                     ({Math.floor((
