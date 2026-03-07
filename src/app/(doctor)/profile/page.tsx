@@ -447,7 +447,7 @@ export default function ProfilePage() {
 
               <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800">
                 <p className="text-xs text-blue-400 mb-2">Compartir en:</p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <a
                     href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`)}`}
                     target="_blank"
@@ -540,7 +540,7 @@ export default function ProfilePage() {
         <div className="space-y-3">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Días y horarios</p>
           {weekSchedule.map((day) => (
-            <div key={day.weekday} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+            <div key={day.weekday} className={`flex flex-wrap items-center gap-x-3 gap-y-2 p-3 rounded-xl border transition-colors ${
               day.isActive
                 ? 'border-primary/30 bg-primary/5 dark:bg-primary/10'
                 : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30'
@@ -567,19 +567,19 @@ export default function ProfilePage() {
 
               {/* Time inputs */}
               {day.isActive ? (
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2">
                   <input
                     type="time"
                     value={day.startTime}
                     onChange={(e) => handleDayTime(day.weekday, 'startTime', e.target.value)}
-                    className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-[120px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
-                  <span className="text-gray-400 text-sm">–</span>
+                  <span className="text-gray-400 text-sm flex-shrink-0">–</span>
                   <input
                     type="time"
                     value={day.endTime}
                     onChange={(e) => handleDayTime(day.weekday, 'endTime', e.target.value)}
-                    className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-[120px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                   <span className="text-xs text-gray-400 hidden sm:block">
                     ({Math.floor((
