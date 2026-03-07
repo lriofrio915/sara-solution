@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
@@ -74,8 +72,8 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/dashboard')
-    router.refresh()
+    // Full reload so the server middleware reads the Supabase session cookie
+    window.location.href = '/dashboard'
   }
 
   return (
