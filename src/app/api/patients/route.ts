@@ -84,6 +84,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'El nombre del paciente es requerido' }, { status: 400 })
     }
 
+    // Duplicate detection
+    const dupConditions: object[] = []
+    if (documentId?.trim()) {
+      dupConditions.push({ documentId: documentId.trim() })
+    }
+    if (phone?.trim() && name?.trim()) {
+      dupConditions.push({
+        phone: phone.trim(),
+        name: { equals: String(name).trim(), mode: 'insensitive' as const },
+      })
+    }
+
+    if (dupConditions.length > 0) {
+      const duplicate = await prisma.patient.findFirst({
+        where: { doctorId: doctor.id, OR: dupConditions },
+        select: { id: true, name: true },
+      })
+      if (duplicate) {
+        return NextResponse.json(
+          { error: `Ya existe un paciente con esos datos: ${duplicate.name}`, existingId: duplicate.id },
+          { status: 409 }
+        )
+      }
+    }
+
     const patient = await prisma.patient.create({
       data: {
         doctorId: doctor.id,

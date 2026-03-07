@@ -28,8 +28,9 @@ export default function PatientsPage() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(true)
   const [debouncedQ, setDebouncedQ] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  // Debounce search query
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 300)
     return () => clearTimeout(t)
@@ -53,6 +54,20 @@ export default function PatientsPage() {
     fetchPatients(debouncedQ)
   }, [debouncedQ, fetchPatients])
 
+  async function handleDelete(id: string) {
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/patients/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setPatients((prev) => prev.filter((p) => p.id !== id))
+        setTotal((prev) => prev - 1)
+      }
+    } finally {
+      setDeletingId(null)
+      setConfirmDeleteId(null)
+    }
+  }
+
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
@@ -62,8 +77,7 @@ export default function PatientsPage() {
             {total > 0 ? `${total} paciente${total !== 1 ? 's' : ''} registrado${total !== 1 ? 's' : ''}` : 'Gestión de tu base de pacientes'}
           </p>
         </div>
-        <Link href="/patients/new"
-          className="btn-primary flex-shrink-0">
+        <Link href="/patients/new" className="btn-primary flex-shrink-0">
           + Nuevo paciente
         </Link>
       </div>
@@ -105,12 +119,8 @@ export default function PatientsPage() {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay pacientes aún</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">Comienza agregando tu primer paciente o pídele a Sara que te ayude.</p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                <Link href="/patients/new" className="btn-primary">
-                  Agregar paciente
-                </Link>
-                <Link href="/sara" className="btn-outline">
-                  Pedir a Sara
-                </Link>
+                <Link href="/patients/new" className="btn-primary">Agregar paciente</Link>
+                <Link href="/sara" className="btn-outline">Pedir a Sara</Link>
               </div>
             </>
           )}
@@ -165,13 +175,36 @@ export default function PatientsPage() {
               </div>
 
               {/* Actions */}
-              <div>
-                <Link
-                  href={`/patients/${p.id}`}
-                  className="text-xs font-semibold text-primary hover:underline whitespace-nowrap"
-                >
-                  Ver →
-                </Link>
+              <div className="flex items-center gap-2">
+                {confirmDeleteId === p.id ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">¿Eliminar?</span>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      disabled={deletingId === p.id}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50">
+                      {deletingId === p.id ? '...' : 'Sí'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      href={`/patients/${p.id}`}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors whitespace-nowrap">
+                      Editar
+                    </Link>
+                    <button
+                      onClick={() => setConfirmDeleteId(p.id)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors">
+                      Eliminar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

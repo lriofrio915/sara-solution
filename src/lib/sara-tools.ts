@@ -20,6 +20,34 @@ async function registerPatient(args: Record<string, unknown>, doctorId: string):
     const name = args.name as string
     if (!name) return { success: false, error: 'El nombre del paciente es requerido' }
 
+    // Duplicate detection before creating
+    const dupConditions: object[] = []
+    if (args.documentId) {
+      dupConditions.push({ documentId: String(args.documentId) })
+    }
+    if (args.phone && name) {
+      dupConditions.push({
+        phone: String(args.phone),
+        name: { equals: name, mode: 'insensitive' as const },
+      })
+    }
+    if (dupConditions.length > 0) {
+      const existing = await prisma.patient.findFirst({
+        where: { doctorId, OR: dupConditions },
+        select: { id: true, name: true, phone: true, email: true, bloodType: true },
+      })
+      if (existing) {
+        return {
+          success: true,
+          data: {
+            message: `El paciente ${existing.name} ya está registrado en el sistema.`,
+            patient: existing,
+            alreadyExisted: true,
+          },
+        }
+      }
+    }
+
     const patient = await prisma.patient.create({
       data: {
         doctorId,
