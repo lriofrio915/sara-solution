@@ -18,9 +18,10 @@ async function getDoctor(user: { id: string; email?: string | null }) {
 async function extractText(buffer: Buffer, mimeType: string, filename: string): Promise<string> {
   try {
     if (mimeType === 'application/pdf') {
-      // pdf-parse is CJS — import the module itself
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // pdf-parse is CJS — use require to avoid ESM/CJS mismatch
+      /* eslint-disable */
       const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
+      /* eslint-enable */
       const result = await pdfParse(buffer)
       return result.text?.trim() || `[PDF sin texto extraíble: ${filename}]`
     }
