@@ -9,12 +9,15 @@ import LogoutButton from '@/components/LogoutButton'
 import DarkModeToggle from '@/components/DarkModeToggle'
 
 const navItems = [
-  { href: '/dashboard',   icon: '📊', label: 'Dashboard' },
-  { href: '/patients',    icon: '👥', label: 'Pacientes' },
-  { href: '/appointments',icon: '📅', label: 'Citas' },
-  { href: '/sara',        icon: '✨', label: 'Sara IA' },
-  { href: '/knowledge',   icon: '📚', label: 'Conocimiento' },
-  { href: '/profile',     icon: '👤', label: 'Mi Perfil' },
+  { href: '/dashboard',    icon: '📊', label: 'Dashboard' },
+  { href: '/patients',     icon: '👥', label: 'Pacientes' },
+  { href: '/appointments', icon: '📅', label: 'Citas' },
+  { href: '/prescriptions',icon: '💊', label: 'Recetario' },
+  { href: '/exam-orders',  icon: '🔬', label: 'Órdenes' },
+  { href: '/certificates', icon: '📋', label: 'Certificados' },
+  { href: '/sara',         icon: '✨', label: 'Sara IA' },
+  { href: '/knowledge',    icon: '📚', label: 'Conocimiento' },
+  { href: '/profile',      icon: '👤', label: 'Mi Perfil' },
 ]
 
 // Ítems que aparecen en el bottom tab bar (mobile)

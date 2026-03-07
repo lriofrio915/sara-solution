@@ -1,6 +1,5 @@
 // ============================================================
 //  MedSara - Prisma Schema
-//  Multi-tenant medical SaaS for Dra. Stéfanny Medrano
 // ============================================================
 
 generator client {
@@ -61,7 +60,7 @@ enum PostStatus {
 
 model Doctor {
   id        String   @id @default(cuid())
-  slug      String   @unique // URL-friendly identifier
+  slug      String   @unique
   name      String
   specialty String
   email     String   @unique
@@ -72,21 +71,20 @@ model Doctor {
   bio       String?
   address   String?
   whatsapp  String?
-  schedules String?  // legacy free-text (kept for backwards compat)
+  schedules String?
   services  String?
-  appointmentDuration Int @default(30) // minutes per slot
-
-  // Supabase auth user ID
+  appointmentDuration Int @default(30)
   authId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   patients               Patient[]
   appointments           Appointment[]
   medicalRecords         MedicalRecord[]
   prescriptions          Prescription[]
+  examOrders             ExamOrder[]
+  medicalCertificates    MedicalCertificate[]
   saraConversations      SaraConversation[]
   reminders              Reminder[]
   socialPosts            SocialPost[]
@@ -102,9 +100,9 @@ model Doctor {
 model AvailabilitySchedule {
   id        String  @id @default(cuid())
   doctorId  String
-  weekday   Int     // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
-  startTime String  // "09:00"
-  endTime   String  // "17:00"
+  weekday   Int
+  startTime String
+  endTime   String
   isActive  Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -129,20 +127,19 @@ model Patient {
   allergies  String[]
   notes      String?
   avatarUrl  String?
-
-  // Identity
-  documentId   String? // cédula / passport
-  documentType String? // cedula, pasaporte, ruc
+  documentId   String?
+  documentType String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  doctor            Doctor             @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  appointments      Appointment[]
-  medicalRecords    MedicalRecord[]
-  prescriptions     Prescription[]
-  saraConversations SaraConversation[]
+  doctor              Doctor              @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointments        Appointment[]
+  medicalRecords      MedicalRecord[]
+  prescriptions       Prescription[]
+  examOrders          ExamOrder[]
+  medicalCertificates MedicalCertificate[]
+  saraConversations   SaraConversation[]
 
   @@index([doctorId])
   @@index([email])
@@ -156,7 +153,7 @@ model Appointment {
   doctorId  String
   patientId String
   date      DateTime
-  duration  Int               @default(30) // minutes
+  duration  Int               @default(30)
   status    AppointmentStatus @default(SCHEDULED)
   type      AppointmentType   @default(IN_PERSON)
   notes     String?
@@ -166,9 +163,11 @@ model Appointment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor              Doctor               @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient             Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescriptions       Prescription[]
+  examOrders          ExamOrder[]
+  medicalCertificates MedicalCertificate[]
 
   @@index([doctorId])
   @@index([patientId])
@@ -186,13 +185,12 @@ model MedicalRecord {
   treatment   String?
   notes       String?
   symptoms    String[]
-  vitalSigns  Json?    // { bp: "120/80", hr: 72, temp: 36.5, weight: 70, height: 170 }
-  attachments String[] // URLs to files in Supabase Storage
+  vitalSigns  Json?
+  attachments String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
@@ -201,30 +199,83 @@ model MedicalRecord {
   @@index([createdAt])
 }
 
-// ─── Prescription ───────────────────────────────────────────
+// ─── Prescription (Recetario) ────────────────────────────────
 
 model Prescription {
-  id           String   @id @default(cuid())
-  patientId    String
-  doctorId     String
-  date         DateTime @default(now())
-  medications  Json     // [{ name, dose, frequency, duration, notes }]
-  instructions String?
-  diagnosis    String?
-  issuedAt     DateTime @default(now())
-  expiresAt    DateTime?
-  pdfUrl       String?
+  id            String    @id @default(cuid())
+  patientId     String
+  doctorId      String
+  appointmentId String?
+  date          DateTime  @default(now())
+  medications   Json      // [{ name, dose, frequency, duration, notes }]
+  instructions  String?   @db.Text  // INDICACIONES (right column)
+  diagnosis     String?
+  issuedAt      DateTime  @default(now())
+  expiresAt     DateTime?
+  pdfUrl        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
   @@index([doctorId])
+  @@index([appointmentId])
   @@index([date])
+}
+
+// ─── Exam Order (Orden de Examen) ────────────────────────────
+
+model ExamOrder {
+  id            String   @id @default(cuid())
+  patientId     String
+  doctorId      String
+  appointmentId String?
+  date          DateTime @default(now())
+  exams         Json     // { hematologia: [...], bioquimica: [...], ... }
+  otrosExams    String?  @db.Text
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([appointmentId])
+  @@index([doctorId, date])
+}
+
+// ─── Medical Certificate (Certificado Médico) ────────────────
+
+model MedicalCertificate {
+  id            String   @id @default(cuid())
+  patientId     String
+  doctorId      String
+  appointmentId String?
+  date          DateTime @default(now())
+  content       String   @db.Text
+  diagnosis     String?
+  treatment     String?
+  restDays      Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([appointmentId])
+  @@index([doctorId, date])
 }
 
 // ─── Sara Conversation ──────────────────────────────────────
@@ -232,15 +283,14 @@ model Prescription {
 model SaraConversation {
   id        String   @id @default(cuid())
   doctorId  String
-  patientId String?  // null if conversation is general (not about a specific patient)
-  messages  Json     // [{ role: "user"|"assistant", content: string, timestamp: string }]
-  context   String?  // Additional context (e.g., current patient, action being performed)
-  title     String?  // Auto-generated conversation title
+  patientId String?
+  messages  Json
+  context   String?
+  title     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   doctor  Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   patient Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
 
@@ -259,13 +309,12 @@ model Reminder {
   dueDate     DateTime
   completed   Boolean  @default(false)
   completedAt DateTime?
-  priority    String   @default("MEDIUM") // LOW | MEDIUM | HIGH
-  category    String?  // "patient", "admin", "personal", etc.
+  priority    String   @default("MEDIUM")
+  category    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
@@ -278,14 +327,13 @@ model Reminder {
 model KnowledgeDocument {
   id          String   @id @default(cuid())
   doctorId    String
-  name        String   // Original file name
-  size        Int      // File size in bytes
-  mimeType    String   // e.g. "application/pdf"
-  storagePath String   // Path in Supabase Storage
-  textContent String   @db.Text // Extracted text for semantic search
+  name        String
+  size        Int
+  mimeType    String
+  storagePath String
+  textContent String   @db.Text
   createdAt   DateTime @default(now())
 
-  // Relations
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
@@ -299,17 +347,16 @@ model SocialPost {
   doctorId    String
   content     String
   imageUrl    String?
-  platforms   Json       // ["instagram", "facebook", "tiktok"]
+  platforms   Json
   publishedAt DateTime?
   scheduledAt DateTime?
   status      PostStatus @default(DRAFT)
   hashtags    String[]
-  externalIds Json?      // { instagram: "...", facebook: "..." }
+  externalIds Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
