@@ -38,7 +38,7 @@ export default function LoginPage() {
     <>
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Bienvenido de vuelta</h2>
-        <p className="text-gray-500 mt-1">Ingresa a tu cuenta de MedSara</p>
+        <p className="text-gray-500 mt-1">Ingresa a tu cuenta de Sara Medical</p>
       </div>
 
       {error && (

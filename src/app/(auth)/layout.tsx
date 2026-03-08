@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-6">
             🏥
           </div>
-          <h1 className="text-4xl font-bold mb-4">Sara Solution</h1>
+          <h1 className="text-4xl font-bold mb-4">Sara Medical</h1>
           <p className="text-blue-100 text-lg leading-relaxed">
             La plataforma médica inteligente que transforma la gestión de tu práctica médica con la
             ayuda de Sara, tu asistente IA.
@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        <p className="text-blue-200 text-sm">© 2025 Sara Solution</p>
+        <p className="text-blue-200 text-sm">© 2025 Sara Medical</p>
       </div>
 
       {/* Right panel - form */}

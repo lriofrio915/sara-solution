@@ -7,40 +7,29 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'Dra. Stéfanny Medrano | Medicina Interna',
-    template: '%s | Dra. Medrano',
+    default: 'Sara Medical | Gestión médica inteligente con IA',
+    template: '%s | Sara Medical',
   },
   description:
-    'Dra. Stéfanny Medrano - Especialista en Medicina Interna. Atención integral para adultos y adulto mayor. Agenda tu cita hoy.',
+    'Sara Medical — La plataforma SaaS para médicos que integra gestión de pacientes, citas, historia clínica y asistente IA en un solo lugar.',
   keywords: [
-    'medicina interna',
-    'doctora',
-    'diabetes',
-    'hipertensión',
-    'adulto mayor',
-    'consulta médica',
+    'gestión médica',
+    'software médico',
+    'historia clínica electrónica',
+    'agenda médica',
+    'asistente IA médico',
+    'consultorio',
     'Ecuador',
   ],
-  authors: [{ name: 'Dra. Stéfanny Medrano' }],
+  authors: [{ name: 'Sara Medical' }],
   openGraph: {
     type: 'website',
     locale: 'es_EC',
-    url: 'https://doctoramedranointernista.com',
-    siteName: 'Dra. Stéfanny Medrano',
-    title: 'Dra. Stéfanny Medrano | Medicina Interna',
+    url: 'https://consultorio.site',
+    siteName: 'Sara Medical',
+    title: 'Sara Medical | Gestión médica inteligente con IA',
     description:
-      'Especialista en Medicina Interna. Atención integral para adultos y adulto mayor.',
-    images: [
-      {
-        url: 'https://i.ibb.co/pjdT6ncH/logo-de-la-doctora-medrano.png',
-        width: 1200,
-        height: 630,
-        alt: 'Dra. Stéfanny Medrano',
-      },
-    ],
-  },
-  icons: {
-    icon: 'https://i.ibb.co/pjdT6ncH/logo-de-la-doctora-medrano.png',
+      'Gestiona tu consultorio con inteligencia artificial. Pacientes, citas, recetas y más.',
   },
 }
 

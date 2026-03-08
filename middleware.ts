@@ -13,9 +13,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -25,36 +23,48 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // IMPORTANT: Do not add any logic between createServerClient and getUser()
   const { data: { user } } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
 
-  console.log('MIDDLEWARE:', {
-    pathname,
-    hasUser: !!user,
-    userId: user?.id,
-    cookies: request.cookies.getAll().map(c => c.name)
-  })
-
-  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password'
+  const isAuthRoute =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password'
 
   const isProtectedRoute =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/patients') ||
     pathname.startsWith('/appointments') ||
+    pathname.startsWith('/prescriptions') ||
+    pathname.startsWith('/exam-orders') ||
+    pathname.startsWith('/certificates') ||
+    pathname.startsWith('/marketing') ||
     pathname.startsWith('/sara') ||
     pathname.startsWith('/knowledge') ||
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/billing') ||
-    pathname.startsWith('/portal')
+    pathname.startsWith('/reminders')
 
   if (!user && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const loginUrl = new URL('/login', request.url)
+    const redirect = NextResponse.redirect(loginUrl)
+    // Copy refreshed cookies into the redirect response
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirect.cookies.set(cookie.name, cookie.value)
+    })
+    return redirect
   }
 
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    const dashboardUrl = new URL('/dashboard', request.url)
+    const redirect = NextResponse.redirect(dashboardUrl)
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirect.cookies.set(cookie.name, cookie.value)
+    })
+    return redirect
   }
 
   return supabaseResponse

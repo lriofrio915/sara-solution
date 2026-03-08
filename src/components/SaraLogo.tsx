@@ -32,7 +32,7 @@ export default function SaraLogo({ dark = false, size = 'md', href = '/' }: Sara
         />
       </svg>
       <span className={`font-bold tracking-tight ${textSize} ${textColor}`}>
-        Sara<span className={`font-light ${subColor}`}> Solution</span>
+        Sara<span className={`font-light ${subColor}`}> Medical</span>
       </span>
     </Link>
   )
