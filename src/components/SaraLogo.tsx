@@ -4,19 +4,33 @@ import { useId } from 'react'
 import Link from 'next/link'
 
 interface SaraLogoProps {
-  dark?: boolean        // fondo oscuro → texto blanco
-  size?: 'sm' | 'md'   // sm = sidebar/nav interno, md = landing/auth
+  dark?: boolean      // fondo oscuro → texto blanco
+  forceDark?: boolean // fuerza texto oscuro sin importar el color scheme del sistema
+  size?: 'sm' | 'md'
   href?: string
 }
 
-export default function SaraLogo({ dark = false, size = 'md', href = '/' }: SaraLogoProps) {
+export default function SaraLogo({ dark = false, forceDark = false, size = 'md', href = '/' }: SaraLogoProps) {
   const uid = useId().replace(/:/g, '')
   const gradId = `saraGrad_${uid}`
 
   const iconSize = size === 'sm' ? 32 : 36
   const textSize = size === 'sm' ? 'text-sm' : 'text-lg'
-  const textColor = dark ? 'text-white' : 'text-gray-900 dark:text-white'
-  const subColor = dark ? 'text-white/60' : 'text-gray-400 dark:text-gray-400'
+
+  // dark=true → siempre blanco (hero, auth panel izquierdo)
+  // forceDark=true → siempre oscuro (navbar con fondo blanco fijo)
+  // ninguno → sigue el color scheme del sistema
+  const textColor = dark
+    ? 'text-white'
+    : forceDark
+      ? 'text-gray-900'
+      : 'text-gray-900 dark:text-white'
+
+  const subColor = dark
+    ? 'text-white/60'
+    : forceDark
+      ? 'text-gray-400'
+      : 'text-gray-400 dark:text-gray-400'
 
   return (
     <Link href={href} className="flex items-center gap-2.5 flex-shrink-0">
@@ -37,8 +51,8 @@ export default function SaraLogo({ dark = false, size = 'md', href = '/' }: Sara
           strokeLinecap="round"
         />
       </svg>
-      <span className={`font-bold tracking-tight ${textSize} ${textColor}`}>
-        Sara<span className={`font-light ${subColor}`}> Medical</span>
+      <span className={`font-bold tracking-tight transition-colors duration-300 ${textSize} ${textColor}`}>
+        Sara<span className={`font-light transition-colors duration-300 ${subColor}`}> Medical</span>
       </span>
     </Link>
   )

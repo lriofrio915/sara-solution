@@ -41,8 +41,8 @@ export default function NavHeader() {
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-8">
-        {/* Logo */}
-        <SaraLogo dark={!scrolled} />
+        {/* Logo: blanco sobre hero oscuro, oscuro sobre navbar blanco al hacer scroll */}
+        <SaraLogo dark={!scrolled} forceDark={scrolled} />
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8 flex-1">

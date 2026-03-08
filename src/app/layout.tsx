@@ -6,20 +6,23 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  // 38 chars — dentro del límite recomendado de 60
   title: {
-    default: 'Sara Medical | Gestión médica inteligente con IA',
+    default: 'Sara Medical | Software Médico con IA',
     template: '%s | Sara Medical',
   },
+  // 143 chars — dentro del límite recomendado de 155
   description:
-    'Sara Medical — La plataforma SaaS para médicos que integra gestión de pacientes, citas, historia clínica y asistente IA en un solo lugar.',
+    'Automatiza tu consultorio médico con inteligencia artificial. Agenda de citas, recetas digitales, marketing automatizado y más. Prueba gratis.',
   keywords: [
-    'gestión médica',
     'software médico',
+    'gestión de consultorio',
     'historia clínica electrónica',
-    'agenda médica',
+    'agenda médica inteligente',
     'asistente IA médico',
-    'consultorio',
-    'Ecuador',
+    'recetas digitales',
+    'marketing médico',
+    'consultorio Ecuador',
   ],
   authors: [{ name: 'Sara Medical' }],
   openGraph: {
@@ -27,9 +30,9 @@ export const metadata: Metadata = {
     locale: 'es_EC',
     url: 'https://consultorio.site',
     siteName: 'Sara Medical',
-    title: 'Sara Medical | Gestión médica inteligente con IA',
+    title: 'Sara Medical | Software Médico con IA',
     description:
-      'Gestiona tu consultorio con inteligencia artificial. Pacientes, citas, recetas y más.',
+      'Automatiza tu consultorio médico con IA. Agenda de citas, recetas digitales, marketing automatizado y más.',
   },
 }
 
