@@ -1,10 +1,10 @@
 {
-  "name": "Sara Medical — WhatsApp Bot",
+  "name": "Sara Medical — WhatsApp Bot (Scenario B)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "sara-whatsapp",
+        "path": "sara-medical",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -86,12 +86,6 @@
               "name": "pushName",
               "value": "={{ $json.data.pushName || '' }}",
               "type": "string"
-            },
-            {
-              "id": "assign-instance",
-              "name": "instanceName",
-              "value": "={{ $json.instance || '' }}",
-              "type": "string"
             }
           ]
         },
@@ -140,8 +134,7 @@
           "parameters": [
             { "name": "phone", "value": "={{ $json.phone }}" },
             { "name": "message", "value": "={{ $json.message }}" },
-            { "name": "pushName", "value": "={{ $json.pushName }}" },
-            { "name": "instanceName", "value": "={{ $json.instanceName }}" }
+            { "name": "pushName", "value": "={{ $json.pushName }}" }
           ]
         },
         "options": { "timeout": 30000 }
@@ -155,7 +148,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $('Extraer campos').item.json.instanceName }}",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
