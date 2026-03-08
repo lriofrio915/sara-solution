@@ -555,16 +555,18 @@ const plans = [
     name: 'Enterprise',
     price: '$199',
     period: '/mes',
+    priceSubtitle: 'hasta 7 médicos',
+    priceNote: '+$25/mes por médico adicional',
     desc: 'Para clínicas y grupos médicos con múltiples sedes.',
     highlight: false,
     badge: null,
     features: [
       'Todo lo del plan Pro',
       'Multi-sede y multi-médico',
-      'API de integración',
-      'White-label (tu marca)',
-      'Onboarding dedicado',
-      'SLA garantizado',
+      'Tu propia marca y dominio personalizado',
+      'Integraciones con tus sistemas existentes',
+      'Configuración asistida con acompañamiento personalizado',
+      'Plataforma 24/7 y soporte prioritario en menos de 2 horas',
     ],
     cta: 'Contactar ventas',
     ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
@@ -608,14 +610,27 @@ function Pricing() {
                 <p className={`font-bold text-lg mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                   {plan.name}
                 </p>
-                <div className="flex items-end gap-1 mb-2">
+                <div className="flex items-end gap-1">
                   <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                     {plan.price}
                   </span>
                   <span className={`text-sm mb-1 ${plan.highlight ? 'text-blue-200' : 'text-gray-400'}`}>
                     {plan.period}
+                    {'priceSubtitle' in plan && plan.priceSubtitle && (
+                      <span className="ml-1 text-xs">({plan.priceSubtitle as string})</span>
+                    )}
                   </span>
                 </div>
+                {'priceNote' in plan && plan.priceNote && (
+                  <div className="mt-1.5 mb-2">
+                    <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                      </svg>
+                      {plan.priceNote as string}
+                    </span>
+                  </div>
+                )}
                 <p className={`text-sm ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
                   {plan.desc}
                 </p>
