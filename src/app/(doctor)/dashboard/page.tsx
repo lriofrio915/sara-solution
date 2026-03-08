@@ -77,11 +77,11 @@ export default async function DashboardPage() {
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches'
 
-    const stats = [
+    const stats: { label: string; value: number; icon: string; color: string; href?: string }[] = [
       { label: 'Pacientes Totales', value: totalPatients, icon: '👥', color: 'from-blue-500 to-blue-600' },
       { label: 'Citas Hoy', value: todayAppointments.length, icon: '📅', color: 'from-teal-500 to-teal-600' },
       { label: 'Citas Este Mes', value: monthAppointmentsCount, icon: '📊', color: 'from-violet-500 to-violet-600' },
-      { label: 'Recordatorios', value: pendingReminders, icon: '🔔', color: 'from-orange-500 to-orange-600' },
+      { label: 'Recordatorios', value: pendingReminders, icon: '🔔', color: 'from-orange-500 to-orange-600', href: '/reminders' },
     ]
 
     const quickActions = [
@@ -114,20 +114,35 @@ export default async function DashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700"
-            >
-              <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl mb-4`}
+          {stats.map((stat) => {
+            const inner = (
+              <>
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl mb-4`}
+                >
+                  {stat.icon}
+                </div>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{stat.label}</p>
+              </>
+            )
+            return stat.href ? (
+              <Link
+                key={stat.label}
+                href={stat.href}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-800 hover:shadow-md transition-all block"
               >
-                {stat.icon}
+                {inner}
+              </Link>
+            ) : (
+              <div
+                key={stat.label}
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700"
+              >
+                {inner}
               </div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{stat.label}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Quick actions + Sara promo + public page */}

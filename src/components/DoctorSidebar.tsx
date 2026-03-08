@@ -15,6 +15,7 @@ const navItems = [
   { href: '/prescriptions',icon: '💊', label: 'Recetario' },
   { href: '/exam-orders',  icon: '🔬', label: 'Órdenes' },
   { href: '/certificates', icon: '📋', label: 'Certificados' },
+  { href: '/reminders',    icon: '🔔', label: 'Recordatorios' },
   { href: '/marketing',    icon: '📱', label: 'Marketing' },
   { href: '/sara',         icon: '✨', label: 'Sara IA' },
   { href: '/knowledge',    icon: '📚', label: 'Conocimiento' },
