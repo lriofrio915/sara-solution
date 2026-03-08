@@ -137,6 +137,7 @@ model AvailabilitySchedule {
 model Patient {
   id         String    @id @default(cuid())
   doctorId   String
+  authId     String?   @unique
   name       String
   email      String?
   phone      String?

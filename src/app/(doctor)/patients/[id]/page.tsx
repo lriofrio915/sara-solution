@@ -45,6 +45,7 @@ interface Patient {
   allergies: string[]
   notes: string | null
   createdAt: string
+  authId: string | null
   appointments: Appointment[]
   medicalRecords: MedicalRecord[]
 }
@@ -64,6 +65,9 @@ export default function PatientDetailPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Patient>>({})
+  const [accessLoading, setAccessLoading] = useState(false)
+  const [credentials, setCredentials] = useState<{ email: string; password: string; reset?: boolean } | null>(null)
+  const [revokeConfirm, setRevokeConfirm] = useState(false)
 
   useEffect(() => {
     fetch(`/api/patients/${id}`)
@@ -94,6 +98,34 @@ export default function PatientDetailPage() {
       setError(err instanceof Error ? err.message : 'Error al guardar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleGenerateAccess() {
+    setAccessLoading(true)
+    setCredentials(null)
+    try {
+      const res = await fetch(`/api/patients/${id}/access`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error); return }
+      setCredentials(data)
+      setPatient((p) => p ? { ...p, authId: 'set' } : p)
+    } finally {
+      setAccessLoading(false)
+    }
+  }
+
+  async function handleRevokeAccess() {
+    setAccessLoading(true)
+    try {
+      const res = await fetch(`/api/patients/${id}/access`, { method: 'DELETE' })
+      if (res.ok) {
+        setPatient((p) => p ? { ...p, authId: null } : p)
+        setRevokeConfirm(false)
+        setCredentials(null)
+      }
+    } finally {
+      setAccessLoading(false)
     }
   }
 
@@ -269,6 +301,102 @@ export default function PatientDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Patient portal access */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">
+                Acceso al Portal del Paciente
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {patient.authId
+                  ? 'Este paciente ya tiene acceso activo al portal. Puede ver sus citas, recetas y más.'
+                  : 'Genera credenciales para que el paciente pueda ver su información médica en el portal.'}
+              </p>
+              {!patient.email && (
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                  ⚠️ El paciente no tiene correo electrónico. Agrégalo antes de generar acceso.
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {patient.authId ? (
+                <>
+                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2.5 py-1 rounded-full font-medium">
+                    ✓ Acceso activo
+                  </span>
+                  <button
+                    onClick={handleGenerateAccess}
+                    disabled={accessLoading}
+                    className="text-sm btn-outline py-1.5 disabled:opacity-60"
+                  >
+                    {accessLoading ? '...' : 'Resetear contraseña'}
+                  </button>
+                  {!revokeConfirm ? (
+                    <button
+                      onClick={() => setRevokeConfirm(true)}
+                      className="text-sm px-3 py-1.5 rounded-xl text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      Revocar
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-red-600 dark:text-red-400">¿Confirmar?</span>
+                      <button onClick={handleRevokeAccess} disabled={accessLoading}
+                        className="text-xs px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                        Sí
+                      </button>
+                      <button onClick={() => setRevokeConfirm(false)}
+                        className="text-xs px-2 py-1 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        No
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={handleGenerateAccess}
+                  disabled={accessLoading || !patient.email}
+                  className="btn-primary text-sm py-2 disabled:opacity-60"
+                >
+                  {accessLoading ? 'Generando...' : 'Generar acceso'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Credentials box — shown once */}
+          {credentials && (
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                {credentials.reset ? '🔑 Nueva contraseña generada' : '🎉 Acceso creado exitosamente'}
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mb-3">
+                Comparte estas credenciales con el paciente. La contraseña solo se muestra una vez.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">Correo</p>
+                  <p className="text-sm font-mono font-medium text-gray-900 dark:text-white">{credentials.email}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">Contraseña temporal</p>
+                  <p className="text-sm font-mono font-bold text-primary">{credentials.password}</p>
+                </div>
+              </div>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
+                El paciente ingresa en: <strong>consultorio.site/login</strong>
+              </p>
+              <button
+                onClick={() => setCredentials(null)}
+                className="mt-2 text-xs text-blue-500 hover:underline"
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

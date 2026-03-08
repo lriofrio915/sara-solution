@@ -56,3 +56,44 @@ export function getInitials(name: string): string {
     .join('')
     .toUpperCase()
 }
+
+/** Detects 'Dr.' or 'Dra.' from the doctor's first name using Spanish name heuristics */
+export function detectDoctorTitle(firstName: string): string {
+  const normalized = firstName
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  const maleNames = new Set([
+    'carlos', 'juan', 'jose', 'luis', 'miguel', 'pedro', 'antonio', 'francisco',
+    'manuel', 'rafael', 'david', 'jorge', 'pablo', 'roberto', 'mario', 'gabriel',
+    'alejandro', 'andres', 'diego', 'sergio', 'daniel', 'nicolas', 'ivan', 'oscar',
+    'hugo', 'hector', 'victor', 'alberto', 'fernando', 'ricardo', 'eduardo', 'alfredo',
+    'enrique', 'felipe', 'gonzalo', 'gustavo', 'javier', 'leonardo', 'marcos', 'martin',
+    'mauricio', 'patricio', 'ramon', 'rodrigo', 'santiago', 'sebastian', 'cesar',
+    'christian', 'cristian', 'alex', 'wilmer', 'omar', 'xavier', 'fabian', 'hernan',
+    'raul', 'ruben', 'simon', 'tomas', 'wilson', 'darwin', 'bryan', 'kevin', 'steven',
+    'jonathan', 'jefferson', 'nelson', 'wilton', 'freddy', 'geovanny', 'giovanny',
+    'jaime', 'jhon', 'john', 'johnny', 'michael', 'richard', 'robert', 'ronaldo',
+    'william', 'xavier', 'yandry', 'yordan',
+  ])
+
+  if (maleNames.has(normalized)) return 'Dr.'
+  if (normalized.endsWith('a')) return 'Dra.'
+
+  // Female names that don't end in 'a'
+  const femaleNonA = new Set([
+    'isabel', 'rachel', 'ruth', 'esther', 'miriam', 'belen', 'raquel', 'noel',
+    'steffanny', 'stefanny', 'stephany', 'stephanie', 'lizeth', 'elizabeth', 'liz',
+    'nathaly', 'nathalie', 'emily', 'wendy', 'shirley', 'ashley', 'kimberly',
+    'mercy', 'nelly', 'katty', 'betty', 'sandy', 'cindy', 'mary', 'jenny',
+    'noemi', 'pilar', 'flor', 'gladys', 'ines', 'irene', 'jacqueline', 'janet',
+    'karen', 'katherine', 'katy', 'leidy', 'lisseth', 'lorena', 'lucy', 'luz',
+    'maribel', 'maricel', 'michelle', 'mirian', 'nataly', 'nicol', 'pamela', 'rocio',
+    'sol', 'vilma', 'vivian', 'yolanda', 'ximena', 'xiomara',
+  ])
+
+  if (femaleNonA.has(normalized)) return 'Dra.'
+  return 'Dr.'
+}

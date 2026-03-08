@@ -27,13 +27,14 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
+  const isPatient = user?.user_metadata?.role === 'patient'
 
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/register' ||
     pathname === '/forgot-password'
 
-  const isProtectedRoute =
+  const isDoctorRoute =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/patients') ||
     pathname.startsWith('/appointments') ||
@@ -48,24 +49,29 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/billing') ||
     pathname.startsWith('/reminders')
 
-  if (!user && isProtectedRoute) {
-    const loginUrl = new URL('/login', request.url)
-    const redirect = NextResponse.redirect(loginUrl)
-    // Copy refreshed cookies into the redirect response
-    supabaseResponse.cookies.getAll().forEach(cookie => {
-      redirect.cookies.set(cookie.name, cookie.value)
-    })
+  const isPatientRoute = pathname.startsWith('/mi-salud')
+
+  const isProtectedRoute = isDoctorRoute || isPatientRoute
+
+  const copyAndRedirect = (url: string) => {
+    const redirect = NextResponse.redirect(new URL(url, request.url))
+    supabaseResponse.cookies.getAll().forEach(c => redirect.cookies.set(c.name, c.value))
     return redirect
   }
 
+  // Not logged in → login
+  if (!user && isProtectedRoute) return copyAndRedirect('/login')
+
+  // Logged in + auth page → send to correct dashboard
   if (user && isAuthRoute) {
-    const dashboardUrl = new URL('/dashboard', request.url)
-    const redirect = NextResponse.redirect(dashboardUrl)
-    supabaseResponse.cookies.getAll().forEach(cookie => {
-      redirect.cookies.set(cookie.name, cookie.value)
-    })
-    return redirect
+    return copyAndRedirect(isPatient ? '/mi-salud' : '/dashboard')
   }
+
+  // Patient trying to access doctor routes → send to patient dashboard
+  if (user && isPatient && isDoctorRoute) return copyAndRedirect('/mi-salud')
+
+  // Doctor trying to access patient routes → send to doctor dashboard
+  if (user && !isPatient && isPatientRoute) return copyAndRedirect('/dashboard')
 
   return supabaseResponse
 }

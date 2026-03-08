@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import DoctorSidebar from '@/components/DoctorSidebar'
-import { getInitials } from '@/lib/utils'
+import { getInitials, detectDoctorTitle } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +20,8 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     const nameParts = doctor.name.trim().split(/\s+/)
     const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-    const displayName = `Dra. ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
+    const title = detectDoctorTitle(nameParts[0])
+    const displayName = `${title} ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:flex">
