@@ -118,7 +118,7 @@ export default async function DashboardPage() {
             <Link
               key={stat.label}
               href={stat.href}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5 transition-all block"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center text-center sm:items-start sm:text-left"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl mb-4`}>
                 {stat.icon}
