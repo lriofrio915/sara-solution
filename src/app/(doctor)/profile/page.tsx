@@ -144,6 +144,13 @@ export default function ProfilePage() {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = `${data.publicUrl}?t=${Date.now()}`
       setAvatarUrl(url)
+
+      // Auto-guardar el URL en la DB inmediatamente
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: url }),
+      })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : JSON.stringify(err)
       setError(`Error al subir la imagen: ${msg}`)

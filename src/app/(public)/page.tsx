@@ -92,14 +92,17 @@ function Hero() {
             <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl">
               {/* Header mock */}
               <div className="flex items-center gap-3 pb-4 border-b border-white/15 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">
-                  S
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://useileqhvoxljyxpjgfb.supabase.co/storage/v1/object/public/avatars/gemini_sara_perfil.png"
+                  alt="Sara"
+                  className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-md"
+                />
                 <div>
                   <p className="text-white font-semibold text-sm">Sara</p>
                   <p className="text-white/50 text-xs">Asistente IA · en línea</p>
                 </div>
-                <div className="ml-auto w-2 h-2 bg-accent rounded-full" />
+                <div className="ml-auto w-2 h-2 bg-accent rounded-full animate-pulse" />
               </div>
 
               {/* Mensajes */}
