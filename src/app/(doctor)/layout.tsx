@@ -18,10 +18,14 @@ export default async function DoctorLayout({ children }: { children: React.React
     })
     if (!doctor) redirect('/login')
 
+    const nameParts = doctor.name.trim().split(/\s+/)
+    const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+    const displayName = `Dra. ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
+
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:flex">
         <DoctorSidebar
-          firstName={doctor.name.split(' ')[0]}
+          firstName={displayName}
           specialty={doctor.specialty}
           initials={getInitials(doctor.name)}
           avatarUrl={doctor.avatarUrl}
