@@ -3,6 +3,53 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
+function AIImage({ prompt }: { prompt: string }) {
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+  const encoded = encodeURIComponent(
+    `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
+  )
+  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Imagen generada por IA</p>
+      <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square max-w-xs">
+        {status === 'loading' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <div className="w-7 h-7 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-gray-400">Generando imagen...</p>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-xs text-gray-400 text-center px-4">No se pudo generar</p>
+          </div>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={prompt}
+          className={`w-full h-full object-cover transition-opacity ${status === 'ok' ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setStatus('ok')}
+          onError={() => setStatus('error')}
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <p className="text-xs text-gray-400 italic truncate flex-1">{prompt}</p>
+        <a
+          href={src}
+          download="imagen-post.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+        >
+          ⬇ Descargar
+        </a>
+      </div>
+    </div>
+  )
+}
+
 interface SocialPost {
   id: string
   content: string
@@ -201,9 +248,7 @@ export default function LibraryPage() {
                   )}
 
                   {post.imagePrompt && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                      <span className="font-semibold not-italic">Imagen: </span>{post.imagePrompt}
-                    </p>
+                    <AIImage prompt={post.imagePrompt} />
                   )}
 
                   {post.suggestedTime && (
