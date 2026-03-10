@@ -516,24 +516,6 @@ function HowItWorks() {
 
 const plans = [
   {
-    name: 'Starter',
-    price: '$29',
-    period: '/mes',
-    desc: 'Perfecto para iniciar y ordenar tu consultorio.',
-    highlight: false,
-    badge: null,
-    features: [
-      'Hasta 50 pacientes activos',
-      'Agenda inteligente',
-      'Fichas médicas básicas',
-      'Generación de recetas',
-      'Subdominio personalizado',
-      'Soporte por email',
-    ],
-    cta: 'Empezar con Starter',
-    ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
-  },
-  {
     name: 'Pro',
     price: '$79',
     period: '/mes',
@@ -542,7 +524,9 @@ const plans = [
     badge: 'Más popular',
     features: [
       'Pacientes ilimitados',
-      'Todo lo del plan Starter',
+      'Agenda inteligente',
+      'Fichas médicas y recetas digitales',
+      'Subdominio personalizado',
       'Contenido para RRSS con IA',
       'Imágenes generadas por IA',
       'Recordatorios automáticos',
@@ -562,7 +546,7 @@ const plans = [
     highlight: false,
     badge: null,
     features: [
-      'Todo lo del plan Pro',
+      'Todo lo del plan Pro incluido',
       'Multi-sede y multi-médico',
       'Tu propia marca y dominio personalizado',
       'Configuración asistida con acompañamiento personalizado',
@@ -590,7 +574,7 @@ function Pricing() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6 items-stretch">
+        <div className="grid sm:grid-cols-2 gap-6 items-stretch max-w-3xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.name}
