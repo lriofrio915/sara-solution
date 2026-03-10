@@ -80,7 +80,7 @@ export default function RegisterPage() {
     <>
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Crea tu cuenta médica</h2>
-        <p className="text-gray-500 mt-1">Únete a MedSara y transforma tu práctica médica</p>
+        <p className="text-gray-500 mt-1">Únete a Sara Medical y transforma tu práctica médica</p>
       </div>
 
       {/* Patient notice */}
@@ -109,7 +109,7 @@ export default function RegisterPage() {
               name="firstName"
               value={form.firstName}
               onChange={handleChange}
-              placeholder="Stéfanny"
+              placeholder="Carlos"
               required
               autoComplete="given-name"
               className="input"
@@ -122,7 +122,7 @@ export default function RegisterPage() {
               name="lastName"
               value={form.lastName}
               onChange={handleChange}
-              placeholder="Medrano"
+              placeholder="Rodríguez"
               required
               autoComplete="family-name"
               className="input"
@@ -166,7 +166,7 @@ export default function RegisterPage() {
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="+593 998 176 580"
+            placeholder="+52 55 1234 5678"
             autoComplete="tel"
             className="input"
           />
