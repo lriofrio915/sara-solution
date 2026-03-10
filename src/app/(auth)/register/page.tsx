@@ -166,7 +166,7 @@ export default function RegisterPage() {
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="+52 55 1234 5678"
+            placeholder="+593 99 123 4567"
             autoComplete="tel"
             className="input"
           />
