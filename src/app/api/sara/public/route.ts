@@ -126,7 +126,12 @@ function executePublicTool(
           name: doctor.name,
           specialty: doctor.specialty,
           bio: doctor.bio ?? 'Información no disponible.',
-          locations: locations.length > 0 ? locations : [{ name: 'Consultorio', address: 'Consultar por teléfono.' }],
+          address: locations.length === 1
+            ? locations[0].address
+            : locations.length > 1
+              ? `Múltiples centros (la ubicación depende del día elegido)`
+              : 'Consultar por teléfono.',
+          locations,
           phone: doctor.phone ?? doctor.whatsapp ?? 'No disponible',
           whatsapp: doctor.whatsapp,
           services: doctor.services ? doctor.services.split('\n').filter(Boolean) : [],
@@ -170,11 +175,10 @@ Ayudar al paciente a agendar una cita médica de forma rápida y efectiva.
 1. Saluda brevemente y pregunta nombre completo y teléfono
 2. Pregunta motivo de consulta
 3. Registra al paciente con register_patient
-4. Si el médico tiene más de un centro de atención (locations), pregunta al paciente en cuál prefiere ser atendido
-5. Pregunta qué fecha prefiere
-6. Llama check_available_slots(date) para esa fecha → muestra los horarios libres al paciente
-7. El paciente elige un horario → confirma y llama schedule_appointment con el slot exacto y la ubicación seleccionada
-8. Confirma la cita con los detalles (fecha, hora, centro de atención y dirección)
+4. Pregunta qué fecha prefiere
+5. Llama check_available_slots(date) → muestra los horarios libres. Si la respuesta incluye un campo "location", muéstraselo al paciente como el centro donde será atendido (no lo preguntes, es fijo según el día)
+6. El paciente elige un horario → confirma y llama schedule_appointment con el slot exacto
+7. Confirma la cita con: fecha, hora, y si existe location → dirección del centro de atención
 
 ## Reglas CRÍTICAS:
 - NUNCA inventes ni supongas horarios disponibles — SIEMPRE llama check_available_slots primero

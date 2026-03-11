@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
     const body = await req.json()
     const { appointmentDuration, schedules } = body as {
       appointmentDuration?: number
-      schedules?: { weekday: number; startTime: string; endTime: string; isActive: boolean }[]
+      schedules?: { weekday: number; startTime: string; endTime: string; isActive: boolean; location?: string }[]
     }
 
     // Update appointmentDuration
@@ -72,11 +72,13 @@ export async function PUT(req: Request) {
               startTime: s.startTime,
               endTime: s.endTime,
               isActive: s.isActive,
+              location: s.location || null,
             },
             update: {
               startTime: s.startTime,
               endTime: s.endTime,
               isActive: s.isActive,
+              location: s.location || null,
             },
           })
         )

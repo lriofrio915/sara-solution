@@ -30,6 +30,7 @@ interface DaySchedule {
   startTime: string
   endTime: string
   isActive: boolean
+  location?: string
 }
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -41,7 +42,8 @@ const DEFAULT_SCHEDULE: DaySchedule[] = DAYS.map((_, weekday) => ({
   weekday,
   startTime: '09:00',
   endTime: '17:00',
-  isActive: weekday >= 1 && weekday <= 5, // Mon–Fri active by default
+  isActive: weekday >= 1 && weekday <= 5,
+  location: '',
 }))
 
 export default function ProfilePage() {
@@ -132,6 +134,12 @@ export default function ProfilePage() {
   function handleDayTime(weekday: number, field: 'startTime' | 'endTime', value: string) {
     setWeekSchedule((prev) =>
       prev.map((d) => (d.weekday === weekday ? { ...d, [field]: value } : d))
+    )
+  }
+
+  function handleDayLocation(weekday: number, location: string) {
+    setWeekSchedule((prev) =>
+      prev.map((d) => (d.weekday === weekday ? { ...d, location } : d))
     )
   }
 
@@ -260,6 +268,14 @@ export default function ProfilePage() {
   }
 
   const initials = getInitials(form.name || profile.name)
+
+  // Opciones de ubicación: principal + sucursales
+  const locationOptions = [
+    ...(form.address ? [{ label: form.address, value: form.address }] : []),
+    ...branches
+      .filter((b) => b.address.trim())
+      .map((b) => ({ label: b.name ? `${b.name} — ${b.address}` : b.address, value: b.address })),
+  ]
 
   return (
     <div className="p-6 md:p-8 md:pt-10 max-w-3xl">
@@ -674,9 +690,9 @@ export default function ProfilePage() {
                 {DAYS[day.weekday]}
               </span>
 
-              {/* Time inputs */}
+              {/* Time inputs + location */}
               {day.isActive ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 flex-1">
                   <input
                     type="time"
                     value={day.startTime}
@@ -690,12 +706,18 @@ export default function ProfilePage() {
                     onChange={(e) => handleDayTime(day.weekday, 'endTime', e.target.value)}
                     className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
-                  <span className="text-xs text-gray-400 hidden sm:block">
-                    ({Math.floor((
-                      (parseInt(day.endTime.split(':')[0]) * 60 + parseInt(day.endTime.split(':')[1])) -
-                      (parseInt(day.startTime.split(':')[0]) * 60 + parseInt(day.startTime.split(':')[1]))
-                    ) / appointmentDuration)} slots)
-                  </span>
+                  {locationOptions.length > 1 && (
+                    <select
+                      value={day.location ?? ''}
+                      onChange={(e) => handleDayLocation(day.weekday, e.target.value)}
+                      className="flex-1 min-w-[140px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      <option value="">📍 Centro (opcional)</option>
+                      {locationOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               ) : (
                 <span className="text-xs text-gray-400 dark:text-gray-500">Cerrado</span>

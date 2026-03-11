@@ -212,14 +212,17 @@ async function checkAvailableSlots(args: Record<string, unknown>, doctorId: stri
       }
     }
 
+    const locationInfo = (schedule as { location?: string | null }).location ?? null
+
     return {
       success: true,
       data: {
         available: true,
         date: dateParam,
         duration,
+        location: locationInfo,
         slots: availableSlots,
-        message: `Hay ${availableSlots.length} horarios disponibles el ${dateParam}: ${availableSlots.slice(0, 8).join(', ')}${availableSlots.length > 8 ? '...' : ''}`,
+        message: `Hay ${availableSlots.length} horarios disponibles el ${dateParam}: ${availableSlots.slice(0, 8).join(', ')}${availableSlots.length > 8 ? '...' : ''}${locationInfo ? ` — Centro de atención: ${locationInfo}` : ''}`,
       },
     }
   } catch (error) {

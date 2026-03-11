@@ -124,6 +124,7 @@ model AvailabilitySchedule {
   startTime String
   endTime   String
   isActive  Boolean @default(true)
+  location  String? // Centro médico donde atiende ese día
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
