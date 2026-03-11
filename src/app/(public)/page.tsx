@@ -783,7 +783,7 @@ function Footer() {
           <ul className="space-y-3 text-sm text-white/40">
             <li><a href="#features" className="hover:text-white/70 transition-colors">Funcionalidades</a></li>
             <li><a href="#pricing" className="hover:text-white/70 transition-colors">Precios</a></li>
-            <li><a href="#how-it-works" className="hover:text-white/70 transition-colors">¿Cómo funciona?</a></li>
+            <li><a href="#how" className="hover:text-white/70 transition-colors">¿Cómo funciona?</a></li>
             <li><a href="/register" className="hover:text-white/70 transition-colors">Crear cuenta</a></li>
             <li><a href="/login" className="hover:text-white/70 transition-colors">Iniciar sesión</a></li>
           </ul>
@@ -799,11 +799,10 @@ function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://wa.me/593000000000" target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">
+              <a href="https://wa.me/593996691586" target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">
                 WhatsApp
               </a>
             </li>
-            <li><span className="text-white/20 text-xs">Centro de ayuda <span className="ml-1 text-primary/60 text-xs">Próximamente</span></span></li>
           </ul>
         </div>
 
