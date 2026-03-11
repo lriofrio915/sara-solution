@@ -525,13 +525,12 @@ const plans = [
     badge: null,
     checkoutUrl: 'https://pay.hotmart.com/A104847710N?checkoutMode=2',
     features: [
-      '📋 Hasta 50 pacientes activos',
-      '📅 Agenda inteligente con vista diaria y semanal',
-      '🗂️ Fichas médicas completas por paciente',
-      '💊 Generación de recetas digitales',
-      '🌐 Página pública con tu subdominio incluido',
-      '📬 Formulario de contacto en tu landing',
-      '📩 Soporte por email',
+      { icon: '✔', text: 'Hasta 50 pacientes activos.' },
+      { icon: '✔', text: 'Agenda inteligente (Vista diaria/semanal).' },
+      { icon: '✔', text: 'Fichas médicas y recetas digitales.' },
+      { icon: '✔', text: 'Web Médica Profesional (Subdominio).' },
+      { icon: '✔', text: 'Captación de pacientes vía WhatsApp.' },
+      { icon: '✔', text: 'Soporte técnico por email.' },
     ],
     cta: 'Comenzar ahora',
     ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
@@ -545,15 +544,12 @@ const plans = [
     badge: 'Más popular',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
     features: [
-      '♾️ Pacientes ilimitados',
-      '✅ Todo lo del plan Starter',
-      '🤖 Agente Sara IA en tu página y WhatsApp',
-      '🕐 Sara agenda citas por ti, 24/7 sin intervención',
-      '🔔 Notificaciones en tiempo real para el médico',
-      '📲 Recordatorios automáticos a tus pacientes',
-      '⭐ Calificaciones y reseñas de servicio',
-      '🎨 Contenido para redes sociales generado con IA',
-      '🚀 Soporte prioritario',
+      { icon: '✔', text: 'Todo lo del Plan Starter incluido.' },
+      { icon: '🤖', text: 'Agente Sara IA en tu WhatsApp Business.' },
+      { icon: '✔', text: 'Atención, respuestas y agendamiento 24/7.' },
+      { icon: '✔', text: 'Marketing Suite: Contenido e imágenes con IA para RRSS.' },
+      { icon: '✔', text: 'Recordatorios automáticos y Calificaciones.' },
+      { icon: '✔', text: 'Soporte Prioritario.' },
     ],
     cta: 'Quiero el Plan Pro',
     ctaStyle: 'bg-primary text-white hover:bg-primary-dark',
@@ -569,13 +565,13 @@ const plans = [
     badge: null,
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
-      '🏥 Multi-sede y multi-médico',
-      '✅ Todo lo del plan Pro incluido',
-      '🎨 Tu propia marca y dominio personalizado',
-      '🛠️ Onboarding asistido y configuración personalizada',
-      '⚡ Soporte VIP con respuesta en menos de 2 horas',
+      { icon: '✔', text: 'Todo lo del Plan PRO incluido.' },
+      { icon: '✔', text: 'Gestión Multi-sede y Multi-médico (Hasta 7).' },
+      { icon: '✔', text: 'White Label: Marca y dominio personalizado.' },
+      { icon: '✔', text: 'Onboarding y configuración asistida.' },
+      { icon: '✔', text: 'Soporte VIP (Respuesta < 2 horas).' },
     ],
-    cta: 'Contactar ventas',
+    cta: 'Elegir Plan Enterprise',
     ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
   },
 ]
@@ -649,8 +645,11 @@ function Pricing() {
 
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feat) => (
-                  <li key={feat} className="flex items-start gap-2.5 text-sm">
-                    <span className={plan.highlight ? 'text-blue-100' : 'text-gray-600'}>{feat}</span>
+                  <li key={feat.text} className="flex items-start gap-2.5 text-sm">
+                    <span className={`flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-teal-300' : 'text-secondary'}`}>
+                      {feat.icon}
+                    </span>
+                    <span className={plan.highlight ? 'text-blue-100' : 'text-gray-600'}>{feat.text}</span>
                   </li>
                 ))}
               </ul>
