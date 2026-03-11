@@ -2,6 +2,18 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl
+
+  // Supabase redirects auth errors (expired OTP, access denied, etc.) to the
+  // Site URL ("/") with ?error= params. Catch them early and send to login.
+  if (pathname === '/' && searchParams.get('error')) {
+    const code = searchParams.get('error_code') ?? ''
+    const msg = code === 'otp_expired'
+      ? 'El+enlace+expiró+o+ya+fue+usado.+Solicita+uno+nuevo.'
+      : 'Ocurrió+un+error+de+autenticación.+Intenta+de+nuevo.'
+    return NextResponse.redirect(new URL(`/login?mensaje=${msg}`, request.url))
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -32,7 +44,8 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/register' ||
-    pathname === '/forgot-password'
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
 
   const isDoctorRoute =
     pathname.startsWith('/dashboard') ||
