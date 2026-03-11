@@ -5,7 +5,7 @@ import { sendWelcomeEmail } from '@/lib/email'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, firstName, lastName, specialty, email, phone } = body
+    const { userId, firstName, lastName, specialty, email, phone, whatsapp } = body
 
     if (!userId || !email) {
       return NextResponse.json(
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone: phone || null,
+        whatsapp: whatsapp || null,
         specialty: specialty || 'General',
         slug: `${slug}-${userId.slice(0, 6)}`,
         plan: 'FREE',

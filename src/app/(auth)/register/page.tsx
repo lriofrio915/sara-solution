@@ -13,6 +13,7 @@ export default function RegisterPage() {
     specialty: '',
     email: '',
     phone: '',
+    whatsapp: '',
     password: '',
     confirmPassword: '',
   })
@@ -46,7 +47,10 @@ export default function RegisterPage() {
     })
 
     if (signUpError) {
-      setError(signUpError.message)
+      const msg = signUpError.message === 'User already registered'
+        ? 'Ya existe una cuenta con este correo. ¿Olvidaste tu contraseña?'
+        : signUpError.message
+      setError(msg)
       setLoading(false)
       return
     }
@@ -62,6 +66,7 @@ export default function RegisterPage() {
         specialty: form.specialty,
         email: form.email,
         phone: form.phone || null,
+        whatsapp: form.whatsapp || null,
       }),
     })
 
@@ -79,8 +84,8 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Crea tu cuenta médica</h2>
-        <p className="text-gray-500 mt-1">Únete a Sara Medical y transforma tu práctica médica</p>
+        <h2 className="text-2xl font-bold text-gray-900">Crea tu cuenta profesional</h2>
+        <p className="text-gray-500 mt-1">Únete a Sara Medical y lleva tu consulta al siguiente nivel</p>
       </div>
 
       {/* Patient notice */}
@@ -158,18 +163,37 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="label">
-            Teléfono <span className="text-gray-400 font-normal">(opcional)</span>
-          </label>
+          <label className="label">WhatsApp Personal</label>
           <input
             type="tel"
             name="phone"
             value={form.phone}
             onChange={handleChange}
             placeholder="+593 99 123 4567"
+            required
             autoComplete="tel"
             className="input"
           />
+          <p className="text-xs text-gray-400 mt-1">Tu número personal — no se muestra públicamente</p>
+        </div>
+
+        <div>
+          <label className="label">
+            WhatsApp Business{' '}
+            <span className="text-gray-400 font-normal text-xs">(opcional — puedes configurarlo después)</span>
+          </label>
+          <input
+            type="tel"
+            name="whatsapp"
+            value={form.whatsapp}
+            onChange={handleChange}
+            placeholder="+593 98 765 4321"
+            autoComplete="tel"
+            className="input"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Número donde vivirá el agente Sara IA que atiende y agenda citas por WhatsApp. Puedes dejarlo vacío y configurarlo luego desde tu perfil.
+          </p>
         </div>
 
         <div>

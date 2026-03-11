@@ -35,7 +35,7 @@ function Hero() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6">
             Sara, tu asistente{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-blue-200">
-              médica con IA
+              médico con IA
             </span>
           </h1>
 
@@ -461,7 +461,7 @@ const steps = [
     num: '02',
     icon: '🌐',
     title: 'Sara crea tu página personalizada con subdominio',
-    desc: 'Obtienes una landing profesional en tu propio subdominio (ej: drmedrano.saramedica.com) lista para compartir con tus pacientes.',
+    desc: 'Obtienes una landing profesional lista para compartir con tus pacientes (ej: consultorio.site/juan-perez-internista).',
   },
   {
     num: '03',
@@ -517,7 +517,7 @@ function HowItWorks() {
 const plans = [
   {
     name: 'Starter',
-    price: '$29',
+    price: '$59',
     period: '/mes',
     desc: 'Para empezar a digitalizar tu consultorio y atraer pacientes.',
     highlight: false,

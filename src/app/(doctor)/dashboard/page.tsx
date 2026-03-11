@@ -39,15 +39,19 @@ export default async function DashboardPage() {
       redirect('/onboarding')
     }
 
-    // Rango de hoy
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-    const todayEnd = new Date()
-    todayEnd.setHours(23, 59, 59, 999)
+    // Rango de hoy en horario Ecuador (UTC-5)
+    // El servidor corre en UTC, así que "hoy Ecuador" = desde las 05:00 UTC hasta 04:59:59 UTC del día siguiente
+    const nowUtc = new Date()
+    const ecuadorNow = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000) // restar 5h para obtener fecha Ecuador
+    const todayStart = new Date(Date.UTC(
+      ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth(), ecuadorNow.getUTCDate(),
+      5, 0, 0 // 05:00 UTC = 00:00 Ecuador
+    ))
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1)
 
-    // Rango de este mes
-    const monthStart = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1)
-    const monthEnd = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59, 999)
+    // Rango de este mes en Ecuador
+    const monthStart = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth(), 1, 5, 0, 0))
+    const monthEnd = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth() + 1, 0, 28, 59, 59, 999))
 
     const [todayAppointments, totalPatients, monthAppointmentsCount, pendingReminders] =
       await Promise.all([
@@ -74,8 +78,8 @@ export default async function DashboardPage() {
       ])
 
     const firstName = doctor.name.split(' ')[0]
-    const hour = new Date().getHours()
-    const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches'
+    const hourEcuador = ecuadorNow.getUTCHours() // UTC hours of Ecuador-adjusted date = Ecuador local hour
+    const greeting = hourEcuador < 12 ? 'Buenos días' : hourEcuador < 18 ? 'Buenas tardes' : 'Buenas noches'
 
     const stats: { label: string; value: number; icon: string; color: string; href: string }[] = [
       { label: 'Pacientes Totales', value: totalPatients, icon: '👥', color: 'from-blue-500 to-blue-600', href: '/patients' },

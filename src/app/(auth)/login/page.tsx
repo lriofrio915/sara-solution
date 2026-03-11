@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -9,6 +10,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const msg = searchParams.get('mensaje')
+    if (msg) setInfo(decodeURIComponent(msg))
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,6 +48,12 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold text-gray-900">Bienvenido de vuelta</h2>
         <p className="text-gray-500 mt-1">Ingresa a tu cuenta de Sara Medical</p>
       </div>
+
+      {info && (
+        <div className="mb-5 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl">
+          {info}
+        </div>
+      )}
 
       {error && (
         <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">

@@ -27,6 +27,7 @@ export function formatTime(date: Date | string, locale = 'es-EC'): string {
   return new Intl.DateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'America/Guayaquil',
   }).format(new Date(date))
 }
 
