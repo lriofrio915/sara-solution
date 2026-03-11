@@ -830,7 +830,7 @@ function Footer() {
               href="https://www.instagram.com/luisriofrioec"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/40 hover:text-white/70 transition-colors underline underline-offset-2"
+              className="text-white/40 hover:text-white/70 transition-colors"
             >
               Luis Riofrio
             </a>
