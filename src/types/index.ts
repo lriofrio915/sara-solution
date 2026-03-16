@@ -194,3 +194,28 @@ export interface SaraConversationMessage {
   content: string
   timestamp: string
 }
+
+export interface Lead {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  source: 'FACEBOOK' | 'INSTAGRAM' | 'GOOGLE' | 'REFERIDO' | 'OTRO'
+  campaign?: string
+  status: 'NUEVO' | 'CONTACTADO' | 'INTERESADO' | 'CONVERTIDO' | 'PERDIDO'
+  notes?: string
+  contactedAt: string
+  createdAt: string
+}
+
+export interface AdminDoctor {
+  id: string
+  slug: string
+  name: string
+  specialty: string
+  email: string
+  plan: string | null
+  avatarUrl: string | null
+  createdAt: string
+  _count: { patients: number }
+}

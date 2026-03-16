@@ -542,6 +542,22 @@ model PatientChart {
   @@index([doctorId])
 }
 
+// ─── Lead ────────────────────────────────────────────────────
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  source      String   @default("OTRO")
+  campaign    String?
+  status      String   @default("NUEVO")
+  notes       String?
+  contactedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 // ─── Attention (Consulta Clínica) ────────────────────────────
 model Attention {
   id        String   @id @default(cuid())

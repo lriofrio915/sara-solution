@@ -19,6 +19,8 @@ export default async function DoctorLayout({ children }: { children: React.React
     })
     if (!doctor) redirect('/login')
 
+    const isSuperAdmin = user?.email === 'lriofrio915@gmail.com'
+
     const nameParts = doctor.name.trim().split(/\s+/)
     const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
     const title = detectDoctorTitle(nameParts[0])
@@ -31,6 +33,7 @@ export default async function DoctorLayout({ children }: { children: React.React
           specialty={doctor.specialty}
           initials={getInitials(doctor.name)}
           avatarUrl={doctor.avatarUrl}
+          isSuperAdmin={isSuperAdmin}
         />
 
         {/* Main content — en mobile: padding top (topbar) + bottom (tab bar) */}

@@ -59,7 +59,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/billing') ||
-    pathname.startsWith('/reminders')
+    pathname.startsWith('/reminders') ||
+    pathname.startsWith('/admin')
 
   const isPatientRoute = pathname.startsWith('/mi-salud')
 
