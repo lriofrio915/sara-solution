@@ -19,11 +19,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
     const body = await req.json()
-    const { status } = body
+    const { status, date } = body
 
     const validStatuses = ['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
+    }
+    if (date && isNaN(new Date(date).getTime())) {
+      return NextResponse.json({ error: 'Fecha inválida' }, { status: 400 })
     }
 
     const appointment = await prisma.appointment.findFirst({
@@ -31,9 +34,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
     if (!appointment) return NextResponse.json({ error: 'Cita no encontrada' }, { status: 404 })
 
+    const updateData: Record<string, unknown> = {}
+    if (status) updateData.status = status
+    if (date) { updateData.date = new Date(date); updateData.status = 'SCHEDULED' }
+
     const updated = await prisma.appointment.update({
       where: { id: params.id },
-      data: { ...(status ? { status } : {}) },
+      data: updateData,
     })
 
     return NextResponse.json({ appointment: updated })

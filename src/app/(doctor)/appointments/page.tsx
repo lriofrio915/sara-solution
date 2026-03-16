@@ -100,6 +100,10 @@ function AppointmentsContent() {
   const [filter, setFilter] = useState(VALID_FILTERS.includes(initialFilter ?? '') ? initialFilter! : 'today')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null)
+  const [rescheduleDate, setRescheduleDate] = useState('')
+  const [rescheduleTime, setRescheduleTime] = useState('')
+  const [rescheduleSaving, setRescheduleSaving] = useState(false)
 
   // Calendar view state
   const [calDate, setCalDate] = useState(() => new Date())
@@ -148,6 +152,31 @@ function AppointmentsContent() {
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a))
       setCalAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a))
     } finally { setUpdatingId(null) }
+  }
+
+  function openReschedule(id: string, currentDate: string) {
+    const d = new Date(currentDate)
+    const toEC = new Date(d.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }))
+    setRescheduleDate(toEC.toISOString().slice(0, 10))
+    setRescheduleTime(toEC.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }))
+    setReschedulingId(id)
+  }
+
+  async function saveReschedule() {
+    if (!reschedulingId || !rescheduleDate || !rescheduleTime) return
+    setRescheduleSaving(true)
+    try {
+      const newDate = new Date(`${rescheduleDate}T${rescheduleTime}:00`)
+      await fetch(`/api/appointments/${reschedulingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: newDate.toISOString() }),
+      })
+      const updatedDate = newDate.toISOString()
+      setAppointments(prev => prev.map(a => a.id === reschedulingId ? { ...a, date: updatedDate, status: 'SCHEDULED' } : a))
+      setCalAppointments(prev => prev.map(a => a.id === reschedulingId ? { ...a, date: updatedDate, status: 'SCHEDULED' } : a))
+      setReschedulingId(null)
+    } finally { setRescheduleSaving(false) }
   }
 
   // ── Calendar computed ─────────────────────────────────────────────────────────
@@ -203,7 +232,7 @@ function AppointmentsContent() {
           {statusInfo.label}
         </span>
         {(a.status === 'SCHEDULED' || a.status === 'CONFIRMED') && (
-          <div className="flex gap-1.5 flex-shrink-0">
+          <div className="flex gap-1.5 flex-shrink-0 flex-wrap">
             {a.status === 'SCHEDULED' && (
               <button onClick={() => updateStatus(a.id, 'CONFIRMED')} disabled={updatingId === a.id}
                 className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 disabled:opacity-50">
@@ -216,6 +245,10 @@ function AppointmentsContent() {
                 Completar
               </button>
             )}
+            <button onClick={() => openReschedule(a.id, a.date)} disabled={updatingId === a.id}
+              className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 disabled:opacity-50">
+              Reagendar
+            </button>
             <button onClick={() => updateStatus(a.id, 'CANCELLED')} disabled={updatingId === a.id}
               className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 disabled:opacity-50">
               Cancelar
@@ -425,6 +458,47 @@ function AppointmentsContent() {
               )}
             </div>
           )}
+        </div>
+      )}
+      {/* ── RESCHEDULE MODAL ──────────────────────────────────────────────────── */}
+      {reschedulingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Reagendar cita</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Nueva fecha</label>
+                <input
+                  type="date"
+                  value={rescheduleDate}
+                  onChange={e => setRescheduleDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Nueva hora</label>
+                <input
+                  type="time"
+                  value={rescheduleTime}
+                  onChange={e => setRescheduleTime(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setReschedulingId(null)}
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                Cancelar
+              </button>
+              <button
+                onClick={saveReschedule}
+                disabled={rescheduleSaving || !rescheduleDate || !rescheduleTime}
+                className="flex-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                {rescheduleSaving ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
