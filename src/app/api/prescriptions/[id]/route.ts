@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 async function getDoctor(user: { id: string; email?: string | null }) {
   return prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true },
+    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, avatarUrl: true, slug: true, whatsapp: true },
   })
 }
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const prescription = await prisma.prescription.findFirst({
       where: { id: params.id, doctorId: doctor.id },
       include: {
-        patient: { select: { id: true, name: true, documentId: true, birthDate: true, phone: true } },
+        patient: { select: { id: true, name: true, documentId: true, birthDate: true, phone: true, allergies: true } },
       },
     })
     if (!prescription) return NextResponse.json({ error: 'Not found' }, { status: 404 })

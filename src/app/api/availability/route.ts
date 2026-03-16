@@ -60,29 +60,20 @@ export async function PUT(req: Request) {
       })
     }
 
-    // Upsert each weekday schedule
     if (schedules && Array.isArray(schedules)) {
-      await Promise.all(
-        schedules.map((s) =>
-          prisma.availabilitySchedule.upsert({
-            where: { doctorId_weekday: { doctorId: doctor.id, weekday: s.weekday } },
-            create: {
-              doctorId: doctor.id,
-              weekday: s.weekday,
-              startTime: s.startTime,
-              endTime: s.endTime,
-              isActive: s.isActive,
-              location: s.location || null,
-            },
-            update: {
-              startTime: s.startTime,
-              endTime: s.endTime,
-              isActive: s.isActive,
-              location: s.location || null,
-            },
-          })
-        )
-      )
+      await prisma.availabilitySchedule.deleteMany({ where: { doctorId: doctor.id } })
+      if (schedules.length > 0) {
+        await prisma.availabilitySchedule.createMany({
+          data: schedules.map((s) => ({
+            doctorId: doctor.id,
+            weekday: s.weekday,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            isActive: s.isActive,
+            location: s.location || null,
+          })),
+        })
+      }
     }
 
     // Return updated data

@@ -92,6 +92,7 @@ model Doctor {
   services  String?
   appointmentDuration Int @default(30)
   authId String? @unique
+  prescriptionCounter Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -133,7 +134,7 @@ model AvailabilitySchedule {
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
-  @@unique([doctorId, weekday])
+  @@index([doctorId, weekday])
   @@index([doctorId])
 }
 
@@ -229,6 +230,7 @@ model MedicalRecord {
 
 model Prescription {
   id            String    @id @default(cuid())
+  rxNumber      String?
   patientId     String
   doctorId      String
   appointmentId String?

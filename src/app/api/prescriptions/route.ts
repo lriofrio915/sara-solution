@@ -61,18 +61,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Al menos un medicamento es requerido' }, { status: 400 })
     }
 
-    const prescription = await prisma.prescription.create({
-      data: {
-        doctorId: doctor.id,
-        patientId,
-        appointmentId: appointmentId || null,
-        medications,
-        instructions: instructions || null,
-        diagnosis: diagnosis || null,
-        date: date ? new Date(date) : new Date(),
-        issuedAt: new Date(),
-      },
-      include: { patient: { select: { id: true, name: true, documentId: true } } },
+    const prescription = await prisma.$transaction(async (tx) => {
+      let rxNumber: string | undefined
+      try {
+        const updatedDoc = await tx.doctor.update({
+          where: { id: doctor.id },
+          data: { prescriptionCounter: { increment: 1 } },
+          select: { prescriptionCounter: true },
+        })
+        rxNumber = `N.${String(updatedDoc.prescriptionCounter).padStart(3, '0')}`
+      } catch {
+        // prescriptionCounter field may not exist yet if migration is pending
+      }
+      return tx.prescription.create({
+        data: {
+          doctorId: doctor.id,
+          patientId,
+          appointmentId: appointmentId || null,
+          medications,
+          instructions: instructions || null,
+          diagnosis: diagnosis || null,
+          date: date ? new Date(date) : new Date(),
+          issuedAt: new Date(),
+          ...(rxNumber ? { rxNumber } : {}),
+        },
+        include: { patient: { select: { id: true, name: true, documentId: true } } },
+      })
     })
 
     return NextResponse.json({ prescription }, { status: 201 })
