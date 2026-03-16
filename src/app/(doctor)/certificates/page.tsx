@@ -84,7 +84,8 @@ export default function CertificatesPage() {
           </div>
           {items.map((item, i) => (
             <div key={item.id}
-              className={`flex flex-col md:grid md:grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center ${
+              onClick={() => router.push(`/certificates/${item.id}/imprimir`)}
+              className={`flex flex-col md:grid md:grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center cursor-pointer ${
                 i < items.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''
               } hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors`}>
               <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -107,12 +108,12 @@ export default function CertificatesPage() {
                 )}
               </div>
               <button
-                onClick={() => router.push(`/certificates/${item.id}/imprimir`)}
+                onClick={(e) => { e.stopPropagation(); router.push(`/certificates/${item.id}/imprimir`) }}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">
                 Ver / Imprimir
               </button>
               <button
-                onClick={() => handleDelete(item.id)}
+                onClick={(e) => { e.stopPropagation(); handleDelete(item.id) }}
                 disabled={deletingId === item.id}
                 className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors disabled:opacity-50">
                 {deletingId === item.id ? '...' : 'Eliminar'}
