@@ -70,52 +70,8 @@ interface Cie10Result {
   description: string
 }
 
-const EXAM_CATEGORIES: { label: string; key: string; items: string[] }[] = [
-  {
-    label: 'HEMATOLÓGICO', key: 'hematologico',
-    items: ['Hemograma Completo', 'Hemoglobina', 'Hematócrito', 'Leucocitos', 'Plaquetas', 'Grupo Sanguíneo y RH', 'Eritrosedimentación', 'Reticulocitos'],
-  },
-  {
-    label: 'HEMOSTÁTICO', key: 'hemostatico',
-    items: ['Tiempo de Protrombina', 'T.P.T.', 'Tiempo de Coagulación', 'Tiempo de Sangría', 'Fibrinógeno'],
-  },
-  {
-    label: 'BIOQUÍMICO', key: 'bioquimico',
-    items: ['Glucosa', 'Urea', 'Creatinina', 'Ácido Úrico', 'Colesterol Total', 'HDL', 'LDL', 'Triglicéridos', 'Proteínas Totales', 'Bilirrubina Total', 'Bilirrubina Directa', 'Bilirrubina Indirecta'],
-  },
-  {
-    label: 'ENZIMAS', key: 'enzimas',
-    items: ['GOT', 'GPT', 'Fosfatasa Alcalina', 'GGPT', 'LDH', 'Amilasa', 'Lipasa', 'CPK', 'Troponina'],
-  },
-  {
-    label: 'PANEL TIROIDEO', key: 'tiroideo',
-    items: ['TSH', 'T3 Total', 'T4 Total', 'T3 Libre', 'T4 Libre'],
-  },
-  {
-    label: 'HORMONAS', key: 'hormonas',
-    items: ['FSH', 'Estradiol', 'B-HCG', 'Insulina', 'Cortisol AM', 'Cortisol PM'],
-  },
-  {
-    label: 'ORINA', key: 'orina',
-    items: ['Físico Químico y Sedimento', 'Microalbuminuria', 'Depuración Creatinina 24h'],
-  },
-  {
-    label: 'CULTIVOS', key: 'cultivos',
-    items: ['Orina', 'Esputo', 'Secreción Vaginal', 'Ex. Faríngeo', 'Semen'],
-  },
-  {
-    label: 'HEPATITIS', key: 'hepatitis',
-    items: ['Hepatitis A (IgM)', 'Hepatitis B (HBsAg)', 'Hepatitis C'],
-  },
-  {
-    label: 'AUTO INMUNIDAD', key: 'autoinmunidad',
-    items: ['Anti-ANA', 'Anti-DNA', 'ANCA', 'Anticardiolipinas'],
-  },
-  {
-    label: 'MARCADORES TUMORALES', key: 'marcadores',
-    items: ['AFP', 'CEA', 'CA 125', 'CA 19-9', 'PSA Total'],
-  },
-]
+// Imported from shared lib to keep consistent with ÓRDENES section
+import { EXAM_CATEGORIES } from '@/lib/exam-categories'
 
 const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Facturación']
 
@@ -875,7 +831,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                     )}
                   </summary>
                   <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-3 gap-2 bg-white dark:bg-gray-800">
-                    {cat.items.map((item) => (
+                    {cat.exams.map((item) => (
                       <label key={item} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"

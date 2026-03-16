@@ -60,6 +60,8 @@ export default async function PatientLayout({
     { href: `/patients/${params.id}/ficha`, label: 'Ficha Médica', icon: '🗂️' },
     { href: `/patients/${params.id}/atenciones`, label: 'Atenciones', icon: '🩺' },
     { href: `/patients/${params.id}/prescriptions`, label: 'Recetas', icon: '💊' },
+    { href: `/patients/${params.id}/ordenes`, label: 'Órdenes', icon: '🧪' },
+    { href: `/patients/${params.id}/certificados`, label: 'Certificados', icon: '📄' },
   ]
 
   return (

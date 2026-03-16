@@ -162,6 +162,7 @@ export default function PatientPrescriptionsPage() {
   const [editingRx, setEditingRx] = useState<Prescription | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingRxId, setViewingRxId] = useState<string | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -224,6 +225,27 @@ export default function PatientPrescriptionsPage() {
     )
   }
 
+  // Inline PDF viewer
+  if (viewingRxId) {
+    return (
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 130px)' }}>
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={() => setViewingRxId(null)}
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+          >
+            ← Volver a recetas
+          </button>
+        </div>
+        <iframe
+          src={`/prescriptions/${viewingRxId}/imprimir`}
+          className="flex-1 w-full rounded-2xl border border-gray-200 dark:border-gray-700"
+          style={{ minHeight: '600px' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <>
       {editingRx && (
@@ -247,7 +269,11 @@ export default function PatientPrescriptionsPage() {
         {prescriptions.map((rx) => {
           const meds = Array.isArray(rx.medications) ? rx.medications : []
           return (
-            <div key={rx.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+            <div
+              key={rx.id}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all"
+              onClick={() => setViewingRxId(rx.id)}
+            >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -265,7 +291,7 @@ export default function PatientPrescriptionsPage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{rx.diagnosis}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                   <Link
                     href={`/prescriptions/${rx.id}/imprimir`}
                     className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
@@ -327,6 +353,8 @@ export default function PatientPrescriptionsPage() {
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line line-clamp-3">{rx.instructions}</p>
                 </div>
               )}
+
+              <p className="mt-3 text-xs text-primary/60 text-right">Clic para ver receta →</p>
             </div>
           )
         })}
