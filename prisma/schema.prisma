@@ -110,6 +110,8 @@ model Doctor {
   brandProfile           BrandProfile?
   brandImages            BrandImage[]
   contentCalendars       ContentCalendar[]
+  patientCharts          PatientChart[]
+  attentions             Attention[]
 
   @@index([slug])
   @@index([email])
@@ -162,6 +164,8 @@ model Patient {
   examOrders          ExamOrder[]
   medicalCertificates MedicalCertificate[]
   saraConversations   SaraConversation[]
+  chart               PatientChart?
+  attentions          Attention[]
 
   @@index([doctorId])
   @@index([email])
@@ -484,4 +488,91 @@ model CalendarItem {
   @@index([calendarId])
   @@index([socialPostId])
   @@index([scheduledDate])
+}
+
+// ─── Patient Chart (Ficha Clínica Permanente) ────────────────
+model PatientChart {
+  id        String @id @default(cuid())
+  patientId String @unique
+  doctorId  String
+
+  // Datos personales extendidos
+  sex           String?
+  maritalStatus String?
+  education     String?
+  province      String?
+  city          String?
+  category      String?
+  occupation    String?
+  referredBy    String?
+  address       String?
+  admissionDate DateTime?
+  insurance     String?
+  patientStatus String? // AMBULATORIO | HOSPITALARIO | FALLECIDO
+
+  // Alertas (mostrar en rojo si tienen contenido)
+  alert1 String?
+  alert2 String?
+  alert3 String?
+
+  // Tutor / Representante
+  tutorName     String?
+  tutorRelation String?
+  tutorPhone    String?
+  tutorEmail    String?
+
+  // Antecedentes como JSON flexible
+  heredoFamiliar        Json?
+  personalPathologic    Json?
+  personalNonPathologic Json?
+  gynecoObstetric       Json?
+  dentalHabits          Json?
+  stimulation           Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+// ─── Attention (Consulta Clínica) ────────────────────────────
+model Attention {
+  id        String   @id @default(cuid())
+  patientId String
+  doctorId  String
+
+  // Datos generales de la consulta
+  establishment   String?
+  service         String? // Consulta | Emergencia | Hospitalización
+  attentionType   String?
+  insurance       String?
+  datetime        DateTime @default(now())
+  nextAppointment DateTime?
+  durationMins    Int?
+
+  // Motivo y evolución
+  motive    String? @db.Text
+  evolution String? @db.Text
+
+  // Sub-secciones clínicas (JSON flexible)
+  exploration      Json? // signos vitales + exploración regional
+  diagnoses        Json? // [{cie10Code, cie10Desc, observations, isNew, isDefinitive}]
+  prescriptionData Json? // [{medicine, quantity, indications}] + validUntil + notes
+  exams            Json? // {hematologico: [], bioquimico: [], ...}
+  images           Json? // [{url, description}]
+  billing          Json? // [{description, quantity, unitPrice}]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([doctorId, datetime])
 }
