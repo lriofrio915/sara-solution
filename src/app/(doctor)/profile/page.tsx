@@ -33,18 +33,26 @@ interface DaySchedule {
   location?: string
 }
 
+interface TimeSlot {
+  startTime: string
+  endTime: string
+  location: string
+}
+
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 // Display order: Lunes → Sábado → Domingo
 const DISPLAY_WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 const DURATION_OPTIONS = [15, 20, 30, 45, 60]
 
-const DEFAULT_SCHEDULE: DaySchedule[] = DAYS.map((_, weekday) => ({
-  weekday,
-  startTime: '09:00',
-  endTime: '17:00',
-  isActive: weekday >= 1 && weekday <= 5,
-  location: '',
-}))
+const DEFAULT_SLOT: TimeSlot = { startTime: '09:00', endTime: '17:00', location: '' }
+const DEFAULT_ACTIVE_DAYS = new Set([1, 2, 3, 4, 5])
+const DEFAULT_DAY_SLOTS: Record<number, TimeSlot[]> = {
+  1: [{ ...DEFAULT_SLOT }],
+  2: [{ ...DEFAULT_SLOT }],
+  3: [{ ...DEFAULT_SLOT }],
+  4: [{ ...DEFAULT_SLOT }],
+  5: [{ ...DEFAULT_SLOT }],
+}
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<DoctorProfile | null>(null)
@@ -74,7 +82,8 @@ export default function ProfilePage() {
 
   // Availability state
   const [appointmentDuration, setAppointmentDuration] = useState(30)
-  const [weekSchedule, setWeekSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE)
+  const [activeDays, setActiveDays] = useState<Set<number>>(new Set(DEFAULT_ACTIVE_DAYS))
+  const [daySlots, setDaySlots] = useState<Record<number, TimeSlot[]>>(DEFAULT_DAY_SLOTS)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -105,13 +114,23 @@ export default function ProfilePage() {
       .then((data: { appointmentDuration: number; schedules: DaySchedule[] }) => {
         if (data.appointmentDuration) setAppointmentDuration(data.appointmentDuration)
         if (data.schedules && data.schedules.length > 0) {
-          // Merge fetched schedules into the full 7-day array
-          setWeekSchedule(
-            DEFAULT_SCHEDULE.map((def) => {
-              const found = data.schedules.find((s) => s.weekday === def.weekday)
-              return found ?? def
-            })
-          )
+          const days = new Set<number>()
+          const slots: Record<number, TimeSlot[]> = {}
+          for (const s of data.schedules) {
+            if (s.isActive) {
+              days.add(s.weekday)
+              if (!slots[s.weekday]) slots[s.weekday] = []
+              slots[s.weekday].push({
+                startTime: s.startTime,
+                endTime: s.endTime,
+                location: s.location ?? '',
+              })
+            }
+          }
+          if (days.size > 0) {
+            setActiveDays(days)
+            setDaySlots(slots)
+          }
         }
       })
       .catch(() => {/* availability not critical */})
@@ -126,21 +145,39 @@ export default function ProfilePage() {
   }
 
   function handleDayToggle(weekday: number) {
-    setWeekSchedule((prev) =>
-      prev.map((d) => (d.weekday === weekday ? { ...d, isActive: !d.isActive } : d))
-    )
+    setActiveDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(weekday)) {
+        next.delete(weekday)
+      } else {
+        next.add(weekday)
+        // Ensure there's at least one slot for this day
+        setDaySlots((s) => ({ ...s, [weekday]: s[weekday]?.length ? s[weekday] : [{ ...DEFAULT_SLOT }] }))
+      }
+      return next
+    })
   }
 
-  function handleDayTime(weekday: number, field: 'startTime' | 'endTime', value: string) {
-    setWeekSchedule((prev) =>
-      prev.map((d) => (d.weekday === weekday ? { ...d, [field]: value } : d))
-    )
+  function handleSlotChange(weekday: number, index: number, field: keyof TimeSlot, value: string) {
+    setDaySlots((prev) => {
+      const slots = [...(prev[weekday] ?? [])]
+      slots[index] = { ...slots[index], [field]: value }
+      return { ...prev, [weekday]: slots }
+    })
   }
 
-  function handleDayLocation(weekday: number, location: string) {
-    setWeekSchedule((prev) =>
-      prev.map((d) => (d.weekday === weekday ? { ...d, location } : d))
-    )
+  function addSlot(weekday: number) {
+    setDaySlots((prev) => ({
+      ...prev,
+      [weekday]: [...(prev[weekday] ?? []), { ...DEFAULT_SLOT }],
+    }))
+  }
+
+  function removeSlot(weekday: number, index: number) {
+    setDaySlots((prev) => {
+      const slots = (prev[weekday] ?? []).filter((_, i) => i !== index)
+      return { ...prev, [weekday]: slots.length ? slots : [{ ...DEFAULT_SLOT }] }
+    })
   }
 
   function addBranch() {
@@ -239,10 +276,22 @@ export default function ProfilePage() {
     setAvailSuccess(false)
 
     try {
+      // Build flat DaySchedule[] from multi-slot state
+      const schedules: DaySchedule[] = []
+      for (const weekday of DISPLAY_WEEKDAY_ORDER) {
+        if (activeDays.has(weekday)) {
+          const slots = daySlots[weekday] ?? [{ ...DEFAULT_SLOT }]
+          for (const slot of slots) {
+            schedules.push({ weekday, startTime: slot.startTime, endTime: slot.endTime, isActive: true, location: slot.location })
+          }
+        } else {
+          schedules.push({ weekday, startTime: '09:00', endTime: '17:00', isActive: false })
+        }
+      }
       const res = await fetch('/api/availability', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentDuration, schedules: weekSchedule }),
+        body: JSON.stringify({ appointmentDuration, schedules }),
       })
 
       if (!res.ok) {
@@ -662,68 +711,102 @@ export default function ProfilePage() {
         {/* Días de la semana */}
         <div className="space-y-3">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Días y horarios</p>
-          {DISPLAY_WEEKDAY_ORDER.map((weekdayIndex) => {
-            const day = weekSchedule.find((d) => d.weekday === weekdayIndex)!
+          {DISPLAY_WEEKDAY_ORDER.map((weekday) => {
+            const isActive = activeDays.has(weekday)
+            const slots = daySlots[weekday] ?? []
             return (
-            <div key={day.weekday} className={`flex flex-wrap items-center gap-x-3 gap-y-2 p-3 rounded-xl border transition-colors ${
-              day.isActive
-                ? 'border-primary/30 bg-primary/5 dark:bg-primary/10'
-                : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30'
-            }`}>
-              {/* Toggle */}
-              <button
-                type="button"
-                onClick={() => handleDayToggle(day.weekday)}
-                className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none ${
-                  day.isActive ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                  day.isActive ? 'translate-x-4' : 'translate-x-0'
-                }`} />
-              </button>
-
-              {/* Day name */}
-              <span className={`w-24 text-sm font-medium ${
-                day.isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
+              <div key={weekday} className={`p-3 rounded-xl border transition-colors ${
+                isActive
+                  ? 'border-primary/30 bg-primary/5 dark:bg-primary/10'
+                  : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30'
               }`}>
-                {DAYS[day.weekday]}
-              </span>
+                {/* Day header row */}
+                <div className="flex items-center gap-3">
+                  {/* Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => handleDayToggle(weekday)}
+                    className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                      isActive ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      isActive ? 'translate-x-4' : 'translate-x-0'
+                    }`} />
+                  </button>
 
-              {/* Time inputs + location */}
-              {day.isActive ? (
-                <div className="flex flex-wrap items-center gap-2 flex-1">
-                  <input
-                    type="time"
-                    value={day.startTime}
-                    onChange={(e) => handleDayTime(day.weekday, 'startTime', e.target.value)}
-                    className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                  <span className="text-gray-400 text-sm flex-shrink-0">–</span>
-                  <input
-                    type="time"
-                    value={day.endTime}
-                    onChange={(e) => handleDayTime(day.weekday, 'endTime', e.target.value)}
-                    className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                  {locationOptions.length > 1 && (
-                    <select
-                      value={day.location ?? ''}
-                      onChange={(e) => handleDayLocation(day.weekday, e.target.value)}
-                      className="flex-1 min-w-[140px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  {/* Day name */}
+                  <span className={`w-24 flex-shrink-0 text-sm font-medium ${
+                    isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
+                  }`}>
+                    {DAYS[weekday]}
+                  </span>
+
+                  {/* Closed label or add-slot button */}
+                  {isActive ? (
+                    <button
+                      type="button"
+                      onClick={() => addSlot(weekday)}
+                      className="ml-auto flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-semibold transition-colors"
                     >
-                      <option value="">📍 Centro (opcional)</option>
-                      {locationOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                      Turno
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Cerrado</span>
                   )}
                 </div>
-              ) : (
-                <span className="text-xs text-gray-400 dark:text-gray-500">Cerrado</span>
-              )}
-            </div>
-          )
+
+                {/* Slots */}
+                {isActive && (
+                  <div className="mt-2 space-y-2 pl-12">
+                    {slots.map((slot, i) => (
+                      <div key={i} className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="time"
+                          value={slot.startTime}
+                          onChange={(e) => handleSlotChange(weekday, i, 'startTime', e.target.value)}
+                          className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                        <span className="text-gray-400 text-sm flex-shrink-0">–</span>
+                        <input
+                          type="time"
+                          value={slot.endTime}
+                          onChange={(e) => handleSlotChange(weekday, i, 'endTime', e.target.value)}
+                          className="w-[94px] px-1.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                        {locationOptions.length > 0 && (
+                          <select
+                            value={slot.location}
+                            onChange={(e) => handleSlotChange(weekday, i, 'location', e.target.value)}
+                            className="flex-1 min-w-[140px] px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          >
+                            <option value="">📍 Centro (opcional)</option>
+                            {locationOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        )}
+                        {slots.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeSlot(weekday, i)}
+                            className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Eliminar turno"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
           })}
         </div>
 

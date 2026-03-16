@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface Patient {
@@ -23,6 +24,7 @@ function calcAge(birthDate: string | null): string {
 }
 
 export default function PatientsPage() {
+  const router = useRouter()
   const [patients, setPatients] = useState<Patient[]>([])
   const [total, setTotal] = useState(0)
   const [q, setQ] = useState('')
@@ -140,7 +142,8 @@ export default function PatientsPage() {
 
           {patients.map((p, i) => (
             <div key={p.id}
-              className={`flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center ${
+              onClick={() => router.push(`/patients/${p.id}`)}
+              className={`flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center cursor-pointer ${
                 i < patients.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''
               } hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors`}>
 
@@ -175,7 +178,7 @@ export default function PatientsPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 {confirmDeleteId === p.id ? (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">¿Eliminar?</span>
@@ -196,7 +199,7 @@ export default function PatientsPage() {
                     <Link
                       href={`/patients/${p.id}`}
                       className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors whitespace-nowrap">
-                      Editar
+                      Ver
                     </Link>
                     <button
                       onClick={() => setConfirmDeleteId(p.id)}

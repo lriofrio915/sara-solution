@@ -35,20 +35,24 @@ export default async function PatientLayout({
       id: true,
       name: true,
       birthDate: true,
-      chart: {
-        select: {
-          alert1: true,
-          alert2: true,
-          alert3: true,
-        },
-      },
     },
   })
 
   if (!patient) redirect('/patients')
 
+  // Fetch chart alerts separately — table may not exist yet if migration is pending
+  let alerts: string[] = []
+  try {
+    const chart = await prisma.patientChart.findUnique({
+      where: { patientId: params.id },
+      select: { alert1: true, alert2: true, alert3: true },
+    })
+    alerts = [chart?.alert1, chart?.alert2, chart?.alert3].filter(Boolean) as string[]
+  } catch {
+    // Table not yet migrated — silently ignore
+  }
+
   const age = calcAge(patient.birthDate)
-  const alerts = [patient.chart?.alert1, patient.chart?.alert2, patient.chart?.alert3].filter(Boolean)
   const hasAlerts = alerts.length > 0
 
   const tabs = [
