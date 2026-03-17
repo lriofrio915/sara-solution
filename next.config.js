@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+    serverComponentsExternalPackages: [
+      '@prisma/client',
+      'prisma',
+      '@sparticuz/chromium',
+      'puppeteer-core',
+    ],
   },
   output: 'standalone',
   images: {
