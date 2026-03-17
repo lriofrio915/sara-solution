@@ -13,7 +13,7 @@ async function getData(id: string) {
 
   const doctor = await prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true },
+    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, mspCode: true, whatsapp: true, specialtyRegCode: true, establishmentName: true, establishmentCode: true, establishmentRuc: true, province: true, canton: true },
   })
   if (!doctor) return null
 
@@ -59,7 +59,9 @@ export default async function ExamOrderPrintPage({ params }: { params: { id: str
         }
       `}} />
 
-      <div className="no-print flex items-center justify-end gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="no-print flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <a href="/exam-orders" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Volver</a>
+        <div className="flex-1" />
         <PrintButton />
       </div>
 
@@ -74,12 +76,13 @@ export default async function ExamOrderPrintPage({ params }: { params: { id: str
                   {doctor.name.charAt(0)}
                 </div>
                 <div>
+                  {doctor.establishmentName && <p className="text-xs text-gray-400 mb-1">{doctor.establishmentName}{doctor.establishmentCode ? ` — Cód. ${doctor.establishmentCode}` : ''}</p>}
                   <h1 className="font-bold text-gray-900 text-lg leading-tight">{doctor.name}</h1>
                   <p className="text-primary font-medium text-sm">{doctor.specialty}</p>
                 </div>
               </div>
               <div className="text-right text-xs text-gray-500 space-y-0.5">
-                {doctor.phone && <p>Tel: {doctor.phone}</p>}
+                {doctor.whatsapp && <p>WhatsApp: {doctor.whatsapp}</p>}
                 {doctor.email && <p>{doctor.email}</p>}
                 {doctor.address && <p>{doctor.address}</p>}
               </div>
@@ -137,13 +140,15 @@ export default async function ExamOrderPrintPage({ params }: { params: { id: str
               <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto" />
               <p className="font-bold text-gray-900 text-sm">{doctor.name}</p>
               <p className="text-xs text-gray-500">{doctor.specialty}</p>
+              {doctor.mspCode && <p className="text-xs text-gray-500 mt-0.5">MSP: {doctor.mspCode}</p>}
+              {doctor.specialtyRegCode && <p className="text-xs text-gray-500">Reg. Esp.: {doctor.specialtyRegCode}</p>}
             </div>
           </div>
 
           <div className="px-8 py-3 bg-primary text-white text-xs flex flex-wrap items-center justify-between gap-2">
             <span>{doctor.name} — {doctor.specialty}</span>
             <span className="flex gap-4">
-              {doctor.phone && <span>Tel: {doctor.phone}</span>}
+              {doctor.whatsapp && <span>WhatsApp: {doctor.whatsapp}</span>}
               {doctor.email && <span>{doctor.email}</span>}
             </span>
           </div>

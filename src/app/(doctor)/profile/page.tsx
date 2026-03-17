@@ -18,6 +18,18 @@ interface DoctorProfile {
   whatsapp: string | null
   schedules: string | null
   branches: string | null
+  cedulaId: string | null
+  mspCode: string | null
+  specialtyRegCode: string | null
+  establishmentName: string | null
+  establishmentCode: string | null
+  establishmentRuc: string | null
+  province: string | null
+  canton: string | null
+  parish: string | null
+  consultationModes: string | null
+  paymentData: string | null
+  services: string | null
 }
 
 interface Branch {
@@ -39,6 +51,22 @@ interface TimeSlot {
   location: string
 }
 
+interface Service {
+  name: string
+  description: string
+  price: string
+  emoji: string
+}
+
+interface PaymentDataObj {
+  methods: string[]
+  bankName: string
+  accountNumber: string
+  accountHolder: string
+  accountType: string
+  accountCedula: string
+}
+
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 // Display order: Lunes → Sábado → Domingo
 const DISPLAY_WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
@@ -53,6 +81,13 @@ const DEFAULT_DAY_SLOTS: Record<number, TimeSlot[]> = {
   4: [{ ...DEFAULT_SLOT }],
   5: [{ ...DEFAULT_SLOT }],
 }
+
+const MEDICAL_EMOJIS = [
+  '🩺', '🏥', '💊', '🔬', '🩻', '💉', '🩹', '🫀', '🫁', '🧬',
+  '🩸', '🏃', '🧘', '🧪', '🔭', '👁️', '🦷', '🦴', '🧠', '💆',
+  '🤸', '🩼', '🧑‍⚕️', '👶', '🤰', '🫶', '❤️', '🌡️', '😷', '🚑',
+  '📋', '📊', '🔍', '🌿', '💪', '🏋️', '🤲', '✨', '⭐', '🎯',
+]
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<DoctorProfile | null>(null)
@@ -85,6 +120,34 @@ export default function ProfilePage() {
   const [activeDays, setActiveDays] = useState<Set<number>>(new Set(DEFAULT_ACTIVE_DAYS))
   const [daySlots, setDaySlots] = useState<Record<number, TimeSlot[]>>(DEFAULT_DAY_SLOTS)
 
+  // Legal / professional fields
+  const [cedulaId, setCedulaId] = useState('')
+  const [mspCode, setMspCode] = useState('')
+  const [specialtyRegCode, setSpecialtyRegCode] = useState('')
+
+  // Establishment fields
+  const [establishmentName, setEstablishmentName] = useState('')
+  const [establishmentCode, setEstablishmentCode] = useState('')
+  const [establishmentRuc, setEstablishmentRuc] = useState('')
+  const [province, setProvince] = useState('')
+  const [canton, setCanton] = useState('')
+  const [parish, setParish] = useState('')
+
+  // Consultation modes
+  const [consultationModes, setConsultationModes] = useState<string[]>([])
+
+  // Services
+  const [services, setServices] = useState<Service[]>([])
+  const [openEmojiPickerIndex, setOpenEmojiPickerIndex] = useState<number | null>(null)
+
+  // Payment data
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([])
+  const [bankName, setBankName] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountHolder, setAccountHolder] = useState('')
+  const [accountType, setAccountType] = useState('SAVINGS')
+  const [accountCedula, setAccountCedula] = useState('')
+
   useEffect(() => {
     fetch('/api/profile')
       .then((r) => r.json())
@@ -105,6 +168,43 @@ export default function ProfilePage() {
           setBranches(data.branches ? JSON.parse(data.branches) : [])
         } catch {
           setBranches([])
+        }
+        // Legal fields
+        setCedulaId(data.cedulaId ?? '')
+        setMspCode(data.mspCode ?? '')
+        setSpecialtyRegCode(data.specialtyRegCode ?? '')
+        // Establishment fields
+        setEstablishmentName(data.establishmentName ?? '')
+        setEstablishmentCode(data.establishmentCode ?? '')
+        setEstablishmentRuc(data.establishmentRuc ?? '')
+        setProvince(data.province ?? '')
+        setCanton(data.canton ?? '')
+        setParish(data.parish ?? '')
+        // Consultation modes
+        try {
+          setConsultationModes(data.consultationModes ? JSON.parse(data.consultationModes) : [])
+        } catch {
+          setConsultationModes([])
+        }
+        // Services
+        try {
+          setServices(data.services ? JSON.parse(data.services) : [])
+        } catch {
+          setServices([])
+        }
+        // Payment data
+        try {
+          if (data.paymentData) {
+            const pd: PaymentDataObj = JSON.parse(data.paymentData)
+            setPaymentMethods(pd.methods ?? [])
+            setBankName(pd.bankName ?? '')
+            setAccountNumber(pd.accountNumber ?? '')
+            setAccountHolder(pd.accountHolder ?? '')
+            setAccountType(pd.accountType ?? 'SAVINGS')
+            setAccountCedula(pd.accountCedula ?? '')
+          }
+        } catch {
+          setPaymentMethods([])
         }
       })
       .catch(() => setError('Error cargando perfil'))
@@ -151,7 +251,6 @@ export default function ProfilePage() {
         next.delete(weekday)
       } else {
         next.add(weekday)
-        // Ensure there's at least one slot for this day
         setDaySlots((s) => ({ ...s, [weekday]: s[weekday]?.length ? s[weekday] : [{ ...DEFAULT_SLOT }] }))
       }
       return next
@@ -192,6 +291,30 @@ export default function ProfilePage() {
     setBranches((prev) => prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)))
   }
 
+  function toggleConsultationMode(mode: string) {
+    setConsultationModes((prev) =>
+      prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode]
+    )
+  }
+
+  function togglePaymentMethod(method: string) {
+    setPaymentMethods((prev) =>
+      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
+    )
+  }
+
+  function addService() {
+    setServices((prev) => [...prev, { name: '', description: '', price: '', emoji: '🩺' }])
+  }
+
+  function removeService(index: number) {
+    setServices((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function updateService(index: number, field: keyof Service, value: string) {
+    setServices((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)))
+  }
+
   async function copyLink() {
     const url = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/${form.slug}`
     await navigator.clipboard.writeText(url)
@@ -221,7 +344,6 @@ export default function ProfilePage() {
       const url = `${data.publicUrl}?t=${Date.now()}`
       setAvatarUrl(url)
 
-      // Auto-guardar el URL en la DB inmediatamente
       await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -241,6 +363,15 @@ export default function ProfilePage() {
     setError(null)
     setSuccess(false)
 
+    const paymentDataObj: PaymentDataObj = {
+      methods: paymentMethods,
+      bankName,
+      accountNumber,
+      accountHolder,
+      accountType,
+      accountCedula,
+    }
+
     try {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
@@ -250,6 +381,18 @@ export default function ProfilePage() {
           avatarUrl,
           slug: form.slug,
           branches: branches.length > 0 ? JSON.stringify(branches.filter((b) => b.address.trim())) : null,
+          services: services.length > 0 ? JSON.stringify(services) : null,
+          cedulaId: cedulaId || null,
+          mspCode: mspCode || null,
+          specialtyRegCode: specialtyRegCode || null,
+          establishmentName: establishmentName || null,
+          establishmentCode: establishmentCode || null,
+          establishmentRuc: establishmentRuc || null,
+          province: province || null,
+          canton: canton || null,
+          parish: parish || null,
+          consultationModes: consultationModes.length > 0 ? JSON.stringify(consultationModes) : null,
+          paymentData: paymentMethods.length > 0 ? JSON.stringify(paymentDataObj) : null,
         }),
       })
 
@@ -276,7 +419,6 @@ export default function ProfilePage() {
     setAvailSuccess(false)
 
     try {
-      // Build flat DaySchedule[] from multi-slot state
       const schedules: DaySchedule[] = []
       for (const weekday of DISPLAY_WEEKDAY_ORDER) {
         if (activeDays.has(weekday)) {
@@ -318,7 +460,6 @@ export default function ProfilePage() {
 
   const initials = getInitials(form.name || profile.name)
 
-  // Opciones de ubicación: principal + sucursales
   const locationOptions = [
     ...(form.address ? [{ label: form.address, value: form.address }] : []),
     ...branches
@@ -657,6 +798,433 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* ── SECCIÓN A: Datos Legales y Profesionales ───────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Datos Legales y Profesionales</h2>
+            <p className="text-gray-400 text-xs mt-0.5">Información requerida para recetas, certificados y documentos oficiales.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Cédula de Identidad
+            </label>
+            <input
+              type="text"
+              value={cedulaId}
+              onChange={(e) => setCedulaId(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              maxLength={10}
+              placeholder="1234567890"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            />
+            <p className="text-gray-400 text-xs mt-1">Exactamente 10 dígitos — será la clave de integración con sistemas nacionales de salud</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Código MSP / Registro ACESS Tercer Nivel
+            </label>
+            <input
+              type="text"
+              value={mspCode}
+              onChange={(e) => setMspCode(e.target.value)}
+              placeholder="Número de registro MSP"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            />
+            <p className="text-gray-400 text-xs mt-1">Número de registro de título de tercer nivel ante la ACESS</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Registro SENESCYT Especialidad
+            </label>
+            <input
+              type="text"
+              value={specialtyRegCode}
+              onChange={(e) => setSpecialtyRegCode(e.target.value)}
+              placeholder="Número de registro de especialidad"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            />
+            <p className="text-gray-400 text-xs mt-1">Número de registro de especialidad cuarto nivel (solo si es especialista)</p>
+          </div>
+
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-xl p-4">
+            <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+              💡 El número de cédula debe tener exactamente 10 dígitos y será usado para identificación legal en recetas y certificados.
+            </p>
+          </div>
+        </div>
+
+        {/* ── SECCIÓN B: Establecimiento Médico ───────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Establecimiento Médico</h2>
+            <p className="text-gray-400 text-xs mt-0.5">Datos del consultorio o clínica donde ejerces.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Nombre del Establecimiento
+            </label>
+            <input
+              type="text"
+              value={establishmentName}
+              onChange={(e) => setEstablishmentName(e.target.value)}
+              placeholder="Ej: Consultorio Médico San José"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Unicódigo MSP
+              </label>
+              <input
+                type="text"
+                value={establishmentCode}
+                onChange={(e) => setEstablishmentCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                maxLength={8}
+                placeholder="5 a 8 dígitos asignados por el MSP"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                RUC del Establecimiento
+              </label>
+              <input
+                type="text"
+                value={establishmentRuc}
+                onChange={(e) => setEstablishmentRuc(e.target.value.replace(/\D/g, '').slice(0, 13))}
+                maxLength={13}
+                placeholder="RUC de 13 dígitos"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Provincia
+              </label>
+              <input
+                type="text"
+                value={province}
+                onChange={(e) => setProvince(e.target.value)}
+                placeholder="Ej: Pichincha"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Cantón
+              </label>
+              <input
+                type="text"
+                value={canton}
+                onChange={(e) => setCanton(e.target.value)}
+                placeholder="Ej: Quito"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Parroquia
+              </label>
+              <input
+                type="text"
+                value={parish}
+                onChange={(e) => setParish(e.target.value)}
+                placeholder="Ej: La Mariscal"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 rounded-xl p-4">
+            <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+              🏥 Esta información aparecerá en recetas y órdenes de exámenes como lo exige la ley ecuatoriana.
+            </p>
+          </div>
+        </div>
+
+        {/* ── SECCIÓN C: Modalidades de Consulta ──────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Modalidades de Consulta</h2>
+            <p className="text-gray-400 text-xs mt-0.5">Selecciona cómo puedes atender a tus pacientes.</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">¿Qué modalidades de atención ofreces?</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { value: 'IN_PERSON', label: 'Presencial', icon: '🏥', desc: 'Atención en consultorio' },
+                { value: 'TELECONSULT', label: 'Teleconsulta', icon: '💻', desc: 'Video consulta online' },
+                { value: 'HOME_VISIT', label: 'Visita Domiciliaria', icon: '🏠', desc: 'Atención en domicilio del paciente' },
+              ].map((mode) => {
+                const isSelected = consultationModes.includes(mode.value)
+                return (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    onClick={() => toggleConsultationMode(mode.value)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-left ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-primary/40 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <span className="text-2xl">{mode.icon}</span>
+                    <span className={`text-sm font-semibold ${isSelected ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {mode.label}
+                    </span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 text-center leading-tight">{mode.desc}</span>
+                    {isSelected && (
+                      <span className="mt-0.5 px-2 py-0.5 bg-primary text-white text-xs rounded-full font-semibold">Activo</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              Esta información es usada por Sara IA para informar correctamente a los pacientes sobre cómo pueden ser atendidos.
+            </p>
+          </div>
+        </div>
+
+        {/* ── SECCIÓN D: Servicios y Precios ──────────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-white">Servicios y Precios</h2>
+              <p className="text-gray-400 text-xs mt-0.5">Los servicios que ofreces y sus tarifas.</p>
+            </div>
+            <button
+              type="button"
+              onClick={addService}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Añadir servicio
+            </button>
+          </div>
+
+          {services.length === 0 && (
+            <p className="text-xs text-gray-400 italic py-2">Sin servicios — añade los tipos de consulta y procedimientos que ofreces.</p>
+          )}
+
+          <div className="space-y-4">
+            {services.map((service, i) => (
+              <div key={i} className="bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  {/* Emoji picker */}
+                  <div className="relative flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setOpenEmojiPickerIndex(openEmojiPickerIndex === i ? null : i)}
+                      className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xl hover:border-primary hover:bg-primary/5 transition-colors"
+                      title="Elegir emoji"
+                    >
+                      {service.emoji || '🩺'}
+                    </button>
+                    {openEmojiPickerIndex === i && (
+                      <div className="absolute left-0 top-12 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg p-2 w-52">
+                        <div className="grid grid-cols-8 gap-0.5">
+                          {MEDICAL_EMOJIS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => {
+                                updateService(i, 'emoji', emoji)
+                                setOpenEmojiPickerIndex(null)
+                              }}
+                              className={`w-6 h-6 flex items-center justify-center rounded text-base hover:bg-primary/10 transition-colors ${
+                                service.emoji === emoji ? 'bg-primary/20' : ''
+                              }`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={service.name}
+                    onChange={(e) => updateService(i, 'name', e.target.value)}
+                    placeholder="Nombre del servicio (ej. Consulta General)"
+                    className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={service.price}
+                    onChange={(e) => updateService(i, 'price', e.target.value)}
+                    placeholder="$50"
+                    className="w-20 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeService(i)}
+                    className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={service.description}
+                  onChange={(e) => updateService(i, 'description', e.target.value)}
+                  placeholder="Descripción breve del servicio..."
+                  className="w-full input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                />
+                {/* Preview */}
+                {(service.name || service.price) && (
+                  <div className="mt-1 flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-600">
+                    <span className="text-lg">{service.emoji || '🩺'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{service.name || 'Nombre del servicio'}</p>
+                      {service.description && (
+                        <p className="text-xs text-gray-400 truncate">{service.description}</p>
+                      )}
+                    </div>
+                    {service.price && (
+                      <span className="text-sm font-semibold text-primary flex-shrink-0">{service.price}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── SECCIÓN E: Métodos de Pago ───────────────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Métodos de Pago</h2>
+            <p className="text-gray-400 text-xs mt-0.5">Configura cómo tus pacientes pueden pagarte.</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Formas de pago aceptadas</p>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { value: 'CASH', label: 'Efectivo', icon: '💵' },
+                { value: 'CARD', label: 'Tarjeta Crédito/Débito', icon: '💳' },
+                { value: 'TRANSFER', label: 'Transferencia Bancaria', icon: '🏦' },
+              ].map((method) => {
+                const isSelected = paymentMethods.includes(method.value)
+                return (
+                  <button
+                    key={method.value}
+                    type="button"
+                    onClick={() => togglePaymentMethod(method.value)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm font-semibold ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 dark:bg-primary/10 text-primary'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary/40 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <span className="text-base">{method.icon}</span>
+                    {method.label}
+                    {isSelected && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Datos bancarios — solo si TRANSFER está seleccionado */}
+          {paymentMethods.includes('TRANSFER') && (
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Datos para transferencia bancaria</p>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Banco</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="Ej: Banco Pichincha"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Número de Cuenta</label>
+                  <input
+                    type="text"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder="Número de cuenta"
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Tipo de Cuenta</label>
+                  <select
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="SAVINGS">Ahorros</option>
+                    <option value="CHECKING">Corriente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Titular de la Cuenta</label>
+                <input
+                  type="text"
+                  value={accountHolder}
+                  onChange={(e) => setAccountHolder(e.target.value)}
+                  placeholder="Nombre completo del titular"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Cédula del Titular</label>
+                <input
+                  type="text"
+                  value={accountCedula}
+                  onChange={(e) => setAccountCedula(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  maxLength={10}
+                  placeholder="1234567890"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              Sara IA usará esta información para informar a los pacientes sobre formas de pago. No se publicará información financiera sensible sin tu autorización.
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3">

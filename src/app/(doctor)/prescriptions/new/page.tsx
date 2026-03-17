@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Cie10Search from '@/components/Cie10Search'
 
 interface Patient { id: string; name: string; documentId: string | null }
 interface Medication { name: string; dose: string; frequency: string; duration: string; notes: string }
@@ -141,10 +142,8 @@ export default function NewPrescriptionPage() {
               className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Diagnóstico (opcional)</label>
-            <input type="text" value={diagnosis} onChange={e => setDiagnosis(e.target.value)}
-              placeholder="Ej: Infección respiratoria aguda"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Diagnóstico CIE-10</label>
+            <Cie10Search value={diagnosis} onChange={setDiagnosis} />
           </div>
         </div>
 

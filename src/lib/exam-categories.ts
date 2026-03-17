@@ -12,6 +12,7 @@ export const EXAM_CATEGORIES: ExamCategory[] = [
       'Biometría Hemática', 'Plaquetas', 'VSG', 'Reticulocitos', 'Hematozoario',
       'Grupo y Factor Rh', 'Anti CCP', 'Anti DNA', 'ANA', 'Procalcitonina',
       'Vitamina B12', 'Vitamina D', 'G.G.T', 'Amilasa', 'Lipasa',
+      'TP (Tiempo de Protrombina)', 'TTP (Tiempo de Tromboplastina Parcial)',
     ],
   },
   {

@@ -48,6 +48,12 @@ async function registerPatient(args: Record<string, unknown>, doctorId: string):
       }
     }
 
+    const insuranceNote = args.insurance ? `Seguro: ${args.insurance as string}` : ''
+    const baseNotes = (args.notes as string) || ''
+    const combinedNotes = insuranceNote
+      ? insuranceNote + (baseNotes ? '. ' + baseNotes : '')
+      : baseNotes || null
+
     const patient = await prisma.patient.create({
       data: {
         doctorId,
@@ -58,7 +64,7 @@ async function registerPatient(args: Record<string, unknown>, doctorId: string):
         bloodType: (args.bloodType as 'A_POS' | 'A_NEG' | 'B_POS' | 'B_NEG' | 'AB_POS' | 'AB_NEG' | 'O_POS' | 'O_NEG' | 'UNKNOWN') || 'UNKNOWN',
         allergies: (args.allergies as string[]) || [],
         documentId: (args.documentId as string) || null,
-        notes: (args.notes as string) || null,
+        notes: combinedNotes,
       },
     })
 

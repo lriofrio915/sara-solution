@@ -28,6 +28,17 @@ export async function GET() {
         branches: true,
         schedules: true,
         services: true,
+        cedulaId: true,
+        mspCode: true,
+        specialtyRegCode: true,
+        establishmentName: true,
+        establishmentCode: true,
+        establishmentRuc: true,
+        province: true,
+        canton: true,
+        parish: true,
+        consultationModes: true,
+        paymentData: true,
       },
     })
 
@@ -46,7 +57,7 @@ export async function PATCH(req: Request) {
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { name, specialty, phone, bio, avatarUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug } = body
+    const { name, specialty, phone, bio, avatarUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData } = body
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
@@ -79,6 +90,17 @@ export async function PATCH(req: Request) {
         ...(schedules !== undefined && { schedules: schedules || null }),
         ...(services !== undefined && { services: services || null }),
         ...(slug !== undefined && { slug: String(slug).toLowerCase().replace(/[^a-z0-9-]/g, '') }),
+        ...(cedulaId !== undefined && { cedulaId: cedulaId || null }),
+        ...(mspCode !== undefined && { mspCode: mspCode || null }),
+        ...(specialtyRegCode !== undefined && { specialtyRegCode: specialtyRegCode || null }),
+        ...(establishmentName !== undefined && { establishmentName: establishmentName || null }),
+        ...(establishmentCode !== undefined && { establishmentCode: establishmentCode || null }),
+        ...(establishmentRuc !== undefined && { establishmentRuc: establishmentRuc || null }),
+        ...(province !== undefined && { province: province || null }),
+        ...(canton !== undefined && { canton: canton || null }),
+        ...(parish !== undefined && { parish: parish || null }),
+        ...(consultationModes !== undefined && { consultationModes: consultationModes || null }),
+        ...(paymentData !== undefined && { paymentData: paymentData || null }),
       },
       select: {
         id: true,
@@ -95,6 +117,17 @@ export async function PATCH(req: Request) {
         branches: true,
         schedules: true,
         services: true,
+        cedulaId: true,
+        mspCode: true,
+        specialtyRegCode: true,
+        establishmentName: true,
+        establishmentCode: true,
+        establishmentRuc: true,
+        province: true,
+        canton: true,
+        parish: true,
+        consultationModes: true,
+        paymentData: true,
       },
     })
 

@@ -12,17 +12,22 @@ async function getData(id: string) {
 
   const doctor = await prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true },
+    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, mspCode: true, whatsapp: true, specialtyRegCode: true, province: true, canton: true },
   })
   if (!doctor) return null
 
   const certificate = await prisma.medicalCertificate.findFirst({
     where: { id, doctorId: doctor.id },
-    include: { patient: { select: { name: true, documentId: true, birthDate: true } } },
+    include: { patient: { select: { name: true, documentId: true, birthDate: true, phone: true } } },
   })
   if (!certificate) return null
 
-  return { doctor, certificate }
+  const patientChart = await prisma.patientChart.findFirst({
+    where: { patientId: certificate.patientId },
+    select: { occupation: true, address: true },
+  })
+
+  return { doctor, certificate, patientChart }
 }
 
 function calcAge(birthDate: Date | null): string {
@@ -34,7 +39,7 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
   const data = await getData(params.id)
   if (!data) notFound()
 
-  const { doctor, certificate } = data
+  const { doctor, certificate, patientChart } = data
 
   const dateStr = new Date(certificate.date).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
@@ -76,7 +81,7 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
                 </div>
               </div>
               <div className="text-right text-xs text-gray-500 space-y-0.5">
-                {doctor.phone && <p>Tel: {doctor.phone}</p>}
+                {doctor.whatsapp && <p>WhatsApp: {doctor.whatsapp}</p>}
                 {doctor.email && <p>{doctor.email}</p>}
                 {doctor.address && <p>{doctor.address}</p>}
               </div>
@@ -104,7 +109,9 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
                 )}
                 {age && <div><span className="font-semibold text-gray-600">Edad: </span><span className="text-gray-900">{age}</span></div>}
               </div>
-              <div><span className="font-semibold text-gray-600">Fecha de atención: </span><span className="text-gray-900">Tena, {dateStr}</span></div>
+              {patientChart?.occupation && <div><span className="font-semibold text-gray-600">Ocupación: </span><span className="text-gray-900">{patientChart.occupation}</span></div>}
+              {patientChart?.address && <div><span className="font-semibold text-gray-600">Dirección: </span><span className="text-gray-900">{patientChart.address}</span></div>}
+              <div><span className="font-semibold text-gray-600">Fecha de atención: </span><span className="text-gray-900">{doctor.canton || doctor.province || 'Tena'}, {dateStr}</span></div>
             </div>
 
             {/* Clinical data */}
@@ -138,12 +145,14 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
           <div className="px-8 py-8 border-t border-gray-200">
             <div className="flex justify-between items-end">
               <div className="text-sm text-gray-600">
-                <p>Tena, {dateStr}</p>
+                <p>{doctor.canton || doctor.province || 'Tena'}, {dateStr}</p>
               </div>
               <div className="text-center">
                 <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto" />
                 <p className="font-bold text-gray-900 text-sm">{doctor.name}</p>
                 <p className="text-xs text-gray-500">{doctor.specialty}</p>
+                {doctor.mspCode && <p className="text-xs text-gray-500 mt-0.5">MSP: {doctor.mspCode}</p>}
+                {doctor.specialtyRegCode && <p className="text-xs text-gray-500">Reg. Esp.: {doctor.specialtyRegCode}</p>}
               </div>
             </div>
           </div>
@@ -151,7 +160,7 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
           <div className="px-8 py-3 bg-primary text-white text-xs flex flex-wrap items-center justify-between gap-2">
             <span>{doctor.name} — {doctor.specialty}</span>
             <span className="flex gap-4">
-              {doctor.phone && <span>Tel: {doctor.phone}</span>}
+              {doctor.whatsapp && <span>WhatsApp: {doctor.whatsapp}</span>}
               {doctor.email && <span>{doctor.email}</span>}
             </span>
           </div>

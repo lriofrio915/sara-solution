@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
     const body = await req.json()
-    const { patientId, appointmentId, content, diagnosis, treatment, restDays, date } = body
+    const { patientId, appointmentId, content, diagnosis, treatment, restDays, restDateStart, restDateEnd, date } = body
 
     if (!patientId) return NextResponse.json({ error: 'Paciente requerido' }, { status: 400 })
     if (!content?.trim()) return NextResponse.json({ error: 'El contenido del certificado es requerido' }, { status: 400 })
@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
         diagnosis: diagnosis || null,
         treatment: treatment || null,
         restDays: restDays ? parseInt(restDays) : null,
+        restDateStart: restDateStart ? new Date(restDateStart) : null,
+        restDateEnd: restDateEnd ? new Date(restDateEnd) : null,
         date: date ? new Date(date) : new Date(),
       },
       include: { patient: { select: { id: true, name: true, documentId: true } } },

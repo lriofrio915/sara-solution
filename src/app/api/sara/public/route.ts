@@ -62,6 +62,7 @@ const PUBLIC_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           phone: { type: 'string', description: 'Teléfono de contacto' },
           birthDate: { type: 'string', description: 'Fecha de nacimiento YYYY-MM-DD (opcional)' },
           notes: { type: 'string', description: 'Motivo de consulta u otras notas' },
+          insurance: { type: 'string', description: 'Tipo de seguro médico del paciente (IESS, Seguro privado, Particular, etc.)' },
         },
         required: ['name'],
       },
@@ -175,6 +176,7 @@ Ayudar al paciente a agendar una cita médica de forma rápida y efectiva.
 ## Flujo OBLIGATORIO para agendar una cita:
 1. Saluda brevemente y pregunta nombre completo y teléfono
 2. Pregunta motivo de consulta
+2b. Pregunta si el paciente tiene seguro médico y qué tipo (IESS, seguro privado, particular, etc.)
 3. Llama register_patient con los datos del paciente
 4. Pregunta qué fecha prefiere
 5. Llama check_available_slots(date) → muestra los horarios libres al paciente. Si la respuesta incluye "location", infórmale al paciente el centro donde será atendido ese día (no lo preguntes, es fijo según el día)

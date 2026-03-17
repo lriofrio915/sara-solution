@@ -89,10 +89,29 @@ model Doctor {
   webhookUrl  String?   // n8n webhook personalizado del médico
   branches    String?   // JSON: [{name, address}] sucursales adicionales
   schedules String?
-  services  String?
+  services  String?   // JSON: [{name, description, price, emoji}]
   appointmentDuration Int @default(30)
   authId String? @unique
   prescriptionCounter Int @default(0)
+
+  // Datos legales y profesionales
+  cedulaId         String?  // Cédula de Identidad (10 dígitos)
+  mspCode          String?  // Código MSP / Registro ACESS Tercer Nivel
+  specialtyRegCode String?  // Registro SENESCYT/ACESS Especialidad Cuarto Nivel
+
+  // Establecimiento médico (para recetas y documentos legales)
+  establishmentName String? // Nombre del consultorio/clínica
+  establishmentCode String? // Unicódigo MSP (5-8 dígitos)
+  establishmentRuc  String? // RUC del establecimiento o profesional
+  province          String? // Provincia (Ecuador)
+  canton            String? // Cantón
+  parish            String? // Parroquia
+
+  // Modalidades de consulta ofrecidas
+  consultationModes String? // JSON: ["IN_PERSON","TELECONSULT","HOME_VISIT"]
+
+  // Métodos de pago y datos bancarios
+  paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -293,6 +312,8 @@ model MedicalCertificate {
   diagnosis     String?
   treatment     String?
   restDays      Int?
+  restDateStart DateTime?
+  restDateEnd   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

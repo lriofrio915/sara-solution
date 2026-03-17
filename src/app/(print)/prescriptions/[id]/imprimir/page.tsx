@@ -35,6 +35,13 @@ interface PrescriptionData {
     avatarUrl?: string | null
     slug?: string | null
     whatsapp?: string | null
+    mspCode?: string | null
+    specialtyRegCode?: string | null
+    establishmentName?: string | null
+    establishmentCode?: string | null
+    establishmentRuc?: string | null
+    province?: string | null
+    canton?: string | null
   }
 }
 
@@ -114,7 +121,7 @@ export default function PrescriptionPrintPage() {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
   })
 
-  const contactPhone = doctor.whatsapp || doctor.phone
+  const contactPhone = doctor.whatsapp
 
   return (
     <>
@@ -188,6 +195,7 @@ export default function PrescriptionPrintPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctor.name}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
+                  {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                 </div>
                 <div className="flex-shrink-0 border-2 border-blue-300 rounded px-2 py-0.5 text-center" style={{ minWidth: '52px' }}>
                   <p className="text-blue-200" style={{ fontSize: '7px', letterSpacing: '0.1em' }}>RECETA</p>
@@ -266,6 +274,18 @@ export default function PrescriptionPrintPage() {
                     {doctor.address}
                   </span>
                 )}
+                {doctor.establishmentName && <span>📍 {doctor.establishmentName}{doctor.establishmentCode ? ` [${doctor.establishmentCode}]` : ''}</span>}
+                {doctor.establishmentRuc && <span>RUC: {doctor.establishmentRuc}</span>}
+              </div>
+
+              {/* Left signature area */}
+              <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
+                <div className="text-center">
+                  <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
+                  <p className="font-bold text-gray-800">{doctor.name}</p>
+                  <p className="text-gray-500">{doctor.specialty}</p>
+                  {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
+                </div>
               </div>
             </div>
 
@@ -290,6 +310,7 @@ export default function PrescriptionPrintPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctor.name}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
+                  {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
                     {contactPhone && <span>{contactPhone}</span>}
                     {doctor.email && <span>{doctor.email}</span>}
@@ -357,6 +378,7 @@ export default function PrescriptionPrintPage() {
                   <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   <p className="font-bold text-gray-800">{doctor.name}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
+                  {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                 </div>
               </div>
             </div>

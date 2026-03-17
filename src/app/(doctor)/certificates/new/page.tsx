@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Cie10Search from '@/components/Cie10Search'
 
 interface Patient { id: string; name: string; documentId: string | null }
 
@@ -37,6 +38,8 @@ export default function NewCertificatePage() {
   const [diagnosis, setDiagnosis] = useState('')
   const [treatment, setTreatment] = useState('')
   const [restDays, setRestDays] = useState('')
+  const [restDateStart, setRestDateStart] = useState('')
+  const [restDateEnd, setRestDateEnd] = useState('')
   const [content, setContent] = useState('')
   const [appointmentId] = useState(searchParams.get('appointmentId') ?? '')
 
@@ -60,6 +63,15 @@ export default function NewCertificatePage() {
     return () => clearTimeout(t)
   }, [patientQ])
 
+  useEffect(() => {
+    if (restDateStart && restDateEnd) {
+      const start = new Date(restDateStart)
+      const end = new Date(restDateEnd)
+      const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      if (days > 0) setRestDays(String(days))
+    }
+  }, [restDateStart, restDateEnd])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedPatient) { setError('Selecciona un paciente'); return }
@@ -78,6 +90,8 @@ export default function NewCertificatePage() {
           diagnosis: diagnosis || null,
           treatment: treatment || null,
           restDays: restDays ? parseInt(restDays) : null,
+          restDateStart: restDateStart || undefined,
+          restDateEnd: restDateEnd || undefined,
           date,
         }),
       })
@@ -145,20 +159,31 @@ export default function NewCertificatePage() {
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Días de reposo <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Días de reposo</label>
               <input type="number" min="0" max="365" value={restDays} onChange={e => setRestDays(e.target.value)}
                 placeholder="0"
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Diagnóstico <span className="text-gray-400 font-normal">(opcional)</span></label>
-            <input type="text" value={diagnosis} onChange={e => setDiagnosis(e.target.value)}
-              placeholder="Ej: Faringoamigdalitis aguda"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Período de reposo: desde</label>
+              <input type="date" value={restDateStart} onChange={e => setRestDateStart(e.target.value)}
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400 pb-2">hasta</span>
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">&nbsp;</label>
+              <input type="date" value={restDateEnd} onChange={e => setRestDateEnd(e.target.value)}
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tratamiento <span className="text-gray-400 font-normal">(opcional)</span></label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Diagnóstico CIE-10</label>
+            <Cie10Search value={diagnosis} onChange={setDiagnosis} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tratamiento</label>
             <input type="text" value={treatment} onChange={e => setTreatment(e.target.value)}
               placeholder="Ej: Antibioticoterapia + analgésicos"
               className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />

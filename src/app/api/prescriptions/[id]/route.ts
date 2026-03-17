@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 async function getDoctor(user: { id: string; email?: string | null }) {
   return prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, avatarUrl: true, slug: true, whatsapp: true },
+    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, avatarUrl: true, slug: true, whatsapp: true, mspCode: true, specialtyRegCode: true, establishmentName: true, establishmentCode: true, establishmentRuc: true, province: true, canton: true },
   })
 }
 
