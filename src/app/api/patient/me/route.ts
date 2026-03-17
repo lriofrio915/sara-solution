@@ -12,7 +12,7 @@ export async function GET() {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findFirst({
       where: { authId: user.id },
       include: {
         doctor: { select: { name: true, specialty: true, phone: true, avatarUrl: true } },
@@ -34,7 +34,7 @@ export async function PATCH(req: Request) {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const patient = await prisma.patient.findUnique({ where: { authId: user.id }, select: { id: true } })
+    const patient = await prisma.patient.findFirst({ where: { authId: user.id }, select: { id: true } })
     if (!patient) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
 
     const { phone } = await req.json()
@@ -55,7 +55,7 @@ export async function DELETE() {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findFirst({
       where: { authId: user.id },
       select: { id: true },
     })

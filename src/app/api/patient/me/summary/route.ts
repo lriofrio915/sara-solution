@@ -11,7 +11,7 @@ export async function GET() {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const patient = await prisma.patient.findUnique({
+    const patient = await prisma.patient.findFirst({
       where: { authId: user.id },
       select: { id: true, name: true, doctorId: true },
     })

@@ -171,7 +171,7 @@ model AvailabilitySchedule {
 model Patient {
   id         String    @id @default(cuid())
   doctorId   String
-  authId     String?   @unique
+  authId     String?   // No unique — un médico puede ser paciente de otro médico con la misma cuenta
   name       String
   email      String?
   phone      String?

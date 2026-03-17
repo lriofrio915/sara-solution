@@ -43,11 +43,16 @@ export default function NewPatientPage() {
 
     if (lookupTimer.current) clearTimeout(lookupTimer.current)
 
-    if (form.documentType !== 'cedula' || id.length < 10) {
-      if (id.length > 0 && id.length < 10) {
-        setLookupState('idle')
-        setLookupMsg('')
-      }
+    // Only validate/lookup for Ecuadorian cédulas
+    if (form.documentType !== 'cedula') {
+      setLookupState('idle')
+      setLookupMsg('')
+      return
+    }
+
+    if (id.length < 10) {
+      setLookupState('idle')
+      setLookupMsg('')
       return
     }
 
@@ -215,25 +220,27 @@ export default function NewPatientPage() {
                 onChange={handleChange}
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
-                <option value="cedula">Cédula</option>
+                <option value="cedula">Cédula ecuatoriana</option>
                 <option value="pasaporte">Pasaporte</option>
+                <option value="dni_extranjero">DNI / ID extranjero</option>
                 <option value="ruc">RUC</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Número de documento
-                {form.documentType === 'cedula' && (
-                  <span className="ml-2 text-xs text-gray-400 font-normal">— ingresa los 10 dígitos</span>
-                )}
               </label>
               <input
                 type="text"
                 name="documentId"
                 value={form.documentId}
                 onChange={handleChange}
-                maxLength={form.documentType === 'cedula' ? 10 : 20}
-                placeholder={form.documentType === 'cedula' ? '0912345678' : ''}
+                maxLength={form.documentType === 'cedula' ? 10 : 30}
+                placeholder={
+                  form.documentType === 'cedula' ? '0912345678' :
+                  form.documentType === 'pasaporte' ? 'AB123456' :
+                  form.documentType === 'dni_extranjero' ? 'Número de ID extranjero' : ''
+                }
                 className={`input dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-colors ${docIdBorder}`}
               />
               {lookupState !== 'idle' && lookupMsg && (
@@ -382,7 +389,7 @@ export default function NewPatientPage() {
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={saving || lookupState === 'loading' || lookupState === 'invalid'}
+            disabled={saving || lookupState === 'loading' || (form.documentType === 'cedula' && lookupState === 'invalid')}
             className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {saving ? 'Guardando...' :
