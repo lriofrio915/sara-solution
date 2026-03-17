@@ -15,6 +15,9 @@ import { createClient } from '@/lib/supabase/client'
 
 // ─── Nav groups ────────────────────────────────────────────────
 
+// Reportes va primero — visión general de la clínica
+const topItem = { href: '/dashboard', icon: BarChart2, label: 'Reportes' }
+
 const clinicalItems = [
   { href: '/appointments',  icon: Calendar,     label: 'Citas' },
   { href: '/patients',      icon: Users,        label: 'Pacientes' },
@@ -24,18 +27,16 @@ const clinicalItems = [
 ]
 
 const adminItems = [
-  { href: '/dashboard', icon: BarChart2, label: 'Reportes' },
-  { href: '/marketing', icon: Megaphone, label: 'Marketing' },
+  { href: '/marketing',  icon: Megaphone, label: 'Marketing' },
+  { href: '/reminders',  icon: Bell,      label: 'Notificaciones' },
 ]
 
-// All items used for the mobile bottom tab bar (first 5)
-const allNavItems = [...clinicalItems, ...adminItems]
-const tabItems = allNavItems.slice(0, 5)
+// Mobile bottom tab bar: Reportes + primeros 4 clínicos
+const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
 
 const gearItems = [
   { href: '/profile',   icon: User,     label: 'Mi Perfil' },
-  { href: '/reminders', icon: Bell,     label: 'Notificaciones' },
-  { href: '/knowledge', icon: BookOpen, label: 'Centro de Ayuda' },
+  { href: '/knowledge', icon: BookOpen, label: 'Base de Conocimiento' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────
@@ -163,6 +164,13 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   // ── Shared nav content (used in both desktop sidebar and mobile drawer) ──────
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
     <nav className={`flex-1 overflow-y-auto ${mobile ? 'p-4' : 'p-4'}`}>
+      {/* Reportes — visión general, siempre primero */}
+      <div className="space-y-1 mb-1">
+        <NavLink {...topItem} />
+      </div>
+
+      <hr className="border-gray-100 dark:border-gray-700 my-2" />
+
       {/* Group 1 — Clinical */}
       <div className="space-y-1">
         {clinicalItems.map(item => (
@@ -170,7 +178,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         ))}
       </div>
 
-      <hr className="border-gray-100 dark:border-gray-700 my-3" />
+      <hr className="border-gray-100 dark:border-gray-700 my-2" />
 
       {/* Group 2 — Administrative */}
       <div className="space-y-1">
