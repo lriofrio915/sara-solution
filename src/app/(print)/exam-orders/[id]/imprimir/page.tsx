@@ -59,9 +59,7 @@ export default async function ExamOrderPrintPage({ params }: { params: { id: str
         }
       `}} />
 
-      <div className="no-print flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <a href="/exam-orders" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Volver</a>
-        <div className="flex-1" />
+      <div className="no-print flex items-center justify-end gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <PrintButton />
       </div>
 
