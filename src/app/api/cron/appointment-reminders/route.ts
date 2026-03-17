@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
           `⏱ *Duración:* ${appt.duration} min\n` +
           (appt.reason ? `📋 *Motivo:* ${appt.reason}\n` : '') +
           `\nSi necesitas cancelar o reprogramar, comunícate con tu médico.\n\n` +
-          `_— Sara, Asistente Médica_`
+          `_— Sara, Asistente Médico_`
 
         const ok = await sendWA(appt.patient.phone, msg)
         if (ok) { sent++; anySent = true }

@@ -320,7 +320,7 @@ function buildSystemPrompt(context: SaraContext): string {
     timeStyle: 'short',
   })
 
-  return `Eres Sara, la asistente médica IA de la ${context.doctorName}, especialista en ${context.doctorSpecialty}.
+  return `Eres Sara, el asistente médico IA del Dr. ${context.doctorName}, especialista en ${context.doctorSpecialty}.
 
 Fecha y hora actual: ${now}
 

@@ -79,10 +79,10 @@ export default function SaraFAB() {
         </div>
       )}
 
-      {/* Backdrop (mobile) */}
+      {/* Backdrop — closes popup when clicking outside */}
       {open && (
         <div
-          className="fixed inset-0 z-30 md:hidden"
+          className="fixed inset-0 z-30"
           onClick={() => setOpen(false)}
         />
       )}

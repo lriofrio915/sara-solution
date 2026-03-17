@@ -1,7 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { X, Trash2, BookOpen } from 'lucide-react'
+import { X, Trash2, BookOpen, Mic, MicOff } from 'lucide-react'
+
+// Web Speech API type shim
+type SpeechRecognitionInstance = {
+  lang: string
+  interimResults: boolean
+  maxAlternatives: number
+  continuous: boolean
+  onstart: (() => void) | null
+  onresult: ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
 
 const SARA_AVATAR = 'https://useileqhvoxljyxpjgfb.supabase.co/storage/v1/object/public/avatars/gemini_sara_perfil.png'
 
@@ -31,7 +45,7 @@ const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
   content:
-    '¡Hola! Soy **Sara**, tu asistente médica IA.\n\nPuedo ayudarte a:\n- 📋 Registrar y buscar pacientes\n- 📅 Gestionar citas y agenda\n- 💊 Crear recetas y prescripciones\n- 📊 Revisar historiales clínicos\n- 🔔 Crear recordatorios\n- 📚 Consultar tu base de conocimiento\n\n¿En qué te puedo ayudar hoy?',
+    '¡Hola! Soy **Sara**, tu asistente médico IA.\n\nPuedo ayudarte a:\n- 📋 Registrar y buscar pacientes\n- 📅 Gestionar citas y agenda\n- 💊 Crear recetas y prescripciones\n- 📊 Revisar historiales clínicos\n- 🔔 Crear recordatorios\n- 📚 Consultar tu base de conocimiento\n\n¿En qué te puedo ayudar hoy?',
   timestamp: new Date().toISOString(),
 }
 
@@ -92,10 +106,20 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
   const [toolStatuses, setToolStatuses] = useState<ToolStatus[]>([])
   const [streamingContent, setStreamingContent] = useState('')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
 
   const isPopup = mode === 'popup'
+
+  // Check voice support
+  useEffect(() => {
+    const SR = (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition
+      ?? (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+    setVoiceSupported(!!SR)
+  }, [])
 
   // Load conversation from DB
   useEffect(() => {
@@ -142,6 +166,31 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
     setShowClearConfirm(false)
     await fetch('/api/sara/conversation', { method: 'DELETE' })
     setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date().toISOString() }])
+  }
+
+  function toggleVoice() {
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      return
+    }
+    const SR = (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance; webkitSpeechRecognition?: new () => SpeechRecognitionInstance }).SpeechRecognition
+      ?? (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance; webkitSpeechRecognition?: new () => SpeechRecognitionInstance }).webkitSpeechRecognition
+    if (!SR) return
+    const recognition = new SR()
+    recognition.lang = 'es-EC'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+    recognition.continuous = false
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript
+      setInput(prev => (prev ? prev + ' ' + transcript : transcript))
+      inputRef.current?.focus()
+    }
+    recognition.onerror = () => setIsRecording(false)
+    recognition.onend = () => setIsRecording(false)
+    recognitionRef.current = recognition
+    recognition.start()
   }
 
   const sendMessage = useCallback(
@@ -258,7 +307,7 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
             <h1 className={`font-bold text-gray-900 dark:text-white ${isPopup ? 'text-sm' : ''}`}>Sara</h1>
             <p className="text-xs text-gray-400 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              Asistente médica IA · Conectada
+              Asistente médico IA · Conectado
             </p>
           </div>
         </div>
@@ -409,15 +458,31 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder={patientName ? `Pregunta sobre ${patientName}...` : 'Escríbele a Sara...'}
-            className={`flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors ${isPopup ? 'px-3 py-2' : 'input'}`}
+            placeholder={isRecording ? 'Escuchando...' : patientName ? `Pregunta sobre ${patientName}...` : 'Escríbele a Sara...'}
+            className={`flex-1 bg-gray-50 dark:bg-gray-700 border rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors ${isPopup ? 'px-3 py-2' : 'input'} ${isRecording ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-600'}`}
             disabled={loading}
             autoComplete="off"
           />
+          {/* Voice button */}
+          {voiceSupported && (
+            <button
+              type="button"
+              onClick={toggleVoice}
+              disabled={loading}
+              title={isRecording ? 'Detener grabación' : 'Enviar mensaje de voz'}
+              className={`rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 ${isPopup ? 'px-2.5 py-2' : 'px-3 py-3'} ${
+                isRecording
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
+            </button>
+          )}
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className={`bg-primary text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors ${isPopup ? 'px-3 py-2' : 'btn-primary px-5 py-3'}`}
+            className={`bg-primary text-white rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors flex-shrink-0 ${isPopup ? 'px-3 py-2' : 'btn-primary px-5 py-3'}`}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />

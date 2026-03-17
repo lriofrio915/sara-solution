@@ -153,7 +153,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    const systemPrompt = `Eres Sara, asistente médica IA del Dr. ${doctor.name}, especialista en ${doctor.specialty}.
+    const systemPrompt = `Eres Sara, asistente médico IA del Dr. ${doctor.name}, especialista en ${doctor.specialty}.
 Analiza la historia clínica del paciente y proporciona recomendaciones clínicas fundamentadas y detalladas.
 Cuando uses información de los documentos de conocimiento del médico, CITA LA FUENTE con [Fuente: nombre del documento].
 Responde siempre en español con formato markdown.

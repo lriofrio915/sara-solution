@@ -6,7 +6,7 @@ import BackToTop from '@/components/landing/BackToTop'
 import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 
 export const metadata: Metadata = {
-  title: 'Sara — Tu asistente médica con IA',
+  title: 'Sara — Tu asistente médico con IA',
   description:
     'Gestiona tu consultorio, capta pacientes y haz crecer tu práctica médica con inteligencia artificial. Agenda inteligente, fichas médicas, recetas digitales y más.',
 }

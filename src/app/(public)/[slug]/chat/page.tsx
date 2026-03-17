@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!doctor) return { title: 'Chat no disponible' }
   return {
     title: `Chat con Sara — Asistente de ${doctor.name}`,
-    description: `Agenda tu cita con ${doctor.name} a través de Sara, la asistente médica IA.`,
+    description: `Agenda tu cita con ${doctor.name} a través de Sara, la asistente médico IA.`,
   }
 }
 
