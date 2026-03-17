@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import NavHeader from '@/components/landing/NavHeader'
 import BackToTop from '@/components/landing/BackToTop'
+import WhatsAppButton from '@/components/landing/WhatsAppButton'
 import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 
 export const metadata: Metadata = {
@@ -859,6 +860,7 @@ export default function LandingPage() {
         <CTAFinal />
       </main>
       <Footer />
+      <WhatsAppButton />
       <BackToTop />
     </>
   )
