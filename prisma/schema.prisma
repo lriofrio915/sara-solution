@@ -581,6 +581,11 @@ model Lead {
   phone       String?
   source      String   @default("OTRO")
   campaign    String?
+  specialty   String?
+  city        String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
   status      String   @default("NUEVO")
   notes       String?
   contactedAt DateTime @default(now())

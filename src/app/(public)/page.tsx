@@ -5,6 +5,7 @@ import NavHeader from '@/components/landing/NavHeader'
 import BackToTop from '@/components/landing/BackToTop'
 import WhatsAppButton from '@/components/landing/WhatsAppButton'
 import AuthErrorRedirect from '@/components/AuthErrorRedirect'
+import DemoSection from '@/components/landing/DemoSection'
 
 export const metadata: Metadata = {
   title: 'Sara — Tu asistente médico con IA',
@@ -857,6 +858,7 @@ export default function LandingPage() {
         <KnowledgeBase />
         <HowItWorks />
         <Pricing />
+        <DemoSection />
         <CTAFinal />
       </main>
       <Footer />

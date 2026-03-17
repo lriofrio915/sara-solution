@@ -200,10 +200,15 @@ export interface Lead {
   name: string
   email?: string
   phone?: string
-  source: 'FACEBOOK' | 'INSTAGRAM' | 'GOOGLE' | 'REFERIDO' | 'OTRO'
-  campaign?: string
+  source: 'LANDING' | 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'LINKEDIN' | 'GOOGLE' | 'WHATSAPP' | 'REFERIDO' | 'OTRO'
+  campaign?: string | null
+  specialty?: string | null
+  city?: string | null
+  utmSource?: string | null
+  utmMedium?: string | null
+  utmCampaign?: string | null
   status: 'NUEVO' | 'CONTACTADO' | 'INTERESADO' | 'CONVERTIDO' | 'PERDIDO'
-  notes?: string
+  notes?: string | null
   contactedAt: string
   createdAt: string
 }

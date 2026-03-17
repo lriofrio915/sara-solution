@@ -5,7 +5,7 @@ import { Search, Plus, Download, LayoutList, Columns, Pencil, Trash2, X, Users }
 import type { Lead } from '@/types'
 
 const STATUSES = ['NUEVO', 'CONTACTADO', 'INTERESADO', 'CONVERTIDO', 'PERDIDO'] as const
-const SOURCES = ['FACEBOOK', 'INSTAGRAM', 'GOOGLE', 'REFERIDO', 'OTRO'] as const
+const SOURCES = ['LANDING', 'FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'LINKEDIN', 'GOOGLE', 'WHATSAPP', 'REFERIDO', 'OTRO'] as const
 
 type LeadStatus = typeof STATUSES[number]
 type LeadSource = typeof SOURCES[number]
@@ -18,15 +18,19 @@ const statusColors: Record<LeadStatus, string> = {
   PERDIDO:    'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 }
 
-const sourceColors: Record<LeadSource, string> = {
-  FACEBOOK:  'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+const sourceColors: Record<string, string> = {
+  LANDING:   'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  FACEBOOK:  'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
   INSTAGRAM: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
+  TIKTOK:    'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
+  LINKEDIN:  'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   GOOGLE:    'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+  WHATSAPP:  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   REFERIDO:  'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400',
   OTRO:      'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
 }
 
-const emptyForm = { name: '', email: '', phone: '', source: 'OTRO', campaign: '', status: 'NUEVO', notes: '' }
+const emptyForm = { name: '', email: '', phone: '', specialty: '', city: '', source: 'OTRO', campaign: '', status: 'NUEVO', notes: '' }
 
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -91,6 +95,7 @@ export default function AdminLeadsPage() {
     setEditingLead(lead)
     setForm({
       name: lead.name, email: lead.email ?? '', phone: lead.phone ?? '',
+      specialty: (lead as any).specialty ?? '', city: (lead as any).city ?? '',
       source: lead.source, campaign: lead.campaign ?? '',
       status: lead.status, notes: lead.notes ?? '',
     })
@@ -220,7 +225,7 @@ export default function AdminLeadsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                  {['Nombre', 'Email', 'Teléfono', 'Origen', 'Campaña', 'Estado', 'Fecha', 'Notas', 'Acciones'].map(h => (
+                  {['Nombre', 'Email', 'Teléfono', 'Origen', 'Campaña', 'Especialidad', 'Estado', 'Fecha', 'Notas', 'Acciones'].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -229,7 +234,7 @@ export default function AdminLeadsPage() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="border-b border-gray-100 dark:border-gray-700">
-                      {Array.from({ length: 9 }).map((_, j) => (
+                      {Array.from({ length: 10 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
                           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                         </td>
@@ -238,7 +243,7 @@ export default function AdminLeadsPage() {
                   ))
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-16 text-center">
+                    <td colSpan={10} className="px-4 py-16 text-center">
                       <Users size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
                       <p className="text-gray-500 dark:text-slate-300">No se encontraron leads</p>
                     </td>
@@ -255,6 +260,10 @@ export default function AdminLeadsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 dark:text-slate-300 text-xs">{lead.campaign ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 text-xs">
+                        {lead.specialty && <div>{lead.specialty}</div>}
+                        {lead.city && <div className="text-gray-400 dark:text-slate-400">{lead.city}</div>}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="relative inline-block">
                           <button
@@ -423,6 +432,26 @@ export default function AdminLeadsPage() {
                   placeholder="Nombre de la campaña"
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Especialidad</label>
+                  <input
+                    value={(form as any).specialty ?? ''}
+                    onChange={e => setForm(f => ({ ...f, specialty: e.target.value } as any))}
+                    placeholder="Ej: Pediatría"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ciudad</label>
+                  <input
+                    value={(form as any).city ?? ''}
+                    onChange={e => setForm(f => ({ ...f, city: e.target.value } as any))}
+                    placeholder="Quito, Guayaquil..."
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notas</label>
