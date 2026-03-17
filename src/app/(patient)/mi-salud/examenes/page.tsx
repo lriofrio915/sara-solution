@@ -67,7 +67,7 @@ export default function PatientExamenesPage() {
                 <div className="border-t border-gray-100 dark:border-gray-700 p-5 space-y-4">
                   {examSections.map(([key, items]) => (
                     <div key={key}>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-2">
                         {SECTION_LABELS[key] ?? key}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -86,7 +86,7 @@ export default function PatientExamenesPage() {
                     </div>
                   )}
                   {order.notes && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Nota: {order.notes}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-300">Nota: {order.notes}</p>
                   )}
                   <button onClick={() => window.print()} className="flex items-center gap-2 text-sm text-primary hover:underline font-medium">
                     🖨️ Imprimir orden

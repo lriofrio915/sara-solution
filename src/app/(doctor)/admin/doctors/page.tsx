@@ -68,7 +68,7 @@ export default function AdminDoctorsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <div key={c.label} className={`${c.bg} rounded-2xl p-4`}>
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{c.label}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-300">{c.label}</p>
             <p className={`text-3xl font-bold mt-1 ${c.color}`}>{loading ? '—' : c.value}</p>
           </div>
         ))}
@@ -129,7 +129,7 @@ export default function AdminDoctorsPage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center">
                     <Users size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                    <p className="text-gray-500 dark:text-gray-400">No se encontraron médicos</p>
+                    <p className="text-gray-500 dark:text-slate-300">No se encontraron médicos</p>
                   </td>
                 </tr>
               ) : (
@@ -138,7 +138,7 @@ export default function AdminDoctorsPage() {
                   const plan = doc.plan ?? 'FREE'
                   return (
                     <tr key={doc.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-4 py-3 text-gray-400 dark:text-gray-500">{rowNum}</td>
+                      <td className="px-4 py-3 text-gray-400 dark:text-slate-400">{rowNum}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {doc.avatarUrl ? (
@@ -153,7 +153,7 @@ export default function AdminDoctorsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">{doc.specialty}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 hidden lg:table-cell text-xs">{doc.email}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 hidden lg:table-cell text-xs">{doc.email}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${planBadge[plan] ?? planBadge.FREE}`}>
                           {plan}
@@ -162,7 +162,7 @@ export default function AdminDoctorsPage() {
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium hidden sm:table-cell">
                         {doc._count.patients}
                       </td>
-                      <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs hidden xl:table-cell">
+                      <td className="px-4 py-3 text-gray-400 dark:text-slate-400 text-xs hidden xl:table-cell">
                         {new Date(doc.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="px-4 py-3">
@@ -189,7 +189,7 @@ export default function AdminDoctorsPage() {
         {/* Pagination */}
         {!loading && filtered.length > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 dark:text-slate-300">
               Mostrando {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} de {filtered.length} médicos
             </p>
             <div className="flex items-center gap-2">

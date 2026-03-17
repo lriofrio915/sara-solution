@@ -155,7 +155,7 @@ export default function KnowledgePage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Base de conocimiento</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+        <p className="text-gray-500 dark:text-slate-300 mt-1 text-sm">
           Sube tus guías clínicas, protocolos y documentos médicos. Sara los leerá como fuente de verdad al responder tus preguntas.
         </p>
       </div>
@@ -210,7 +210,7 @@ export default function KnowledgePage() {
             <p className="text-gray-700 dark:text-gray-200 font-semibold text-lg">
               Arrastra archivos aquí o haz clic para seleccionar
             </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+            <p className="text-gray-400 dark:text-slate-400 text-sm mt-2">
               PDF, Word, Excel, TXT, CSV, Imágenes · Máximo 20 MB por archivo
             </p>
           </>
@@ -249,8 +249,8 @@ export default function KnowledgePage() {
         ) : docs.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-center py-16">
             <div className="text-4xl mb-3">🗂️</div>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">No hay documentos aún</p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Sube el primero para que Sara pueda consultarlo</p>
+            <p className="text-gray-500 dark:text-slate-300 font-medium">No hay documentos aún</p>
+            <p className="text-gray-400 dark:text-slate-400 text-sm mt-1">Sube el primero para que Sara pueda consultarlo</p>
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -306,11 +306,11 @@ export default function KnowledgePage() {
       {/* RAG explanation */}
       <div className="mt-6 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-5 space-y-2">
         <p className="text-sm font-semibold text-primary">¿Cómo funciona el RAG?</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-gray-600 dark:text-slate-300">
           Cuando preguntas algo a Sara, ella busca automáticamente en tus documentos los fragmentos más relevantes
           y los usa como contexto para responder. Esto le permite citar tus propios protocolos, guías y documentos.
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           Ejemplo: <em>&ldquo;¿Cuál es el protocolo para hipertensión según mis guías?&rdquo;</em> → Sara buscará en tus documentos y citará el contenido relevante.
         </p>
       </div>

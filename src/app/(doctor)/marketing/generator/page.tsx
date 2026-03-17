@@ -11,7 +11,7 @@ function AIImage({ prompt }: { prompt: string }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Imagen generada por IA</p>
+      <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide">Imagen generada por IA</p>
       <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square">
         {status === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
@@ -34,13 +34,13 @@ function AIImage({ prompt }: { prompt: string }) {
         />
       </div>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-gray-400 dark:text-gray-500 italic truncate flex-1">{prompt}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-400 italic truncate flex-1">{prompt}</p>
         <a
           href={src}
           download="imagen-post.jpg"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+          className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
         >
           ⬇ Descargar
         </a>
@@ -155,7 +155,7 @@ export default function GeneratorPage() {
         {/* Form */}
         <div className="space-y-5">
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Configuración del contenido</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Configuración del contenido</h2>
 
             {/* Tipo */}
             <div>
@@ -166,7 +166,7 @@ export default function GeneratorPage() {
                     className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-colors ${
                       contentType === ct.value
                         ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-primary/50'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:border-primary/50'
                     }`}>
                     <span className="text-lg">{ct.icon}</span>
                     {ct.label}
@@ -184,7 +184,7 @@ export default function GeneratorPage() {
                     className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
                       platform === p.value
                         ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-primary/50'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:border-primary/50'
                     }`}>
                     {p.label}
                   </button>
@@ -241,14 +241,14 @@ export default function GeneratorPage() {
           {!result && !generating && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-8 flex flex-col items-center justify-center text-center h-64">
               <p className="text-4xl mb-3">✨</p>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">El contenido generado aparecerá aquí</p>
+              <p className="text-gray-500 dark:text-slate-300 text-sm">El contenido generado aparecerá aquí</p>
             </div>
           )}
 
           {generating && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-8 flex flex-col items-center justify-center text-center h-64">
               <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm">La IA está creando tu contenido...</p>
+              <p className="text-gray-500 dark:text-slate-300 text-sm">La IA está creando tu contenido...</p>
             </div>
           )}
 
@@ -280,14 +280,14 @@ export default function GeneratorPage() {
               <div className="p-5 space-y-4 max-h-[600px] overflow-y-auto">
                 {/* Content */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">Contenido</p>
+                  <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1.5">Contenido</p>
                   <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{result.content}</p>
                 </div>
 
                 {/* Hashtags */}
                 {result.hashtags?.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">Hashtags</p>
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1.5">Hashtags</p>
                     <div className="flex flex-wrap gap-1.5">
                       {result.hashtags.map(h => (
                         <span key={h} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -301,12 +301,12 @@ export default function GeneratorPage() {
                 {/* Carousel slides */}
                 {result.carouselSlides?.length && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">Diapositivas del carrusel</p>
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1.5">Diapositivas del carrusel</p>
                     <div className="space-y-2">
                       {result.carouselSlides.map((s, i) => (
                         <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
                           <p className="text-xs font-bold text-gray-700 dark:text-gray-300">{i + 1}. {s.title}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{s.body}</p>
+                          <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{s.body}</p>
                         </div>
                       ))}
                     </div>
@@ -316,7 +316,7 @@ export default function GeneratorPage() {
                 {/* Reel script */}
                 {result.reelScript && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">Guión del Reel</p>
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1.5">Guión del Reel</p>
                     <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 p-3 rounded-xl">{result.reelScript}</p>
                   </div>
                 )}
@@ -328,7 +328,7 @@ export default function GeneratorPage() {
 
                 {/* Suggested time */}
                 {result.suggestedTime && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-300">
                     <span>🕐</span>
                     <span>Hora sugerida: <strong>{result.suggestedTime}</strong></span>
                   </div>

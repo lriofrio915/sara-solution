@@ -85,7 +85,7 @@ export default async function PatientLayout({
                     {patient.name}
                   </h1>
                   {age && (
-                    <span className="text-sm text-gray-400 dark:text-gray-500 flex-shrink-0">
+                    <span className="text-sm text-gray-400 dark:text-slate-400 flex-shrink-0">
                       {age}
                     </span>
                   )}

@@ -392,7 +392,7 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
             <SaraAvatar size={7} />
             <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm px-3.5 py-2.5 space-y-1.5">
               {toolStatuses.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <div key={i} className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-300">
                   {t.done
                     ? <span className="text-green-500">✓</span>
                     : <span className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin inline-block" />
@@ -459,7 +459,7 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder={isRecording ? 'Escuchando...' : patientName ? `Pregunta sobre ${patientName}...` : 'Escríbele a Sara...'}
-            className={`flex-1 bg-gray-50 dark:bg-gray-700 border rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors ${isPopup ? 'px-3 py-2' : 'input'} ${isRecording ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-600'}`}
+            className={`flex-1 bg-gray-50 dark:bg-gray-700 border rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors ${isPopup ? 'px-3 py-2' : 'input'} ${isRecording ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-600'}`}
             disabled={loading}
             autoComplete="off"
           />
@@ -473,7 +473,7 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
               className={`rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 ${isPopup ? 'px-2.5 py-2' : 'px-3 py-3'} ${
                 isRecording
                   ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {isRecording ? <MicOff size={15} /> : <Mic size={15} />}

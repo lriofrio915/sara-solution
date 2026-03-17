@@ -37,7 +37,7 @@ export default function PublicPageCard({ slug, appUrl }: PublicPageCardProps) {
         <h2 className="font-bold text-gray-900 dark:text-white">Tu página pública</h2>
       </div>
 
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-5">
+      <p className="text-gray-500 dark:text-slate-300 text-sm mb-5">
         Comparte este link con tus pacientes para que agenden citas con Sara.
       </p>
 
@@ -86,7 +86,7 @@ export default function PublicPageCard({ slug, appUrl }: PublicPageCardProps) {
 
       {/* QR Code */}
       <div className="flex flex-col items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-        <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">Escanea el QR para acceder</p>
+        <p className="text-xs text-gray-400 dark:text-slate-400 font-medium">Escanea el QR para acceder</p>
         <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100">
           <QRCodeSVG
             value={publicUrl}

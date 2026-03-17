@@ -127,7 +127,7 @@ export default function NewPrescriptionPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Paciente */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Paciente y fecha</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Paciente y fecha</h2>
           {selectedPatient ? (
             <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
               <div>
@@ -142,7 +142,7 @@ export default function NewPrescriptionPage() {
               <input type="text" value={patientQ} onChange={e => setPatientQ(e.target.value)}
                 onFocus={() => patients.length > 0 && setShowDropdown(true)}
                 placeholder="Buscar paciente..."
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
               {showDropdown && patients.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden">
                   {patients.map(p => (
@@ -171,7 +171,7 @@ export default function NewPrescriptionPage() {
         {/* PRESCRIPCIÓN */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Prescripción (medicamentos)</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Prescripción (medicamentos)</h2>
             <button type="button" onClick={addMed}
               className="text-xs font-semibold text-primary hover:underline">+ Agregar</button>
           </div>
@@ -184,35 +184,35 @@ export default function NewPrescriptionPage() {
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Medicamento *</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Medicamento *</label>
                   <input type="text" value={med.name} onChange={e => updateMed(i, 'name', e.target.value)}
                     placeholder="Ej: Amoxicilina"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Dosis</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Dosis</label>
                   <input type="text" value={med.dose} onChange={e => updateMed(i, 'dose', e.target.value)}
                     placeholder="Ej: 500 mg"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Frecuencia</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Frecuencia</label>
                   <input type="text" value={med.frequency} onChange={e => updateMed(i, 'frequency', e.target.value)}
                     placeholder="Ej: cada 8 horas"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Duración</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Duración</label>
                   <input type="text" value={med.duration} onChange={e => updateMed(i, 'duration', e.target.value)}
                     placeholder="Ej: 7 días"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Notas adicionales</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Notas adicionales</label>
                 <input type="text" value={med.notes} onChange={e => updateMed(i, 'notes', e.target.value)}
                   placeholder="Ej: Tomar con alimentos"
-                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
               </div>
             </div>
           ))}
@@ -220,7 +220,7 @@ export default function NewPrescriptionPage() {
 
         {/* INDICACIONES */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Indicaciones para el paciente</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Indicaciones para el paciente</h2>
           <textarea
             value={instructions}
             onChange={e => setInstructions(e.target.value)}
@@ -230,7 +230,7 @@ export default function NewPrescriptionPage() {
 2. Dieta blanda, abundantes líquidos
 3. Evitar exposición al frío
 4. Regresar si los síntomas no mejoran en 48h"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
           />
         </div>
 

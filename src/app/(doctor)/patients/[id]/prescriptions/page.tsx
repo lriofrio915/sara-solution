@@ -94,13 +94,13 @@ function EditModal({ rx, onClose, onSaved }: {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Diagnóstico</label>
               <input type="text" value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)}
                 placeholder="Opcional"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Medicamentos</label>
+              <label className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Medicamentos</label>
               <button type="button" onClick={addMed}
                 className="text-xs font-semibold text-primary hover:underline">+ Agregar</button>
             </div>
@@ -113,21 +113,21 @@ function EditModal({ rx, onClose, onSaved }: {
                   )}
                   <input type="text" value={med.name} onChange={(e) => updateMed(i, 'name', e.target.value)}
                     placeholder="Medicamento *"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                   <div className="grid grid-cols-3 gap-2">
                     <input type="text" value={med.dose ?? ''} onChange={(e) => updateMed(i, 'dose', e.target.value)}
                       placeholder="Dosis"
-                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                     <input type="text" value={med.frequency ?? ''} onChange={(e) => updateMed(i, 'frequency', e.target.value)}
                       placeholder="Frecuencia"
-                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                     <input type="text" value={med.duration ?? ''} onChange={(e) => updateMed(i, 'duration', e.target.value)}
                       placeholder="Duración"
-                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                   </div>
                   <input type="text" value={med.notes ?? ''} onChange={(e) => updateMed(i, 'notes', e.target.value)}
                     placeholder="Notas adicionales"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
               ))}
             </div>
@@ -138,7 +138,7 @@ function EditModal({ rx, onClose, onSaved }: {
             <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}
               rows={4}
               placeholder="Instrucciones de uso, signos de alarma..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -210,7 +210,7 @@ export default function PatientPrescriptionsPage() {
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
         <p className="text-4xl mb-4">💊</p>
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin recetas registradas</h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-gray-500 dark:text-slate-300 mb-6">
           Las recetas emitidas aparecerán aquí automáticamente.
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -258,7 +258,7 @@ export default function PatientPrescriptionsPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-slate-300">
             {total} receta{total !== 1 ? 's' : ''} en total
           </p>
           <Link href={`/prescriptions/new?patientId=${id}`} className="btn-primary text-sm py-1.5">
@@ -288,7 +288,7 @@ export default function PatientPrescriptionsPage() {
                     </p>
                   </div>
                   {rx.diagnosis && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{rx.diagnosis}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">{rx.diagnosis}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -306,7 +306,7 @@ export default function PatientPrescriptionsPage() {
                   </button>
                   {confirmDeleteId === rx.id ? (
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">¿Eliminar?</span>
+                      <span className="text-xs text-gray-500 dark:text-slate-300">¿Eliminar?</span>
                       <button
                         onClick={() => handleDelete(rx.id)}
                         disabled={deletingId === rx.id}
@@ -338,7 +338,7 @@ export default function PatientPrescriptionsPage() {
                     <span className="text-purple-400 mt-0.5 flex-shrink-0">💊</span>
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{med.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-slate-300">
                         {[med.dose, med.frequency, med.duration].filter(Boolean).join(' · ')}
                       </p>
                       {med.notes && <p className="text-xs text-gray-400 italic mt-0.5">{med.notes}</p>}

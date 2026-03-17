@@ -87,7 +87,7 @@ export default function PatientCitasPage() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Reagendar cita</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Nueva fecha</label>
+                <label className="text-xs font-medium text-gray-500 dark:text-slate-300 mb-1 block">Nueva fecha</label>
                 <input
                   type="date"
                   value={reschedule.date}
@@ -96,7 +96,7 @@ export default function PatientCitasPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Nueva hora</label>
+                <label className="text-xs font-medium text-gray-500 dark:text-slate-300 mb-1 block">Nueva hora</label>
                 <input
                   type="time"
                   value={reschedule.time}
@@ -132,7 +132,7 @@ export default function PatientCitasPage() {
         <>
           {upcoming.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
                 Próximas ({upcoming.length})
               </h2>
               <div className="space-y-3">
@@ -142,7 +142,7 @@ export default function PatientCitasPage() {
           )}
           {past.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
                 Historial ({past.length})
               </h2>
               <div className="space-y-3">
@@ -169,7 +169,7 @@ function AppointmentCard({ apt, onReschedule }: { apt: Appointment; onReschedule
           {' · '}{apt.duration} min
         </p>
         <p className="text-xs text-gray-400 mt-1">{TYPE_LABEL[apt.type] ?? apt.type}</p>
-        {apt.reason && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Motivo: {apt.reason}</p>}
+        {apt.reason && <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">Motivo: {apt.reason}</p>}
       </div>
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLOR[apt.status] ?? 'bg-gray-100 text-gray-600'}`}>

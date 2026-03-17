@@ -539,7 +539,7 @@ export default function ProfilePage() {
     <div className="p-6 md:p-8 md:pt-10 max-w-3xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Perfil</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Actualiza tu información profesional</p>
+        <p className="text-gray-500 dark:text-slate-300 mt-1">Actualiza tu información profesional</p>
       </div>
 
       {error && (
@@ -614,7 +614,7 @@ export default function ProfilePage() {
               value={form.name}
               onChange={handleChange}
               required
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -628,7 +628,7 @@ export default function ProfilePage() {
               value={form.specialty}
               onChange={handleChange}
               required
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -642,7 +642,7 @@ export default function ProfilePage() {
               onChange={handleChange}
               rows={3}
               placeholder="Breve descripción profesional que verán tus pacientes..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
             />
           </div>
         </div>
@@ -659,7 +659,7 @@ export default function ProfilePage() {
               type="email"
               value={profile.email}
               disabled
-              className="input opacity-60 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400"
+              className="input opacity-60 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-slate-400"
             />
             <p className="text-gray-400 text-xs mt-1">El email no se puede cambiar aquí</p>
           </div>
@@ -674,7 +674,7 @@ export default function ProfilePage() {
               value={form.phone}
               onChange={handleChange}
               placeholder="+593 99 123 4567"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
             <p className="text-gray-400 text-xs mt-1">Tu número personal — no se muestra públicamente</p>
           </div>
@@ -696,7 +696,7 @@ export default function ProfilePage() {
                 value={form.whatsapp}
                 onChange={handleChange}
                 placeholder="+593 998 176 580"
-                className="input pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
           </div>
@@ -711,7 +711,7 @@ export default function ProfilePage() {
               value={form.address}
               onChange={handleChange}
               placeholder="Av. Principal 123, Consultorio 4B, Ciudad"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -750,7 +750,7 @@ export default function ProfilePage() {
                       value={branch.name}
                       onChange={(e) => updateBranch(i, 'name', e.target.value)}
                       placeholder="Nombre del lugar (ej. Hospital del Sur)"
-                      className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                      className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                     />
                     <button
                       type="button"
@@ -769,7 +769,7 @@ export default function ProfilePage() {
                       value={branch.address}
                       onChange={(e) => updateBranch(i, 'address', e.target.value)}
                       placeholder="Dirección completa"
-                      className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                      className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                     />
                   </div>
                 </div>
@@ -790,7 +790,7 @@ export default function ProfilePage() {
               Nombre de tu página
             </label>
             <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition">
-              <span className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm border-r border-gray-200 dark:border-gray-600 whitespace-nowrap">
+              <span className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-slate-400 text-sm border-r border-gray-200 dark:border-gray-600 whitespace-nowrap">
                 consultorio.site/
               </span>
               <input
@@ -885,7 +885,7 @@ export default function ProfilePage() {
               onChange={(e) => setCedulaId(e.target.value.replace(/\D/g, '').slice(0, 10))}
               maxLength={10}
               placeholder="1234567890"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
             <p className="text-gray-400 text-xs mt-1">Exactamente 10 dígitos — será la clave de integración con sistemas nacionales de salud</p>
           </div>
@@ -899,7 +899,7 @@ export default function ProfilePage() {
               value={mspCode}
               onChange={(e) => setMspCode(e.target.value)}
               placeholder="Número de registro MSP"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
             <p className="text-gray-400 text-xs mt-1">Número de registro de título de tercer nivel ante la ACESS</p>
           </div>
@@ -913,7 +913,7 @@ export default function ProfilePage() {
               value={specialtyRegCode}
               onChange={(e) => setSpecialtyRegCode(e.target.value)}
               placeholder="Número de registro de especialidad"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
             <p className="text-gray-400 text-xs mt-1">Número de registro de especialidad cuarto nivel (solo si es especialista)</p>
           </div>
@@ -941,7 +941,7 @@ export default function ProfilePage() {
               value={establishmentName}
               onChange={(e) => setEstablishmentName(e.target.value)}
               placeholder="Ej: Consultorio Médico San José"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -956,7 +956,7 @@ export default function ProfilePage() {
                 onChange={(e) => setEstablishmentCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 maxLength={8}
                 placeholder="5 a 8 dígitos asignados por el MSP"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
 
@@ -970,7 +970,7 @@ export default function ProfilePage() {
                 onChange={(e) => setEstablishmentRuc(e.target.value.replace(/\D/g, '').slice(0, 13))}
                 maxLength={13}
                 placeholder="RUC de 13 dígitos"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
           </div>
@@ -985,7 +985,7 @@ export default function ProfilePage() {
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
                 placeholder="Ej: Pichincha"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
 
@@ -998,7 +998,7 @@ export default function ProfilePage() {
                 value={canton}
                 onChange={(e) => setCanton(e.target.value)}
                 placeholder="Ej: Quito"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
 
@@ -1011,7 +1011,7 @@ export default function ProfilePage() {
                 value={parish}
                 onChange={(e) => setParish(e.target.value)}
                 placeholder="Ej: La Mariscal"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
           </div>
@@ -1054,7 +1054,7 @@ export default function ProfilePage() {
                     <span className={`text-sm font-semibold ${isSelected ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}>
                       {mode.label}
                     </span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 text-center leading-tight">{mode.desc}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-400 text-center leading-tight">{mode.desc}</span>
                     {isSelected && (
                       <span className="mt-0.5 px-2 py-0.5 bg-primary text-white text-xs rounded-full font-semibold">Activo</span>
                     )}
@@ -1065,7 +1065,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
-            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-500 dark:text-slate-300 leading-relaxed">
               Esta información es usada por Sara IA para informar correctamente a los pacientes sobre cómo pueden ser atendidos.
             </p>
           </div>
@@ -1136,14 +1136,14 @@ export default function ProfilePage() {
                     value={service.name}
                     onChange={(e) => updateService(i, 'name', e.target.value)}
                     placeholder="Nombre del servicio (ej. Consulta General)"
-                    className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    className="flex-1 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                   />
                   <input
                     type="text"
                     value={service.price}
                     onChange={(e) => updateService(i, 'price', e.target.value)}
                     placeholder="$50"
-                    className="w-20 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    className="w-20 input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                   />
                   <button
                     type="button"
@@ -1160,7 +1160,7 @@ export default function ProfilePage() {
                   value={service.description}
                   onChange={(e) => updateService(i, 'description', e.target.value)}
                   placeholder="Descripción breve del servicio..."
-                  className="w-full input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  className="w-full input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                 />
                 {/* Preview */}
                 {(service.name || service.price) && (
@@ -1206,7 +1206,7 @@ export default function ProfilePage() {
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm font-semibold ${
                       isSelected
                         ? 'border-primary bg-primary/5 dark:bg-primary/10 text-primary'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary/40 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 hover:border-primary/40 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                   >
                     <span className="text-base">{method.icon}</span>
@@ -1228,30 +1228,30 @@ export default function ProfilePage() {
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Datos para transferencia bancaria</p>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Banco</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Banco</label>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Ej: Banco Pichincha"
-                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Número de Cuenta</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Número de Cuenta</label>
                   <input
                     type="text"
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
                     placeholder="Número de cuenta"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Tipo de Cuenta</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Tipo de Cuenta</label>
                   <select
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
@@ -1264,32 +1264,32 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Titular de la Cuenta</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Titular de la Cuenta</label>
                 <input
                   type="text"
                   value={accountHolder}
                   onChange={(e) => setAccountHolder(e.target.value)}
                   placeholder="Nombre completo del titular"
-                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Cédula del Titular</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Cédula del Titular</label>
                 <input
                   type="text"
                   value={accountCedula}
                   onChange={(e) => setAccountCedula(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   maxLength={10}
                   placeholder="1234567890"
-                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
             </div>
           )}
 
           <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
-            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-500 dark:text-slate-300 leading-relaxed">
               Sara IA usará esta información para informar a los pacientes sobre formas de pago. No se publicará información financiera sensible sin tu autorización.
             </p>
           </div>
@@ -1373,7 +1373,7 @@ export default function ProfilePage() {
 
                   {/* Day name */}
                   <span className={`w-24 flex-shrink-0 text-sm font-medium ${
-                    isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
+                    isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-400'
                   }`}>
                     {DAYS[weekday]}
                   </span>
@@ -1391,7 +1391,7 @@ export default function ProfilePage() {
                       Turno
                     </button>
                   ) : (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Cerrado</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-400">Cerrado</span>
                   )}
                 </div>
 
@@ -1460,7 +1460,7 @@ export default function ProfilePage() {
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
         <div>
           <h2 className="font-semibold text-gray-900 dark:text-white">Firma Electrónica (FirmaEC / BCE)</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">
             Sube tu certificado digital (.p12) emitido por el Banco Central del Ecuador para firmar recetas y documentos médicos digitalmente.
           </p>
         </div>
@@ -1517,9 +1517,9 @@ export default function ProfilePage() {
                   {sigFile ? (
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{sigFile.name}</p>
                   ) : (
-                    <p className="text-sm text-gray-400 dark:text-gray-500">Haz clic para seleccionar el archivo .p12 o .pfx</p>
+                    <p className="text-sm text-gray-400 dark:text-slate-400">Haz clic para seleccionar el archivo .p12 o .pfx</p>
                   )}
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Máx. 2 MB</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Máx. 2 MB</p>
                 </div>
                 {sigFile && (
                   <button type="button" onClick={(e) => { e.stopPropagation(); setSigFile(null); if (sigFileRef.current) sigFileRef.current.value = '' }}
@@ -1545,9 +1545,9 @@ export default function ProfilePage() {
                 value={sigPassword}
                 onChange={(e) => setSigPassword(e.target.value)}
                 placeholder="Contraseña de tu .p12"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">La contraseña se cifra con AES-256-GCM antes de almacenarse. Nadie puede verla en texto plano.</p>
+              <p className="text-xs text-gray-400 dark:text-slate-400 mt-1">La contraseña se cifra con AES-256-GCM antes de almacenarse. Nadie puede verla en texto plano.</p>
             </div>
 
             <button
@@ -1571,7 +1571,7 @@ export default function ProfilePage() {
         >
           <div>
             <h2 className="font-semibold text-red-600 dark:text-red-400">Zona de peligro</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Acciones irreversibles sobre tu cuenta</p>
+            <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Acciones irreversibles sobre tu cuenta</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2.5" strokeLinecap="round"
@@ -1597,7 +1597,7 @@ export default function ProfilePage() {
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder={profile.email}
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
             <button

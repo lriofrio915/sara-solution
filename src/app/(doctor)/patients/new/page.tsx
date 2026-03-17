@@ -205,7 +205,7 @@ export default function NewPatientPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Documento — PRIMERO para trigger lookup */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Identificación
           </h2>
 
@@ -241,7 +241,7 @@ export default function NewPatientPage() {
                   form.documentType === 'pasaporte' ? 'AB123456' :
                   form.documentType === 'dni_extranjero' ? 'Número de ID extranjero' : ''
                 }
-                className={`input dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-colors ${docIdBorder}`}
+                className={`input dark:bg-gray-700 dark:text-white dark:placeholder-slate-500 transition-colors ${docIdBorder}`}
               />
               {lookupState !== 'idle' && lookupMsg && (
                 <p className={`mt-1.5 text-xs flex items-center gap-1 ${lookupColors[lookupState]}`}>
@@ -255,7 +255,7 @@ export default function NewPatientPage() {
 
         {/* Datos personales */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Información personal
           </h2>
 
@@ -270,7 +270,7 @@ export default function NewPatientPage() {
               onChange={handleChange}
               required
               placeholder="Juan Pérez López"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -307,7 +307,7 @@ export default function NewPatientPage() {
 
         {/* Contacto */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Contacto
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -319,7 +319,7 @@ export default function NewPatientPage() {
                 value={form.phone}
                 onChange={handleChange}
                 placeholder="+593 999 000 000"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
             <div>
@@ -330,7 +330,7 @@ export default function NewPatientPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="paciente@email.com"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function NewPatientPage() {
 
         {/* Clínico */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Información clínica
           </h2>
 
@@ -351,7 +351,7 @@ export default function NewPatientPage() {
                 onChange={e => setAllergyInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAllergy() } }}
                 placeholder="Ej: Penicilina, Ibuprofeno..."
-                className="input flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
               <button type="button" onClick={addAllergy}
                 className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium transition-colors">
@@ -381,7 +381,7 @@ export default function NewPatientPage() {
               onChange={handleChange}
               rows={3}
               placeholder="Antecedentes relevantes, motivo de consulta inicial..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
             />
           </div>
         </div>

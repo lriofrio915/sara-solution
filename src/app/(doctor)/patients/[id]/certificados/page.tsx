@@ -67,7 +67,7 @@ export default function PatientCertificadosPage() {
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
         <p className="text-4xl mb-4">📄</p>
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin certificados registrados</h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-gray-500 dark:text-slate-300 mb-6">
           Los certificados médicos emitidos a este paciente aparecerán aquí.
         </p>
         <Link href={`/certificates/new?patientId=${id}`} className="btn-primary">
@@ -80,7 +80,7 @@ export default function PatientCertificadosPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-slate-300">
           {total} certificado{total !== 1 ? 's' : ''} en total
         </p>
         <Link href={`/certificates/new?patientId=${id}`} className="btn-primary text-sm py-1.5">
@@ -110,7 +110,7 @@ export default function PatientCertificadosPage() {
                 )}
               </div>
               {cert.diagnosis && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{cert.diagnosis}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">{cert.diagnosis}</p>
               )}
               <p className="text-xs text-gray-400 mt-1 line-clamp-2">{cert.content}</p>
             </div>

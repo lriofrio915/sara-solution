@@ -51,7 +51,7 @@ function trendBadge(curr: number, prev: number) {
 function HBarChart({ items, color }: { items: DiagItem[]; color: string }) {
   if (items.length === 0) {
     return (
-      <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
+      <p className="text-sm text-gray-400 dark:text-slate-400 text-center py-8">
         No hay datos suficientes aún
       </p>
     )
@@ -65,7 +65,7 @@ function HBarChart({ items, color }: { items: DiagItem[]; color: string }) {
             <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1" title={item.name}>
               {item.name}
             </span>
-            <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex-shrink-0">
+            <span className="text-xs font-bold text-gray-500 dark:text-slate-300 flex-shrink-0">
               {item.count}
             </span>
           </div>
@@ -86,7 +86,7 @@ function HBarChart({ items, color }: { items: DiagItem[]; color: string }) {
 function TrendChart({ data }: { data: TrendItem[] }) {
   if (data.length === 0) {
     return (
-      <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
+      <p className="text-sm text-gray-400 dark:text-slate-400 text-center py-8">
         No hay datos suficientes aún
       </p>
     )
@@ -101,7 +101,7 @@ function TrendChart({ data }: { data: TrendItem[] }) {
             className="w-full bg-primary/80 rounded-t-lg transition-all duration-500"
             style={{ height: `${Math.max((item.value / max) * 96, 4)}px` }}
           />
-          <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-tight">
+          <span className="text-[10px] text-gray-400 dark:text-slate-400 text-center leading-tight">
             {item.label}
           </span>
         </div>
@@ -279,7 +279,7 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Análisis e Inteligencia Médica
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
             Sara IA analiza tu práctica médica en tiempo real
           </p>
         </div>
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
               )}
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{card.value}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{card.label}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">{card.label}</p>
             <p className={`text-xs mt-1 font-medium ${card.subColor}`}>{card.sub}</p>
           </div>
         ))}
@@ -328,7 +328,7 @@ export default function AnalyticsPage() {
                 <HelpCircle size={16} className="text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-400 dark:text-gray-500 leading-snug">{card.question}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-400 leading-snug">{card.question}</p>
                 <p className="text-sm font-bold text-primary mt-1 leading-snug break-words">{card.answer}</p>
               </div>
             </div>
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
               <h2 className="font-bold text-gray-900 dark:text-white text-sm">
                 Top 10 Diagnósticos del Año
               </h2>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">
                 Por frecuencia en atenciones médicas
               </p>
             </div>
@@ -364,7 +364,7 @@ export default function AnalyticsPage() {
               <h2 className="font-bold text-gray-900 dark:text-white text-sm">
                 Top 10 Medicamentos más Prescritos
               </h2>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">
                 Por frecuencia en recetas emitidas
               </p>
             </div>
@@ -381,7 +381,7 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-bold text-gray-900 dark:text-white text-sm">Tendencia de Consultas</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Citas agendadas por mes (últimos 6 meses)</p>
+            <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Citas agendadas por mes (últimos 6 meses)</p>
           </div>
           <TrendingUp size={18} className="text-primary" />
         </div>
@@ -397,14 +397,14 @@ export default function AnalyticsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                 Completación
               </span>
             </div>
             <p className="text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
               {overview.completionRate}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Citas completadas vs total</p>
+            <p className="text-xs text-gray-500 dark:text-slate-300 mb-3">Citas completadas vs total</p>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
               <div
                 className="bg-green-500 h-2.5 rounded-full transition-all duration-700"
@@ -417,14 +417,14 @@ export default function AnalyticsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 rounded-full bg-orange-500" />
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                 Cancelación
               </span>
             </div>
             <p className="text-4xl font-bold text-orange-500 dark:text-orange-400 mb-1">
               {overview.cancellationRate}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Citas canceladas vs total</p>
+            <p className="text-xs text-gray-500 dark:text-slate-300 mb-3">Citas canceladas vs total</p>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
               <div
                 className="bg-orange-500 h-2.5 rounded-full transition-all duration-700"
@@ -437,14 +437,14 @@ export default function AnalyticsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                 No Asistieron
               </span>
             </div>
             <p className="text-4xl font-bold text-red-500 dark:text-red-400 mb-1">
               {overview.noShowRate}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Pacientes que no se presentaron</p>
+            <p className="text-xs text-gray-500 dark:text-slate-300 mb-3">Pacientes que no se presentaron</p>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
               <div
                 className="bg-red-500 h-2.5 rounded-full transition-all duration-700"

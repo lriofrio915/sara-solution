@@ -261,12 +261,12 @@ function AppointmentDrawer({
               <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Nueva fecha y hora</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Fecha</label>
+                  <label className="text-xs text-gray-500 dark:text-slate-300 mb-1 block">Fecha</label>
                   <input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hora</label>
+                  <label className="text-xs text-gray-500 dark:text-slate-300 mb-1 block">Hora</label>
                   <input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
@@ -434,7 +434,7 @@ function AppointmentsContent() {
             )}
           </div>
           {a.reason && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{a.reason}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5 truncate">{a.reason}</p>
           )}
         </div>
 
@@ -457,7 +457,7 @@ function AppointmentsContent() {
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Citas</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">Agenda y gestión de citas médicas</p>
+          <p className="text-gray-500 dark:text-slate-300 mt-0.5 text-sm">Agenda y gestión de citas médicas</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
@@ -465,7 +465,7 @@ function AppointmentsContent() {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 view === 'list'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  : 'text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200'
               }`}>
               ☰ Lista
             </button>
@@ -473,7 +473,7 @@ function AppointmentsContent() {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 view === 'calendar'
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  : 'text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200'
               }`}>
               📅 Calendario
             </button>
@@ -510,7 +510,7 @@ function AppointmentsContent() {
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                 {filter === 'today' ? 'No hay citas hoy' : 'No hay citas en este período'}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+              <p className="text-gray-500 dark:text-slate-300 mb-6 text-sm">
                 Crea una cita manualmente o pídele a Sara que te ayude.
               </p>
               <Link href="/appointments/new" className="btn-primary">Nueva cita</Link>
@@ -521,7 +521,7 @@ function AppointmentsContent() {
             <div className="space-y-6">
               {Object.entries(grouped).map(([date, appts]) => (
                 <div key={date}>
-                  <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3 px-1">{date}</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-400 mb-3 px-1">{date}</h2>
                   <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                     {appts.map(a => <AppointmentRow key={a.id} a={a} />)}
                   </div>
@@ -538,19 +538,19 @@ function AppointmentsContent() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
               <button onClick={() => setCalDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">‹</button>
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-slate-300 transition-colors">‹</button>
               <div className="text-center">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">{MONTHS[month]} {year}</h2>
                 {calLoading && <p className="text-xs text-primary animate-pulse">Cargando...</p>}
                 {!calLoading && <p className="text-xs text-gray-400">{calAppointments.length} cita{calAppointments.length !== 1 ? 's' : ''} este mes</p>}
               </div>
               <button onClick={() => setCalDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">›</button>
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-slate-300 transition-colors">›</button>
             </div>
 
             <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700">
               {WEEKDAYS.map(d => (
-                <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">{d}</div>
+                <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide">{d}</div>
               ))}
             </div>
 
@@ -574,7 +574,7 @@ function AppointmentsContent() {
                       {dayAppts.slice(0, 3).map(a => (
                         <div key={a.id} className={`h-1.5 rounded-full ${STATUS_CONFIG[a.status].dot}`} />
                       ))}
-                      {dayAppts.length > 3 && <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-none">+{dayAppts.length - 3}</p>}
+                      {dayAppts.length > 3 && <p className="text-[10px] text-gray-400 dark:text-slate-400 leading-none">+{dayAppts.length - 3}</p>}
                     </div>
                   </div>
                 )
@@ -585,7 +585,7 @@ function AppointmentsContent() {
           {/* Legend */}
           <div className="flex items-center gap-4 flex-wrap px-1">
             {Object.entries(STATUS_CONFIG).slice(0, 4).map(([key, val]) => (
-              <div key={key} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <div key={key} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-300">
                 <div className={`w-2.5 h-2.5 rounded-full ${val.dot}`} />
                 {val.label}
               </div>
@@ -603,7 +603,7 @@ function AppointmentsContent() {
               </div>
               {selectedDayAppts.length === 0 ? (
                 <div className="px-5 py-10 text-center">
-                  <p className="text-gray-400 dark:text-gray-500 text-sm">No hay citas este día</p>
+                  <p className="text-gray-400 dark:text-slate-400 text-sm">No hay citas este día</p>
                   <Link href="/appointments/new" className="btn-primary mt-4 inline-block text-sm">Nueva cita</Link>
                 </div>
               ) : (

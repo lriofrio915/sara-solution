@@ -118,7 +118,7 @@ export default function AtencionesPage() {
             {(activeFilters.desde || activeFilters.hasta || activeFilters.tipo) && (
               <button
                 onClick={handleClearFilters}
-                className="text-sm px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="text-sm px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Limpiar
               </button>
@@ -136,8 +136,8 @@ export default function AtencionesPage() {
         ) : atenciones.length === 0 ? (
           <div className="py-16 text-center">
             <div className="text-4xl mb-3">🩺</div>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">No hay atenciones registradas</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-gray-500 dark:text-slate-300 font-medium">No hay atenciones registradas</p>
+            <p className="text-sm text-gray-400 dark:text-slate-400 mt-1">
               Crea la primera atención con el botón &ldquo;Nueva atención&rdquo;
             </p>
           </div>
@@ -148,19 +148,19 @@ export default function AtencionesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Fecha / Hora
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Servicio
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Tipo
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Motivo
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Duración
                     </th>
                   </tr>
@@ -187,13 +187,13 @@ export default function AtencionesPage() {
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
                         {a.attentionType ?? '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs">
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300 max-w-xs">
                         <p className="truncate">{a.motive ?? '—'}</p>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300 whitespace-nowrap">
                         {a.durationMins ? `${a.durationMins} min` : '—'}
                       </td>
                     </tr>
@@ -218,7 +218,7 @@ export default function AtencionesPage() {
                         {new Date(a.datetime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                       {a.motive && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{a.motive}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5 truncate">{a.motive}</p>
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">

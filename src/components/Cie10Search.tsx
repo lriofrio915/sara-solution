@@ -73,7 +73,7 @@ export default function Cie10Search({ value, onChange, placeholder = 'Ej: J02 - 
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder={value ? 'Cambiar diagnóstico...' : placeholder}
-          className={`input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 pr-8 ${className ?? ''}`}
+          className={`input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500 pr-8 ${className ?? ''}`}
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

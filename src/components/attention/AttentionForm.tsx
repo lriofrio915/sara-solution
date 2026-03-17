@@ -126,7 +126,7 @@ function AIModal({ patientId, onClose }: { patientId: string; onClose: () => voi
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">Sara está analizando la historia clínica...</p>
+              <p className="text-sm text-gray-500 dark:text-slate-300">Sara está analizando la historia clínica...</p>
             </div>
           ) : error ? (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm">
@@ -141,12 +141,12 @@ function AIModal({ patientId, onClose }: { patientId: string; onClose: () => voi
               </div>
               {sources.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide mb-2">
                     Fuentes consultadas
                   </p>
                   <ul className="space-y-1">
                     {sources.map((s) => (
-                      <li key={s} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li key={s} className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
                         <span>📄</span> {s}
                       </li>
                     ))}
@@ -483,13 +483,13 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
               <button
                 type="button"
                 onClick={() => setShowPrevious(!showPrevious)}
-                className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200"
               >
                 <span>{showPrevious ? '▲' : '▼'}</span>
                 Atención anterior ({new Date(previousAttention.datetime).toLocaleDateString('es-EC')})
               </button>
               {showPrevious && (
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-600 dark:text-slate-300 space-y-1">
                   {previousAttention.motive && <p><strong>Motivo:</strong> {previousAttention.motive}</p>}
                   {previousAttention.evolution && <p><strong>Evolución:</strong> {previousAttention.evolution}</p>}
                 </div>
@@ -547,7 +547,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === i
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  : 'border-transparent text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               {tab}
@@ -560,7 +560,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
           {activeTab === 0 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
                   Signos Vitales
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -593,7 +593,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
               </div>
 
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
                   Exploración Regional
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -661,11 +661,11 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-gray-400 font-medium">Código</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-gray-400 font-medium">Descripción</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-gray-400 font-medium">Observaciones</th>
-                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">Nuevo</th>
-                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">Definitivo</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Código</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Descripción</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Observaciones</th>
+                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-slate-300 font-medium">Nuevo</th>
+                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-slate-300 font-medium">Definitivo</th>
                         <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
@@ -866,7 +866,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                   className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl py-8 flex flex-col items-center justify-center gap-2 hover:border-primary dark:hover:border-primary transition-colors"
                 >
                   <span className="text-3xl">📎</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-gray-500 dark:text-slate-300">
                     Clic para subir imágenes o PDFs
                   </span>
                   <span className="text-xs text-gray-400">PNG, JPG, PDF</span>
@@ -1031,11 +1031,11 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
         </button>
         <button
           onClick={handleExit}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           🚪 Salir
         </button>
-        <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+        <span className="text-xs text-gray-400 dark:text-slate-400 ml-auto">
           ⏱ {elapsedMins}m en consulta
         </span>
       </div>

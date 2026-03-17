@@ -111,7 +111,7 @@ export default function NewExamOrderPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Paciente y fecha */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Paciente y fecha</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Paciente y fecha</h2>
           {selectedPatient ? (
             <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
               <div>
@@ -126,7 +126,7 @@ export default function NewExamOrderPage() {
               <input type="text" value={patientQ} onChange={e => setPatientQ(e.target.value)}
                 onFocus={() => patients.length > 0 && setShowDropdown(true)}
                 placeholder="Buscar paciente..."
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
               {showDropdown && patients.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden">
                   {patients.map(p => (
@@ -147,7 +147,7 @@ export default function NewExamOrderPage() {
               <input type="date" value={date} onChange={e => setDate(e.target.value)} required
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
-            <div className="pt-5 text-sm text-gray-500 dark:text-gray-400">
+            <div className="pt-5 text-sm text-gray-500 dark:text-slate-300">
               {totalSelected()} examen{totalSelected() !== 1 ? 'es' : ''} seleccionado{totalSelected() !== 1 ? 's' : ''}
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function NewExamOrderPage() {
 
         {/* Checkbox grid */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Exámenes</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Exámenes</h2>
 
           {EXAM_CATEGORIES.map(category => (
             <div key={category.key}>

@@ -77,7 +77,7 @@ export default function PatientOrdenesPage() {
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
         <p className="text-4xl mb-4">🧪</p>
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin órdenes registradas</h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-gray-500 dark:text-slate-300 mb-6">
           Las órdenes de exámenes emitidas a este paciente aparecerán aquí.
         </p>
         <Link href={`/exam-orders/new?patientId=${id}`} className="btn-primary">
@@ -90,7 +90,7 @@ export default function PatientOrdenesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-slate-300">
           {total} orden{total !== 1 ? 'es' : ''} en total
         </p>
         <Link href={`/exam-orders/new?patientId=${id}`} className="btn-primary text-sm py-1.5">
@@ -115,7 +115,7 @@ export default function PatientOrdenesPage() {
                     dateStyle: 'long',
                   })}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">
                   {examCount} examen{examCount !== 1 ? 'es' : ''}
                   {categories.length > 0 && ` · ${categories.join(', ')}`}
                 </p>

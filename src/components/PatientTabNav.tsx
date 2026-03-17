@@ -28,7 +28,7 @@ export default function PatientTabNav({ tabs }: { tabs: Tab[] }) {
             className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
               active
                 ? 'border-primary text-primary dark:text-primary'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
+                : 'border-transparent text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
             }`}
           >
             <span>{tab.icon}</span>

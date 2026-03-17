@@ -68,7 +68,7 @@ export default function PatientDashboard() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {greeting}, {patientName} 👋
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Tu resumen de salud</p>
+        <p className="text-gray-500 dark:text-slate-300 text-sm mt-1">Tu resumen de salud</p>
       </div>
 
       {/* Quick stats */}
@@ -77,25 +77,25 @@ export default function PatientDashboard() {
           className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-lg mb-3">📅</div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{summary?.upcomingAppointments.length ?? 0}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Citas próximas</p>
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">Citas próximas</p>
         </Link>
         <Link href="/mi-salud/recetas"
           className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-lg mb-3">💊</div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{summary?.recentPrescriptions.length ?? 0}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Recetas recientes</p>
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">Recetas recientes</p>
         </Link>
         <Link href="/mi-salud/examenes"
           className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-lg mb-3">🔬</div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{summary?.totalExamOrders ?? 0}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Órdenes de examen</p>
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">Órdenes de examen</p>
         </Link>
         <Link href="/mi-salud/certificados"
           className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-lg mb-3">📋</div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{summary?.totalCertificates ?? 0}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Certificados</p>
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">Certificados</p>
         </Link>
       </div>
 

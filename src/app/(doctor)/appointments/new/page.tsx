@@ -154,7 +154,7 @@ export default function NewAppointmentPage() {
 
         {/* Paciente */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Paciente
           </h2>
 
@@ -177,7 +177,7 @@ export default function NewAppointmentPage() {
                 onChange={(e) => setPatientQ(e.target.value)}
                 onFocus={() => patients.length > 0 && setShowDropdown(true)}
                 placeholder="Buscar paciente por nombre o cédula..."
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
               {showDropdown && patients.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden">
@@ -206,7 +206,7 @@ export default function NewAppointmentPage() {
 
         {/* Fecha y hora */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Fecha y hora
           </h2>
 
@@ -282,7 +282,7 @@ export default function NewAppointmentPage() {
 
         {/* Tipo y motivo */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
             Tipo y motivo
           </h2>
 
@@ -308,7 +308,7 @@ export default function NewAppointmentPage() {
               value={form.reason}
               onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))}
               placeholder="Ej: Control de presión, revisión general..."
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
             />
           </div>
 
@@ -321,7 +321,7 @@ export default function NewAppointmentPage() {
               onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
               rows={2}
               placeholder="Notas visibles solo para ti..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
             />
           </div>
         </div>

@@ -110,7 +110,7 @@ export default function AutopilotPage() {
     <div className="p-6 md:p-8 max-w-5xl space-y-6">
       {/* Generate form */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-4">Generar nuevo calendario</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-4">Generar nuevo calendario</h2>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">{error}</div>
@@ -157,7 +157,7 @@ export default function AutopilotPage() {
             )}
           </button>
           {generating && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">Esto puede tomar 15-30 segundos...</p>
+            <p className="text-xs text-gray-400 dark:text-slate-400">Esto puede tomar 15-30 segundos...</p>
           )}
         </form>
       </div>
@@ -172,7 +172,7 @@ export default function AutopilotPage() {
       {!loading && calendars.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-12 text-center">
           <p className="text-4xl mb-3">🚀</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Genera tu primer calendario automático arriba.</p>
+          <p className="text-gray-500 dark:text-slate-300 text-sm">Genera tu primer calendario automático arriba.</p>
         </div>
       )}
 
@@ -185,7 +185,7 @@ export default function AutopilotPage() {
             <div className="flex items-center gap-4">
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{cal.title}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
+                <p className="text-xs text-gray-400 dark:text-slate-400">
                   {new Date(cal.startDate).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })} —
                   {' '}{cal.items.length} publicaciones · {cal.frequency}
                 </p>
@@ -211,7 +211,7 @@ export default function AutopilotPage() {
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
                         {item.socialPost.topic ?? item.socialPost.content.slice(0, 60)}
                       </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                      <p className="text-xs text-gray-400 dark:text-slate-400">
                         {new Date(item.scheduledDate).toLocaleDateString('es-EC', { weekday: 'short', day: '2-digit', month: 'short' })}
                         {' '}· {item.socialPost.contentType}
                       </p>

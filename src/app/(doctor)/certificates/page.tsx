@@ -50,7 +50,7 @@ export default function CertificatesPage() {
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Certificados Médicos</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">
             {total > 0 ? `${total} certificado${total !== 1 ? 's' : ''} emitido${total !== 1 ? 's' : ''}` : 'Certificados médicos digitales'}
           </p>
         </div>
@@ -67,14 +67,14 @@ export default function CertificatesPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">📋</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay certificados aún</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">Emite tu primer certificado médico digital.</p>
+          <p className="text-gray-500 dark:text-slate-300 mb-6">Emite tu primer certificado médico digital.</p>
           <Link href="/certificates/new" className="btn-primary">Nuevo certificado</Link>
         </div>
       )}
 
       {!loading && items.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
             <span>Fecha</span>
             <span>Paciente</span>
             <span>Diagnóstico</span>
@@ -88,7 +88,7 @@ export default function CertificatesPage() {
               className={`flex flex-col md:grid md:grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center cursor-pointer ${
                 i < items.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''
               } hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors`}>
-              <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              <div className="text-sm text-gray-500 dark:text-slate-300 whitespace-nowrap">
                 {new Date(item.date).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
               </div>
               <div>

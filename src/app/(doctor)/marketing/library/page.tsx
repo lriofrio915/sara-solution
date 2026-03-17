@@ -12,7 +12,7 @@ function AIImage({ prompt }: { prompt: string }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Imagen generada por IA</p>
+      <p className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide">Imagen generada por IA</p>
       <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square max-w-xs">
         {status === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
@@ -160,7 +160,7 @@ export default function LibraryPage() {
       {/* Header + filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-gray-500 dark:text-slate-300 text-sm">
             {total > 0 ? `${total} publicación${total !== 1 ? 'es' : ''}` : 'Sin publicaciones aún'}
           </p>
         </div>
@@ -187,7 +187,7 @@ export default function LibraryPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">📚</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin publicaciones</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Genera contenido con IA para verlo aquí.</p>
+          <p className="text-gray-500 dark:text-slate-300 mb-6 text-sm">Genera contenido con IA para verlo aquí.</p>
           <Link href="/marketing/generator" className="btn-primary">Ir al Generador</Link>
         </div>
       )}
@@ -205,7 +205,7 @@ export default function LibraryPage() {
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {post.topic ?? post.content.slice(0, 80)}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                  <p className="text-xs text-gray-400 dark:text-slate-400">
                     {post.contentType} · {post.targetPlatform} ·{' '}
                     {new Date(post.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                     {post.aiGenerated && ' · ✨ IA'}
@@ -222,7 +222,7 @@ export default function LibraryPage() {
                     </button>
                   )}
                   <button onClick={() => handleCopy(post)}
-                    className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Copiar
                   </button>
                   <button onClick={() => handleDelete(post.id)} disabled={deletingId === post.id}
@@ -252,7 +252,7 @@ export default function LibraryPage() {
                   )}
 
                   {post.suggestedTime && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-slate-300">
                       🕐 Hora sugerida: <strong>{post.suggestedTime}</strong>
                     </p>
                   )}

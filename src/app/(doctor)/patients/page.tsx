@@ -75,7 +75,7 @@ export default function PatientsPage() {
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pacientes</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">
+          <p className="text-gray-500 dark:text-slate-300 mt-0.5 text-sm">
             {total > 0 ? `${total} paciente${total !== 1 ? 's' : ''} registrado${total !== 1 ? 's' : ''}` : 'Gestión de tu base de pacientes'}
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function PatientsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar por nombre, cédula, teléfono o email..."
-            className="input pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+            className="input pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
           />
         </div>
       </div>
@@ -114,12 +114,12 @@ export default function PatientsPage() {
           {debouncedQ ? (
             <>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin resultados</h3>
-              <p className="text-gray-500 dark:text-gray-400">No encontramos pacientes con &ldquo;{debouncedQ}&rdquo;</p>
+              <p className="text-gray-500 dark:text-slate-400">No encontramos pacientes con &ldquo;{debouncedQ}&rdquo;</p>
             </>
           ) : (
             <>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay pacientes aún</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">Comienza agregando tu primer paciente o pídele a Sara que te ayude.</p>
+              <p className="text-gray-500 dark:text-slate-400 mb-6">Comienza agregando tu primer paciente o pídele a Sara que te ayude.</p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link href="/patients/new" className="btn-primary">Agregar paciente</Link>
                 <Link href="/sara" className="btn-outline">Pedir a Sara</Link>
@@ -132,7 +132,7 @@ export default function PatientsPage() {
       {/* Patient list */}
       {!loading && patients.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
             <span>Paciente</span>
             <span>Contacto</span>
             <span>Documento / Sangre</span>
@@ -181,7 +181,7 @@ export default function PatientsPage() {
               <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 {confirmDeleteId === p.id ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">¿Eliminar?</span>
+                    <span className="text-xs text-gray-500 dark:text-slate-300 mr-1">¿Eliminar?</span>
                     <button
                       onClick={() => handleDelete(p.id)}
                       disabled={deletingId === p.id}

@@ -66,7 +66,7 @@ export default function DonutChart({ data, size = 110 }: Props) {
         {slices.map((s, i) => (
           <div key={i} className="flex items-center gap-2 text-xs">
             <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: s.color }} />
-            <span className="text-gray-600 dark:text-gray-400 flex-1 truncate">{s.label}</span>
+            <span className="text-gray-600 dark:text-slate-300 flex-1 truncate">{s.label}</span>
             <span className="font-bold text-gray-800 dark:text-gray-200">{s.value}</span>
             <span className="text-gray-400 w-8 text-right">{s.pct}%</span>
           </div>

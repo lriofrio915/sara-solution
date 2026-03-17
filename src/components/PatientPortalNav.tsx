@@ -42,7 +42,7 @@ export default function PatientPortalNav({ patientName, doctorName, isAlsoDoctor
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive(item.href)
                   ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               {item.label}
@@ -61,7 +61,7 @@ export default function PatientPortalNav({ patientName, doctorName, isAlsoDoctor
               <span>Mi consultorio</span>
             </Link>
           )}
-          <span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500">{firstName}</span>
+          <span className="hidden sm:block text-xs text-gray-400 dark:text-slate-400">{firstName}</span>
           <LogoutButton />
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function PatientPortalNav({ patientName, doctorName, isAlsoDoctor
             className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
               isActive(item.href)
                 ? 'text-primary'
-                : 'text-gray-400 dark:text-gray-500'
+                : 'text-gray-400 dark:text-slate-400'
             }`}
           >
             <span className="text-lg leading-none">{item.icon}</span>
@@ -86,8 +86,8 @@ export default function PatientPortalNav({ patientName, doctorName, isAlsoDoctor
 
       {/* Doctor badge */}
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10 border-b border-primary/10 dark:border-primary/20 px-4 py-1.5 text-center flex items-center justify-center gap-3">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Tu médico: <span className="font-semibold text-gray-700 dark:text-gray-300">{doctorName}</span>
+        <p className="text-xs text-gray-500 dark:text-slate-300">
+          Tu médico: <span className="font-semibold text-gray-700 dark:text-slate-300">{doctorName}</span>
         </p>
         {isAlsoDoctor && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-semibold uppercase tracking-wide">

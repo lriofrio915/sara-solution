@@ -265,7 +265,7 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
               {greeting}, {firstName} 👋
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 capitalize">{dateStr}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5 capitalize">{dateStr}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Link href="/patients/new"
@@ -294,7 +294,7 @@ export default async function DashboardPage() {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalPatients}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pacientes totales</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Pacientes totales</p>
             <p className={`text-xs mt-1 font-medium ${patientTrend.color}`}>{patientTrend.text}</p>
           </Link>
 
@@ -304,7 +304,7 @@ export default async function DashboardPage() {
               <UserPlus size={18} className="text-teal-600 dark:text-teal-400" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{newPatientsThisMonth}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Nuevos este mes</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Nuevos este mes</p>
             <p className="text-xs text-gray-400 mt-1">{newPatientsPrevMonth} el mes pasado</p>
           </div>
 
@@ -315,7 +315,7 @@ export default async function DashboardPage() {
               <CalendarDays size={18} className="text-violet-600 dark:text-violet-400" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{todayAppointments.length}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Citas hoy</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Citas hoy</p>
             <p className="text-xs text-gray-400 mt-1">Programadas</p>
           </Link>
 
@@ -330,7 +330,7 @@ export default async function DashboardPage() {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{monthTotal}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Citas este mes</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Citas este mes</p>
             <p className={`text-xs mt-1 font-medium ${apptTrend.color}`}>{apptTrend.text}</p>
           </div>
 
@@ -340,7 +340,7 @@ export default async function DashboardPage() {
               <CheckCircle2 size={18} className="text-green-600 dark:text-green-400" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{completionRate}%</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tasa asistencia</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Tasa asistencia</p>
             <p className="text-xs text-red-400 mt-1">{noShowRate}% no asistió</p>
           </div>
 
@@ -350,7 +350,7 @@ export default async function DashboardPage() {
               <ClipboardList size={18} className="text-orange-600 dark:text-orange-400" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalDocuments}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Documentos / mes</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Documentos / mes</p>
             <p className="text-xs text-gray-400 mt-1">Rec · Ord · Cert</p>
           </div>
         </div>
@@ -364,7 +364,7 @@ export default async function DashboardPage() {
               <h2 className="font-bold text-gray-900 dark:text-white text-sm">Citas por mes</h2>
               <span className="text-xs text-gray-400">últimos 6 meses</span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Evolución de consultas agendadas</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Evolución de consultas agendadas</p>
             <BarChart data={monthlyAppointments} color="#2563EB" />
           </div>
 
@@ -374,14 +374,14 @@ export default async function DashboardPage() {
               <h2 className="font-bold text-gray-900 dark:text-white text-sm">Crecimiento de pacientes</h2>
               <span className="text-xs text-gray-400">últimos 6 meses</span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Nuevos pacientes registrados por mes</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Nuevos pacientes registrados por mes</p>
             <LineChart data={monthlyNewPatients} color="#0D9488" />
           </div>
 
           {/* Tipos de cita */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <h2 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Tipos de consulta</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Distribución histórica por modalidad</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">Distribución histórica por modalidad</p>
             {typeDistribution.length > 0
               ? <DonutChart data={typeDistribution} size={100} />
               : <p className="text-xs text-gray-400 text-center py-8">Sin citas registradas aún</p>
@@ -407,7 +407,7 @@ export default async function DashboardPage() {
             {todayAppointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
                 <CalendarDays size={32} className="text-gray-300 dark:text-gray-600 mb-2" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">No hay citas programadas hoy</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400">No hay citas programadas hoy</p>
                 <Link href="/appointments/new"
                   className="mt-3 text-primary text-sm font-semibold hover:underline">
                   Agendar una cita →
@@ -466,7 +466,7 @@ export default async function DashboardPage() {
 
             {/* Rate summary */}
             <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Indicadores del mes</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Indicadores del mes</p>
               {[
                 { label: 'Completadas', value: `${completionRate}%`, icon: CheckCircle2, color: 'text-green-500' },
                 { label: 'Canceladas', value: `${cancellationRate}%`, icon: XCircle, color: 'text-red-400' },
@@ -474,7 +474,7 @@ export default async function DashboardPage() {
               ].map(item => (
                 <div key={item.label} className="flex items-center gap-2">
                   <item.icon size={14} className={item.color} />
-                  <span className="text-xs text-gray-600 dark:text-gray-400 flex-1">{item.label}</span>
+                  <span className="text-xs text-gray-600 dark:text-slate-300 flex-1">{item.label}</span>
                   <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
                 </div>
               ))}
@@ -488,7 +488,7 @@ export default async function DashboardPage() {
           {/* Estado de citas (donut) */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <h2 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Estado de citas</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Distribución histórica de resultados</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">Distribución histórica de resultados</p>
             {statusDistribution.length > 0
               ? <DonutChart data={statusDistribution} size={100} />
               : <p className="text-xs text-gray-400 text-center py-8">Sin citas registradas aún</p>
@@ -498,7 +498,7 @@ export default async function DashboardPage() {
           {/* Barra de indicadores este mes */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
             <h2 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Resumen mensual</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">Desglose de citas de este mes</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-5">Desglose de citas de este mes</p>
             <div className="space-y-4">
               {[
                 { label: 'Completadas', value: monthCompleted, total: monthTotal, color: 'bg-green-500' },
@@ -507,7 +507,7 @@ export default async function DashboardPage() {
               ].map(item => (
                 <div key={item.label}>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-gray-600 dark:text-gray-400">{item.label}</span>
+                    <span className="text-gray-600 dark:text-slate-300">{item.label}</span>
                     <span className="font-semibold text-gray-800 dark:text-gray-200">{item.value} / {item.total}</span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">

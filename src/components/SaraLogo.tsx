@@ -30,7 +30,7 @@ export default function SaraLogo({ dark = false, forceDark = false, size = 'md',
     ? 'text-white/60'
     : forceDark
       ? 'text-gray-400'
-      : 'text-gray-400 dark:text-gray-400'
+      : 'text-gray-400 dark:text-slate-300'
 
   return (
     <Link href={href} className="flex items-center gap-2.5 flex-shrink-0">

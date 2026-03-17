@@ -67,7 +67,7 @@ export default function PatientCertificadosPage() {
                 {cert.treatment && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Tratamiento</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{cert.treatment}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">{cert.treatment}</p>
                   </div>
                 )}
                 <button onClick={() => window.print()} className="flex items-center gap-2 text-sm text-primary hover:underline font-medium">

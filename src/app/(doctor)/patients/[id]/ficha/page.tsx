@@ -315,7 +315,7 @@ export default function FichaPage() {
         {/* ─── Left Column: Personal Data ─────────────────────────────── */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-4">
               Datos Personales
             </h2>
             <div className="space-y-4">
@@ -536,7 +536,7 @@ export default function FichaPage() {
         <div className="space-y-3">
           {/* A) Alerts */}
           <Accordion title="⚠️ Alertas" defaultOpen={true}>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               Las alertas con contenido se muestran en rojo en el encabezado del paciente.
             </p>
             {(['alert1', 'alert2', 'alert3'] as const).map((key, i) => (

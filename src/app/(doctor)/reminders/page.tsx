@@ -179,7 +179,7 @@ export default function RemindersPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             🔔 Recordatorios
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+          <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">
             {filter === 'pending'
               ? `${pendingCount} recordatorio${pendingCount !== 1 ? 's' : ''} pendiente${pendingCount !== 1 ? 's' : ''}`
               : filter === 'completed'
@@ -207,7 +207,7 @@ export default function RemindersPage() {
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               filter === f
                 ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                : 'text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
             {f === 'pending' ? 'Pendientes' : f === 'completed' ? 'Completados' : 'Todos'}
@@ -225,7 +225,7 @@ export default function RemindersPage() {
       ) : reminders.length === 0 ? (
         <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
           <p className="text-4xl mb-3">🔔</p>
-          <p className="font-medium text-gray-500 dark:text-gray-400">No hay recordatorios {filter === 'pending' ? 'pendientes' : filter === 'completed' ? 'completados' : ''}</p>
+          <p className="font-medium text-gray-500 dark:text-slate-300">No hay recordatorios {filter === 'pending' ? 'pendientes' : filter === 'completed' ? 'completados' : ''}</p>
           <p className="text-sm mt-1">
             {filter === 'pending'
               ? 'Crea uno nuevo o pídele a Sara que lo haga por ti'
@@ -275,7 +275,7 @@ export default function RemindersPage() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className={`font-semibold text-sm leading-snug ${r.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+                    <p className={`font-semibold text-sm leading-snug ${r.completed ? 'line-through text-gray-400 dark:text-slate-400' : 'text-gray-900 dark:text-white'}`}>
                       {r.title}
                     </p>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -305,7 +305,7 @@ export default function RemindersPage() {
                   </div>
 
                   {r.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                    <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5 leading-relaxed">
                       {r.description}
                     </p>
                   )}
@@ -327,12 +327,12 @@ export default function RemindersPage() {
                     {/* Due date */}
                     <span className={`text-xs font-medium ${
                       r.completed
-                        ? 'text-gray-400 dark:text-gray-500'
+                        ? 'text-gray-400 dark:text-slate-400'
                         : due.overdue
                           ? 'text-red-600 dark:text-red-400'
                           : due.today
                             ? 'text-orange-600 dark:text-orange-400'
-                            : 'text-gray-500 dark:text-gray-400'
+                            : 'text-gray-500 dark:text-slate-300'
                     }`}>
                       📅 {due.label}
                     </span>
@@ -487,7 +487,7 @@ export default function RemindersPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
             <div className="text-4xl mb-3">🗑️</div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">¿Eliminar recordatorio?</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
+            <p className="text-gray-500 dark:text-slate-300 text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}

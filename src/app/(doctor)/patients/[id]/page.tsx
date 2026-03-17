@@ -154,7 +154,7 @@ export default function PatientDetailPage() {
           </Link>
           <span className="text-gray-300 dark:text-gray-600">/</span>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">{patient.name}</h1>
-          {age && <span className="text-sm text-gray-400 dark:text-gray-500">{age}</span>}
+          {age && <span className="text-sm text-gray-400 dark:text-slate-400">{age}</span>}
         </div>
         <div className="flex gap-2">
           {editing ? (
@@ -186,7 +186,7 @@ export default function PatientDetailPage() {
       <div className="space-y-5">
         {/* Info card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-4">Información personal</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-4">Información personal</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
             <Field label="Nombre" editing={editing}
               value={form.name ?? ''} onChange={(v) => setForm((p) => ({ ...p, name: v }))} />
@@ -200,7 +200,7 @@ export default function PatientDetailPage() {
               value={form.birthDate ? form.birthDate.slice(0, 10) : ''}
               onChange={(v) => setForm((p) => ({ ...p, birthDate: v }))} />
             <div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Tipo de sangre</p>
+              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Tipo de sangre</p>
               {editing ? (
                 <select value={form.bloodType ?? 'UNKNOWN'}
                   onChange={(e) => setForm((p) => ({ ...p, bloodType: e.target.value }))}
@@ -219,7 +219,7 @@ export default function PatientDetailPage() {
 
           {/* Allergies */}
           <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Alergias</p>
+            <p className="text-xs text-gray-400 dark:text-slate-400 mb-2">Alergias</p>
             {patient.allergies.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {patient.allergies.map((a) => (
@@ -236,7 +236,7 @@ export default function PatientDetailPage() {
           {/* Notes */}
           {(patient.notes || editing) && (
             <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Notas</p>
+              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Notas</p>
               {editing ? (
                 <textarea value={form.notes ?? ''} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                   rows={3} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
@@ -250,7 +250,7 @@ export default function PatientDetailPage() {
         {/* Appointments */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
               Citas ({patient.appointments.length})
             </h2>
             <Link href={`/appointments`}
@@ -285,7 +285,7 @@ export default function PatientDetailPage() {
         {/* Medical records */}
         {patient.medicalRecords.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-4">
               Historial médico
             </h2>
             <div className="space-y-4">
@@ -295,7 +295,7 @@ export default function PatientDetailPage() {
                     {new Date(r.createdAt).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
                   </p>
                   <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{r.diagnosis}</p>
-                  {r.treatment && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tratamiento: {r.treatment}</p>}
+                  {r.treatment && <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Tratamiento: {r.treatment}</p>}
                 </div>
               ))}
             </div>
@@ -306,10 +306,10 @@ export default function PatientDetailPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-1">
                 Acceso al Portal del Paciente
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-slate-300">
                 {patient.authId
                   ? 'Este paciente ya tiene acceso activo al portal. Puede ver sus citas, recetas y más.'
                   : 'Genera credenciales para que el paciente pueda ver su información médica en el portal.'}
@@ -407,7 +407,7 @@ function Field({ label, value, onChange, editing, type = 'text' }: {
 }) {
   return (
     <div>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{label}</p>
+      <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">{label}</p>
       {editing ? (
         <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
           className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white" />

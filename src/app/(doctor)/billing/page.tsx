@@ -102,7 +102,7 @@ export default function BillingPage() {
                 En Desarrollo
               </span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
               Primera etapa — configuración base
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function BillingPage() {
                     {phase.badge}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{phase.desc}</p>
+                <p className="text-sm text-gray-500 dark:text-slate-300">{phase.desc}</p>
               </div>
               {idx < phases.length - 1 && (
                 <div className="absolute" />
@@ -140,7 +140,7 @@ export default function BillingPage() {
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 className="font-bold text-gray-900 dark:text-white">Datos del Emisor</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">
               Configurados desde tu perfil. Estos datos se usarán en los comprobantes electrónicos.
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function BillingPage() {
         {/* Completion indicator */}
         <div className="mb-5">
           <div className="flex justify-between text-xs mb-1.5">
-            <span className="text-gray-500 dark:text-gray-400">Perfil de emisor completado</span>
+            <span className="text-gray-500 dark:text-slate-300">Perfil de emisor completado</span>
             <span className={`font-bold ${completionPct >= 70 ? 'text-green-600' : completionPct >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
               {completionPct}%
             </span>
@@ -193,7 +193,7 @@ export default function BillingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {profileFields.map(field => (
               <div key={field.key}>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-slate-300 mb-1.5">
                   {field.label}
                 </label>
                 <div className={`w-full px-3 py-2.5 rounded-xl text-sm border ${
@@ -224,11 +224,11 @@ export default function BillingPage() {
               <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <item.icon size={16} className="text-primary" />
               </div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
+              <span className="text-sm text-gray-600 dark:text-slate-300">{item.label}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
+        <p className="text-xs text-gray-400 dark:text-slate-400 mt-4 text-center">
           Estas funcionalidades estarán disponibles en las próximas versiones de Sara.
         </p>
       </div>

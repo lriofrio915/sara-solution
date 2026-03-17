@@ -175,7 +175,7 @@ export default function BrandingPage() {
       <form onSubmit={handleSave} className="space-y-6">
         {/* Identidad */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Identidad de Marca</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Identidad de Marca</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nombre de la clínica / consultorio</label>
@@ -197,7 +197,7 @@ export default function BrandingPage() {
 
         {/* Colores */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Paleta de Colores</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Paleta de Colores</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: 'Color primario', value: primaryColor, set: setPrimaryColor },
@@ -219,7 +219,7 @@ export default function BrandingPage() {
 
         {/* Tono de comunicación */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Tono de Comunicación</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Tono de Comunicación</h2>
           <div className="flex flex-wrap gap-2">
             {TONE_OPTIONS.map(t => (
               <button key={t} type="button" onClick={() => toggleTone(t)}
@@ -236,7 +236,7 @@ export default function BrandingPage() {
 
         {/* Audiencia y restricciones */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Audiencia y Contenido</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Audiencia y Contenido</h2>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Audiencia objetivo</label>
             <textarea value={targetAudience} onChange={e => setTargetAudience(e.target.value)} rows={2}
@@ -253,7 +253,7 @@ export default function BrandingPage() {
 
         {/* Redes sociales */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Redes Sociales</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Redes Sociales</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Instagram URL</label>
@@ -278,8 +278,8 @@ export default function BrandingPage() {
 
       {/* Banco de imágenes */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Banco de Imágenes de Marca</h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400">Sube imágenes de tu consultorio, equipo o materiales. La IA las usará para crear contenido más personalizado.</p>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Banco de Imágenes de Marca</h2>
+        <p className="text-xs text-gray-500 dark:text-slate-300">Sube imágenes de tu consultorio, equipo o materiales. La IA las usará para crear contenido más personalizado.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
@@ -299,7 +299,7 @@ export default function BrandingPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Imagen (JPG/PNG, máx 10 MB)</label>
             <input type="file" accept="image/*" ref={fileRef} onChange={handleImageUpload} disabled={uploadingImage}
-              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50" />
+              className="block w-full text-sm text-gray-500 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50" />
           </div>
         </div>
         {uploadingImage && <p className="text-xs text-primary animate-pulse">Subiendo imagen...</p>}
@@ -326,7 +326,7 @@ export default function BrandingPage() {
         )}
 
         {images.length === 0 && (
-          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No hay imágenes cargadas aún.</p>
+          <p className="text-sm text-gray-400 dark:text-slate-400 text-center py-4">No hay imágenes cargadas aún.</p>
         )}
       </div>
     </div>

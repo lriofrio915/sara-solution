@@ -152,7 +152,7 @@ export default function AdminLeadsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => (
           <div key={c.label} className={`${c.bg} rounded-2xl p-4`}>
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{c.label}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-300">{c.label}</p>
             <p className={`text-3xl font-bold mt-1 ${c.color}`}>{loading ? '—' : c.value}</p>
           </div>
         ))}
@@ -240,21 +240,21 @@ export default function AdminLeadsPage() {
                   <tr>
                     <td colSpan={9} className="px-4 py-16 text-center">
                       <Users size={40} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                      <p className="text-gray-500 dark:text-gray-400">No se encontraron leads</p>
+                      <p className="text-gray-500 dark:text-slate-300">No se encontraron leads</p>
                     </td>
                   </tr>
                 ) : (
                   filtered.map(lead => (
                     <tr key={lead.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">{lead.name}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{lead.email ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{lead.phone ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 text-xs">{lead.email ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300">{lead.phone ?? '—'}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${sourceColors[lead.source as LeadSource] ?? sourceColors.OTRO}`}>
                           {lead.source}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{lead.campaign ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 text-xs">{lead.campaign ?? '—'}</td>
                       <td className="px-4 py-3">
                         <div className="relative inline-block">
                           <button
@@ -279,8 +279,8 @@ export default function AdminLeadsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs whitespace-nowrap">{fmtDate(lead.contactedAt)}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs max-w-[120px] truncate">{lead.notes ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-400 dark:text-slate-400 text-xs whitespace-nowrap">{fmtDate(lead.contactedAt)}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 text-xs max-w-[120px] truncate">{lead.notes ?? '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <button
@@ -331,10 +331,10 @@ export default function AdminLeadsPage() {
                             {lead.source}
                           </span>
                           {lead.campaign && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[100px]">{lead.campaign}</span>
+                            <span className="text-xs text-gray-400 dark:text-slate-400 truncate max-w-[100px]">{lead.campaign}</span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{fmtDate(lead.contactedAt)}</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-400 mt-1.5">{fmtDate(lead.contactedAt)}</p>
                       </div>
                     ))}
                   </div>
@@ -460,7 +460,7 @@ export default function AdminLeadsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-gray-700 p-6 text-center">
             <Trash2 size={36} className="mx-auto text-red-500 mb-3" />
             <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1">¿Eliminar lead?</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Esta acción no se puede deshacer.</p>
+            <p className="text-sm text-gray-500 dark:text-slate-300 mb-5">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDeleteId(null)}

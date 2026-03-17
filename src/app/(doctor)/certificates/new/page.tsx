@@ -122,7 +122,7 @@ export default function NewCertificatePage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Paciente */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Paciente y fecha</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Paciente y fecha</h2>
           {selectedPatient ? (
             <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
               <div>
@@ -137,7 +137,7 @@ export default function NewCertificatePage() {
               <input type="text" value={patientQ} onChange={e => setPatientQ(e.target.value)}
                 onFocus={() => patients.length > 0 && setShowDropdown(true)}
                 placeholder="Buscar paciente..."
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
               {showDropdown && patients.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden">
                   {patients.map(p => (
@@ -162,7 +162,7 @@ export default function NewCertificatePage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Días de reposo</label>
               <input type="number" min="0" max="365" value={restDays} onChange={e => setRestDays(e.target.value)}
                 placeholder="0"
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
             </div>
           </div>
           <div className="flex flex-wrap items-end gap-3">
@@ -171,7 +171,7 @@ export default function NewCertificatePage() {
               <input type="date" value={restDateStart} onChange={e => setRestDateStart(e.target.value)}
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400 pb-2">hasta</span>
+            <span className="text-sm text-gray-500 dark:text-slate-300 pb-2">hasta</span>
             <div className="flex-1 min-w-[140px]">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">&nbsp;</label>
               <input type="date" value={restDateEnd} onChange={e => setRestDateEnd(e.target.value)}
@@ -186,14 +186,14 @@ export default function NewCertificatePage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tratamiento</label>
             <input type="text" value={treatment} onChange={e => setTreatment(e.target.value)}
               placeholder="Ej: Antibioticoterapia + analgésicos"
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" />
+              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
           </div>
         </div>
 
         {/* Contenido */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Texto del certificado</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Texto del certificado</h2>
             <div className="flex gap-2 flex-wrap">
               {CONTENT_TEMPLATES.map(t => (
                 <button key={t.label} type="button"

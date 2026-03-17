@@ -106,7 +106,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${extraClass} ${
         isActive(href)
           ? 'bg-primary/10 text-primary dark:bg-primary/20'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10'
+          : 'text-gray-600 dark:text-slate-300 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10'
       }`}>
       <Icon size={18} className="flex-shrink-0" />
       {label}
@@ -122,7 +122,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         className={`p-2 rounded-xl transition-colors ${
           gearOpen
             ? 'bg-primary/10 text-primary dark:bg-primary/20'
-            : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300'
+            : 'text-gray-400 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-slate-300'
         }`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -141,7 +141,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
               className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
                 isActive(href)
                   ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Icon size={16} />
@@ -209,7 +209,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-colors ${
                 isActive(href)
                   ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'text-gray-500 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}>
               <Icon size={18} />
               {label}
@@ -241,7 +241,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
             </Link>
             <Link href="/profile" className="flex-1 min-w-0 group">
               <p className="font-semibold text-gray-900 dark:text-white text-sm truncate group-hover:text-primary transition-colors">{firstName}</p>
-              <p className="text-gray-400 dark:text-gray-500 text-xs truncate">{specialty}</p>
+              <p className="text-gray-400 dark:text-slate-400 text-xs truncate">{specialty}</p>
             </Link>
             <GearMenu />
           </div>
@@ -299,7 +299,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
             </Link>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{firstName}</p>
-              <p className="text-gray-400 dark:text-gray-500 text-xs truncate">{specialty}</p>
+              <p className="text-gray-400 dark:text-slate-400 text-xs truncate">{specialty}</p>
             </div>
             <button onClick={handleLogout} aria-label="Cerrar sesión"
               className="p-2 rounded-xl text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
@@ -318,7 +318,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
             className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
               isActive(href)
                 ? 'text-primary'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300'
             }`}>
             <Icon size={20} />
             <span className="text-[10px] mt-0.5">{label}</span>
