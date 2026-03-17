@@ -39,11 +39,14 @@ export async function GET() {
         parish: true,
         consultationModes: true,
         paymentData: true,
+        // Firma electrónica — solo indicar si está configurada, nunca exponer credenciales
+        signaturePath: true,
       },
     })
 
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
-    return NextResponse.json(doctor)
+    // Expose only whether signature is configured, not the path itself
+    return NextResponse.json({ ...doctor, signatureConfigured: !!doctor.signaturePath, signaturePath: undefined })
   } catch (err) {
     console.error('GET /api/profile:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

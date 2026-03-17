@@ -113,6 +113,12 @@ model Doctor {
   // Métodos de pago y datos bancarios
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
 
+  // Firma Electrónica (BCE / FirmaEC)
+  signaturePath    String?  // Supabase Storage path to .p12 (private bucket 'firma-ec')
+  signatureIv      String?  // AES-256-GCM IV (hex)
+  signatureTag     String?  // AES-256-GCM auth tag (hex)
+  signatureEncPass String?  // AES-256-GCM encrypted .p12 password (hex)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -132,6 +138,8 @@ model Doctor {
   contentCalendars       ContentCalendar[]
   patientCharts          PatientChart[]
   attentions             Attention[]
+  diagnoses              Diagnosis[]
+  auditLogs              AuditLog[]
 
   @@index([slug])
   @@index([email])
@@ -187,6 +195,7 @@ model Patient {
   saraConversations   SaraConversation[]
   chart               PatientChart?
   attentions          Attention[]
+  diagnoses           Diagnosis[]
 
   @@index([doctorId])
   @@index([email])
@@ -609,10 +618,77 @@ model Attention {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient    Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor     Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  diagnosisRecords Diagnosis[]
 
   @@index([patientId])
   @@index([doctorId])
   @@index([doctorId, datetime])
+}
+
+// ─── Diagnosis (HL7 FHIR / ICD-11 normalizado) ───────────────
+model Diagnosis {
+  id          String  @id @default(cuid())
+  attentionId String?
+  patientId   String
+  doctorId    String
+
+  // ICD-11 (OMS)
+  icd11Code  String?
+  icd11Title String?
+  // CIE-10 (compatibilidad ACESS Ecuador)
+  cie10Code  String?
+  cie10Desc  String?
+
+  observations String?
+  isNew        Boolean  @default(true)
+  isDefinitive Boolean  @default(false)
+  diagnosedAt  DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attention Attention? @relation(fields: [attentionId], references: [id], onDelete: SetNull)
+  patient   Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor    Doctor     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([attentionId])
+  @@index([cie10Code])
+  @@index([icd11Code])
+}
+
+// ─── AuditLog (LOPDP) ────────────────────────────────────────
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   // doctorId o 'system'
+  patientId String?
+  resource  String   // 'PatientChart' | 'Prescription' | 'Attention' | ...
+  action    String   // READ | CREATE | UPDATE | DELETE
+  metadata  Json?    // {ip, route, changedFields, ...}
+  createdAt DateTime @default(now())
+
+  doctor  Doctor?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([patientId])
+  @@index([createdAt])
+  @@index([resource, action])
+}
+
+// ─── CatalogoMedicamento (CNMB) ──────────────────────────────
+model CatalogoMedicamento {
+  id               String  @id @default(cuid())
+  codigoAtc        String  // Código ATC e.g. "J01CA04"
+  dci              String  // Denominación Común Internacional (genérico)
+  concentracion    String? // e.g. "500 mg"
+  formaFarmaceutica String? // Tableta | Jarabe | Inyectable | ...
+  nivel            Int?    // Nivel CNMB: 1 | 2 | 3
+  activo           Boolean @default(true)
+  createdAt        DateTime @default(now())
+
+  @@index([dci])
+  @@index([codigoAtc])
 }

@@ -16,6 +16,7 @@ export default function NewPrescriptionPage() {
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [profileWarning, setProfileWarning] = useState<string | null>(null)
 
   // Patient search
   const [patientQ, setPatientQ] = useState('')
@@ -29,6 +30,19 @@ export default function NewPrescriptionPage() {
   const [medications, setMedications] = useState<Medication[]>([{ ...EMPTY_MED }])
   const [instructions, setInstructions] = useState('')
   const [appointmentId] = useState(searchParams.get('appointmentId') ?? '')
+
+  // Check required profile fields for signing
+  useEffect(() => {
+    fetch('/api/profile').then(r => r.json()).then(d => {
+      const missing: string[] = []
+      if (!d.cedulaId) missing.push('Cédula de Identidad')
+      if (!d.mspCode) missing.push('Código MSP/ACESS')
+      if (!d.specialtyRegCode) missing.push('Registro de Especialidad')
+      if (missing.length > 0) {
+        setProfileWarning(`Completa tu perfil para habilitar la firma digital: ${missing.join(', ')}`)
+      }
+    }).catch(() => {})
+  }, [])
 
   // Pre-load patient if provided
   useEffect(() => {
@@ -98,6 +112,13 @@ export default function NewPrescriptionPage() {
         <span className="text-gray-300 dark:text-gray-600">/</span>
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Nueva receta</h1>
       </div>
+
+      {profileWarning && (
+        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 rounded-xl text-sm flex items-start gap-2">
+          <span className="mt-0.5">⚠️</span>
+          <span>{profileWarning} — <a href="/profile" className="underline font-medium">Ir a Mi Perfil</a></span>
+        </div>
+      )}
 
       {error && (
         <div className="mb-5 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">{error}</div>

@@ -16,6 +16,10 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",
     "@prisma/client": "^5.22.0",
+    "@react-pdf/renderer": "^4.3.2",
+    "@signpdf/placeholder-plain": "^3.3.0",
+    "@signpdf/signer-p12": "^3.3.0",
+    "@signpdf/signpdf": "^3.3.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "autoprefixer": "^10.4.27",
@@ -24,7 +28,9 @@
     "lucide-react": "^0.469.0",
     "mammoth": "^1.11.0",
     "next": "^14.2.29",
+    "node-forge": "^1.3.3",
     "openai": "^4.77.0",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "qrcode.react": "^4.2.0",
     "react": "^18",
@@ -37,6 +43,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/node-forge": "^1.3.14",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
