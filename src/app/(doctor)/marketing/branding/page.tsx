@@ -144,6 +144,7 @@ export default function BrandingPage() {
   }
 
   async function handleDeleteImage(id: string) {
+    if (!window.confirm('¿Eliminar esta imagen? Esta acción no se puede deshacer.')) return
     setDeletingImageId(id)
     try {
       await fetch('/api/marketing/brand/images', {

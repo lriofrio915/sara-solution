@@ -35,6 +35,7 @@ export default function CertificatesPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   async function handleDelete(id: string) {
+    if (!window.confirm('¿Eliminar este certificado? Esta acción no se puede deshacer.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/certificates/${id}`, { method: 'DELETE' })

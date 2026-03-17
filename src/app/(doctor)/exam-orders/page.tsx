@@ -45,6 +45,7 @@ export default function ExamOrdersPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   async function handleDelete(id: string) {
+    if (!window.confirm('¿Eliminar esta orden de exámenes? Esta acción no se puede deshacer.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/exam-orders/${id}`, { method: 'DELETE' })

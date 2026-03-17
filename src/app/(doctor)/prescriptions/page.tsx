@@ -34,6 +34,7 @@ export default function PrescriptionsPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   async function handleDelete(id: string) {
+    if (!window.confirm('¿Eliminar esta receta? Esta acción no se puede deshacer.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/prescriptions/${id}`, { method: 'DELETE' })

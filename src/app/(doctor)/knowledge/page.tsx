@@ -137,6 +137,7 @@ export default function KnowledgePage() {
   }
 
   const deleteDoc = async (id: string, name: string) => {
+    if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/knowledge?id=${id}`, { method: 'DELETE' })

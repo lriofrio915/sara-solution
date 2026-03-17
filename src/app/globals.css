@@ -50,12 +50,15 @@
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2
-           focus:ring-primary/20 outline-none transition-all duration-200 text-gray-800
-           placeholder-gray-400 bg-white;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600
+           focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none
+           transition-all duration-200
+           text-gray-800 dark:text-white
+           placeholder-gray-400 dark:placeholder-slate-500
+           bg-white dark:bg-gray-700;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5;
   }
 }

@@ -135,6 +135,7 @@ export default function LibraryPage() {
   }
 
   async function handleDelete(id: string) {
+    if (!window.confirm('¿Eliminar este post? Esta acción no se puede deshacer.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/marketing/posts/${id}`, { method: 'DELETE' })
