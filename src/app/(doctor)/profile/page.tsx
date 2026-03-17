@@ -148,6 +148,30 @@ export default function ProfilePage() {
   const [accountType, setAccountType] = useState('SAVINGS')
   const [accountCedula, setAccountCedula] = useState('')
 
+  // Firma electrónica
+  const [sigConfigured, setSigConfigured] = useState(false)
+  const [sigSubject, setSigSubject] = useState<string | null>(null)
+  const [sigNotAfter, setSigNotAfter] = useState<string | null>(null)
+  const [sigFile, setSigFile] = useState<File | null>(null)
+  const [sigPassword, setSigPassword] = useState('')
+  const [sigUploading, setSigUploading] = useState(false)
+  const [sigDeleting, setSigDeleting] = useState(false)
+  const [sigError, setSigError] = useState<string | null>(null)
+  const [sigSuccess, setSigSuccess] = useState<string | null>(null)
+  const sigFileRef = useRef<HTMLInputElement>(null)
+
+  // Load signature status
+  useEffect(() => {
+    fetch('/api/profile/signature')
+      .then(r => r.json())
+      .then(d => {
+        setSigConfigured(d.configured ?? false)
+        if (d.subject) setSigSubject(d.subject)
+        if (d.notAfter) setSigNotAfter(new Date(d.notAfter).toLocaleDateString('es-EC'))
+      })
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
     fetch('/api/profile')
       .then((r) => r.json())
@@ -277,6 +301,50 @@ export default function ProfilePage() {
       const slots = (prev[weekday] ?? []).filter((_, i) => i !== index)
       return { ...prev, [weekday]: slots.length ? slots : [{ ...DEFAULT_SLOT }] }
     })
+  }
+
+  async function handleSignatureUpload() {
+    if (!sigFile || !sigPassword) { setSigError('Selecciona el archivo .p12 e ingresa la contraseña'); return }
+    setSigUploading(true)
+    setSigError(null)
+    setSigSuccess(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', sigFile)
+      fd.append('password', sigPassword)
+      const res = await fetch('/api/profile/signature', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error al subir firma')
+      setSigConfigured(true)
+      setSigSubject(data.subject ?? null)
+      setSigNotAfter(data.notAfter ? new Date(data.notAfter).toLocaleDateString('es-EC') : null)
+      setSigSuccess('Firma electrónica configurada correctamente')
+      setSigFile(null)
+      setSigPassword('')
+      if (sigFileRef.current) sigFileRef.current.value = ''
+    } catch (err) {
+      setSigError(err instanceof Error ? err.message : 'Error al subir firma')
+    } finally {
+      setSigUploading(false)
+    }
+  }
+
+  async function handleSignatureDelete() {
+    if (!confirm('¿Eliminar la firma electrónica configurada? Deberás volver a subirla para firmar documentos.')) return
+    setSigDeleting(true)
+    setSigError(null)
+    try {
+      const res = await fetch('/api/profile/signature', { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar firma')
+      setSigConfigured(false)
+      setSigSubject(null)
+      setSigNotAfter(null)
+      setSigSuccess('Firma electrónica eliminada')
+    } catch (err) {
+      setSigError(err instanceof Error ? err.message : 'Error al eliminar')
+    } finally {
+      setSigDeleting(false)
+    }
   }
 
   function addBranch() {
@@ -1386,6 +1454,112 @@ export default function ProfilePage() {
         >
           {savingAvail ? 'Guardando...' : 'Guardar horarios'}
         </button>
+      </div>
+
+      {/* ── FIRMA ELECTRÓNICA ───────────────────────────── */}
+      <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+        <div>
+          <h2 className="font-semibold text-gray-900 dark:text-white">Firma Electrónica (FirmaEC / BCE)</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            Sube tu certificado digital (.p12) emitido por el Banco Central del Ecuador para firmar recetas y documentos médicos digitalmente.
+          </p>
+        </div>
+
+        {sigError && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">{sigError}</div>
+        )}
+        {sigSuccess && (
+          <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 rounded-xl text-sm">{sigSuccess}</div>
+        )}
+
+        {sigConfigured ? (
+          <div className="space-y-4">
+            {/* Status card */}
+            <div className="flex items-start gap-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl">
+              <div className="text-2xl mt-0.5">✅</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-green-800 dark:text-green-300 text-sm">Firma electrónica configurada</p>
+                {sigSubject && <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">Titular: {sigSubject}</p>}
+                {sigNotAfter && <p className="text-xs text-green-700 dark:text-green-400">Válida hasta: {sigNotAfter}</p>}
+                <p className="text-xs text-green-600/70 dark:text-green-500 mt-1">El certificado está almacenado de forma segura y cifrada.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSignatureDelete}
+              disabled={sigDeleting}
+              className="text-sm text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+            >
+              {sigDeleting ? 'Eliminando...' : '× Eliminar firma electrónica'}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Info box */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl text-xs text-blue-700 dark:text-blue-300 space-y-1">
+              <p className="font-semibold">¿Cómo obtener tu firma electrónica?</p>
+              <p>1. Solicítala en el Banco Central del Ecuador (BCE) o un prestador autorizado (ANFAC, Security Data, etc.)</p>
+              <p>2. Recibirás un archivo <strong>.p12</strong> o <strong>.pfx</strong> y una contraseña</p>
+              <p>3. Sube el archivo aquí — la contraseña se almacena cifrada con AES-256-GCM</p>
+            </div>
+
+            {/* File picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Certificado digital (.p12 / .pfx) <span className="text-red-500">*</span>
+              </label>
+              <div
+                onClick={() => sigFileRef.current?.click()}
+                className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+              >
+                <span className="text-2xl">🔐</span>
+                <div className="flex-1 min-w-0">
+                  {sigFile ? (
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{sigFile.name}</p>
+                  ) : (
+                    <p className="text-sm text-gray-400 dark:text-gray-500">Haz clic para seleccionar el archivo .p12 o .pfx</p>
+                  )}
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Máx. 2 MB</p>
+                </div>
+                {sigFile && (
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setSigFile(null); if (sigFileRef.current) sigFileRef.current.value = '' }}
+                    className="text-gray-400 hover:text-red-500 text-lg leading-none">×</button>
+                )}
+              </div>
+              <input
+                ref={sigFileRef}
+                type="file"
+                accept=".p12,.pfx"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setSigFile(f) }}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Contraseña del certificado <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={sigPassword}
+                onChange={(e) => setSigPassword(e.target.value)}
+                placeholder="Contraseña de tu .p12"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              />
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">La contraseña se cifra con AES-256-GCM antes de almacenarse. Nadie puede verla en texto plano.</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSignatureUpload}
+              disabled={sigUploading || !sigFile || !sigPassword}
+              className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              {sigUploading ? 'Subiendo y validando...' : '🔐 Configurar firma electrónica'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── ZONA DE PELIGRO ─────────────────────────────── */}
