@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  let body: { messages?: SaraMessage[]; conversationId?: string }
+  let body: { messages?: SaraMessage[]; conversationId?: string; patientId?: string }
   try {
     body = await req.json()
   } catch {
@@ -39,7 +39,64 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const { messages, conversationId } = body
+  const { messages, conversationId, patientId } = body
+
+  // Fetch patient context if patientId provided (popup mode)
+  let patientContext: string | undefined
+  if (patientId) {
+    try {
+      const patient = await prisma.patient.findFirst({
+        where: { id: patientId, doctorId: doctor.id },
+        include: {
+          attentions: {
+            orderBy: { datetime: 'desc' },
+            take: 3,
+            select: { datetime: true, motive: true, diagnoses: true, prescriptionData: true, evolution: true },
+          },
+          prescriptions: {
+            orderBy: { date: 'desc' },
+            take: 3,
+            select: { date: true, medications: true, diagnosis: true, instructions: true },
+          },
+        },
+      })
+      if (patient) {
+        const lines: string[] = [
+          `Nombre: ${patient.name}`,
+          patient.documentId ? `Cédula: ${patient.documentId}` : '',
+          patient.birthDate
+            ? `Edad: ${Math.floor((Date.now() - new Date(patient.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} años`
+            : '',
+          patient.bloodType && patient.bloodType !== 'UNKNOWN' ? `Tipo de sangre: ${patient.bloodType}` : '',
+          patient.allergies?.length ? `Alergias: ${patient.allergies.join(', ')}` : '',
+          patient.phone ? `Teléfono: ${patient.phone}` : '',
+        ].filter(Boolean)
+
+        if (patient.attentions?.length) {
+          lines.push('\nÚltimas atenciones:')
+          patient.attentions.forEach(a => {
+            const date = new Date(a.datetime).toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' })
+            const diagnoses = (a.diagnoses as { cie10Desc?: string }[] | null)
+            const dx = diagnoses?.map(d => d.cie10Desc).filter(Boolean).join(', ')
+            lines.push(`  · ${date}${a.motive ? ': ' + a.motive : ''}${dx ? ' — Dx: ' + dx : ''}`)
+          })
+        }
+
+        if (patient.prescriptions?.length) {
+          lines.push('\nÚltimas recetas:')
+          patient.prescriptions.forEach(p => {
+            const date = new Date(p.date).toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' })
+            const meds = (p.medications as { name: string }[])?.map(m => m.name).join(', ')
+            lines.push(`  · ${date}${p.diagnosis ? ' (' + p.diagnosis + ')' : ''}: ${meds}`)
+          })
+        }
+
+        patientContext = lines.join('\n')
+      }
+    } catch (e) {
+      console.error('Error fetching patient context:', e)
+    }
+  }
 
   if (!messages || !Array.isArray(messages)) {
     return new Response(JSON.stringify({ error: 'messages es requerido' }), {
@@ -52,6 +109,7 @@ export async function POST(req: NextRequest) {
     doctorId: doctor.id,
     doctorName: doctor.name,
     doctorSpecialty: doctor.specialty,
+    patientContext,
   }
 
   // SSE stream

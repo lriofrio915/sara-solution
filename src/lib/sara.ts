@@ -21,6 +21,7 @@ export interface SaraContext {
   doctorId: string
   doctorName: string
   doctorSpecialty: string
+  patientContext?: string // Contexto del paciente activo (inyectado desde el popup)
 }
 
 export interface SaraEvent {
@@ -356,7 +357,11 @@ Fecha y hora actual: ${now}
 - Para confirmar acciones, usa un resumen estructurado con ✓
 - Sé concisa pero completa
 
-Siempre tienes en mente el bienestar del paciente y el tiempo de la Dra. ${context.doctorName}.`
+Siempre tienes en mente el bienestar del paciente y el tiempo de la Dra. ${context.doctorName}.${
+    context.patientContext
+      ? `\n\n## PACIENTE EN CONTEXTO ACTUAL:\nEl médico está consultando a este paciente ahora mismo. Usa estos datos como base sin necesidad de buscarlos:\n${context.patientContext}`
+      : ''
+  }`
 }
 
 // ─── Main Sara Function (with SSE event callback) ────────────────────────────
