@@ -80,6 +80,7 @@ export default function PrescriptionPrintPage() {
   const [data, setData] = useState<PrescriptionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [nextAppointment, setNextAppointment] = useState('')
+  const [downloading, setDownloading] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -94,6 +95,29 @@ export default function PrescriptionPrintPage() {
   }, [id])
 
   useEffect(() => { loadData() }, [loadData])
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true)
+    try {
+      const res = await fetch(`/api/documents/prescriptions/${id}/download`)
+      if (!res.ok) throw new Error('Error al generar PDF')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const cd = res.headers.get('Content-Disposition') ?? ''
+      const match = cd.match(/filename="([^"]+)"/)
+      const filename = match ? match[1] : 'receta.pdf'
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert('No se pudo generar el PDF. Intente de nuevo.')
+    } finally {
+      setDownloading(false)
+    }
+  }, [id])
 
   if (loading) {
     return (
@@ -158,6 +182,22 @@ export default function PrescriptionPrintPage() {
             className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 w-44"
           />
         </div>
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          )}
+          {downloading ? 'Generando...' : 'Descargar PDF Firmado'}
+        </button>
         <button
           onClick={() => window.print()}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"

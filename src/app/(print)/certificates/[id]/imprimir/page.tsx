@@ -62,7 +62,7 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
       <div className="no-print flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <a href="/certificates" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Volver</a>
         <div className="flex-1" />
-        <PrintButton />
+        <PrintButton downloadUrl={`/api/documents/certificates/${params.id}/download`} />
       </div>
 
       <div className="bg-gray-100 dark:bg-gray-900 min-h-screen py-8 px-4 print:bg-white print:p-0">
