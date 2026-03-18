@@ -15,38 +15,48 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient()
+    const params = new URLSearchParams(window.location.search)
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
 
-    // Listen for the PASSWORD_RECOVERY event that Supabase emits
-    // automatically when it detects ?code= in the URL
+    // Error explícito en la URL → enlace inválido de inmediato
+    if (params.get('error') || hashParams.get('error')) {
+      setExpired(true)
+      return
+    }
+
+    const code = params.get('code')
+
+    if (code) {
+      // PKCE flow: el enlace del correo trae ?code= → intercambiar por sesión
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setExpired(true)
+        } else {
+          setReady(true)
+          // Limpiar el code de la URL sin recargar
+          window.history.replaceState({}, '', '/reset-password')
+        }
+      })
+      return
+    }
+
+    // Implicit/legacy flow: escuchar evento PASSWORD_RECOVERY
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setReady(true)
       }
     })
 
-    // Fallback timeout: if no event fires in 5s, the link is expired/invalid
+    // Fallback: si no llega ningún evento en 15s, el enlace es inválido
     const timer = setTimeout(() => {
       setExpired(true)
-    }, 5000)
-
-    // If there's an error in the URL params, show expired immediately
-    const params = new URLSearchParams(window.location.search)
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
-    if (params.get('error') || hashParams.get('error')) {
-      clearTimeout(timer)
-      setExpired(true)
-    }
+    }, 15000)
 
     return () => {
       subscription.unsubscribe()
       clearTimeout(timer)
     }
   }, [])
-
-  // Once ready, clear the expired state in case timer fired first
-  useEffect(() => {
-    if (ready) setExpired(false)
-  }, [ready])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
