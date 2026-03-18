@@ -2,6 +2,9 @@
  * POST /api/leads/public
  * Public endpoint — no auth required. Used by the landing page form and
  * any external integration to submit leads.
+ *
+ * After creating the lead, fires a fire-and-forget notification to n8n
+ * so Luis can receive a WhatsApp alert (N8N_LEAD_NOTIFY_URL env var).
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
@@ -9,6 +12,49 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 const ALLOWED_SOURCES = ['LANDING', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'LINKEDIN', 'GOOGLE', 'WHATSAPP', 'REFERIDO', 'OTRO']
+
+async function notifyN8n(lead: {
+  name: string
+  email: string | null
+  phone: string | null
+  specialty: string | null
+  city: string | null
+  source: string
+  utmSource: string | null
+  createdAt: Date
+}) {
+  const url = process.env.N8N_LEAD_NOTIFY_URL
+  if (!url) return // not configured — silent skip
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:      lead.name,
+        email:     lead.email     ?? '—',
+        phone:     lead.phone     ?? '—',
+        specialty: lead.specialty ?? '—',
+        city:      lead.city      ?? '—',
+        source:    lead.source,
+        utmSource: lead.utmSource ?? 'directo',
+        date: new Date(lead.createdAt).toLocaleString('es-EC', {
+          timeZone:    'America/Guayaquil',
+          day:   '2-digit',
+          month: '2-digit',
+          year:  'numeric',
+          hour:  '2-digit',
+          minute:'2-digit',
+        }),
+      }),
+      // Short timeout — never block the API response
+      signal: AbortSignal.timeout(4000),
+    })
+  } catch {
+    // Notification failure is non-fatal
+    console.warn('n8n lead notification failed (non-fatal)')
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,19 +69,22 @@ export async function POST(req: NextRequest) {
 
     const lead = await prisma.lead.create({
       data: {
-        name: name.trim(),
-        email: email?.trim() || null,
-        phone: phone?.trim() || null,
-        specialty: specialty?.trim() || null,
-        city: city?.trim() || null,
-        source: resolvedSource,
-        campaign: campaign?.trim() || utmCampaign?.trim() || null,
-        utmSource: utmSource?.trim() || null,
-        utmMedium: utmMedium?.trim() || null,
-        utmCampaign: utmCampaign?.trim() || null,
-        status: 'NUEVO',
+        name:       name.trim(),
+        email:      email?.trim()      || null,
+        phone:      phone?.trim()      || null,
+        specialty:  specialty?.trim()  || null,
+        city:       city?.trim()       || null,
+        source:     resolvedSource,
+        campaign:   campaign?.trim()   || utmCampaign?.trim() || null,
+        utmSource:  utmSource?.trim()  || null,
+        utmMedium:  utmMedium?.trim()  || null,
+        utmCampaign:utmCampaign?.trim()|| null,
+        status:     'NUEVO',
       },
     })
+
+    // Fire-and-forget WhatsApp notification via n8n
+    void notifyN8n(lead)
 
     return NextResponse.json({ ok: true, id: lead.id }, { status: 201 })
   } catch (err) {
