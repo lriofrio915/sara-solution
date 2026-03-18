@@ -24,38 +24,40 @@ export default function ResetPasswordPage() {
       return
     }
 
-    const code = params.get('code')
-
-    if (code) {
-      // PKCE flow: el enlace del correo trae ?code= → intercambiar por sesión
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setExpired(true)
-        } else {
-          setReady(true)
-          // Limpiar el code de la URL sin recargar
-          window.history.replaceState({}, '', '/reset-password')
-        }
-      })
-      return
-    }
-
-    // Implicit/legacy flow: escuchar evento PASSWORD_RECOVERY
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    // Caso 1 — el callback server-side ya estableció la sesión en cookies.
+    // getSession() la detecta de inmediato sin depender de eventos del cliente.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         setReady(true)
+        return
+      }
+
+      // Caso 2 — PKCE: el enlace llega directamente con ?code= (flujo sin callback)
+      const code = params.get('code')
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).then(({ error: exchErr }) => {
+          if (exchErr) {
+            setExpired(true)
+          } else {
+            setReady(true)
+            window.history.replaceState({}, '', '/reset-password')
+          }
+        })
+        return
+      }
+
+      // Caso 3 — Implicit/legacy: escuchar evento PASSWORD_RECOVERY (hash en URL)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') setReady(true)
+      })
+
+      const timer = setTimeout(() => setExpired(true), 15000)
+
+      return () => {
+        subscription.unsubscribe()
+        clearTimeout(timer)
       }
     })
-
-    // Fallback: si no llega ningún evento en 15s, el enlace es inválido
-    const timer = setTimeout(() => {
-      setExpired(true)
-    }, 15000)
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timer)
-    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {

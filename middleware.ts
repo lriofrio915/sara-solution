@@ -43,8 +43,7 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/register' ||
-    pathname === '/forgot-password' ||
-    pathname === '/reset-password'
+    pathname === '/forgot-password'
 
   const isDoctorRoute =
     pathname.startsWith('/dashboard') ||
