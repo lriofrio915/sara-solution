@@ -63,6 +63,7 @@ export default async function DoctorPublicPage({ params }: Props) {
       id: true, name: true, specialty: true, bio: true,
       avatarUrl: true, address: true, whatsapp: true, webhookUrl: true,
       branches: true, schedules: true, services: true, phone: true,
+      credentials: { orderBy: [{ type: 'asc' as const }, { createdAt: 'desc' as const }] },
     },
   })
 
@@ -299,6 +300,73 @@ export default async function DoctorPublicPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        {/* ── FORMACIÓN Y CREDENCIALES ── */}
+        {doctor.credentials.length > 0 && (() => {
+          const CRED_META: Record<string, { icon: string; label: string; color: string; bg: string; border: string }> = {
+            SENESCYT:      { icon: '🏛️', label: 'Registro SENESCYT',    color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
+            TITULO_TERCER: { icon: '🎓', label: 'Título Tercer Nivel',   color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
+            TITULO_CUARTO: { icon: '🏅', label: 'Título Cuarto Nivel',   color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
+            CERTIFICADO:   { icon: '📜', label: 'Certificado / Diploma', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
+            CURSO:         { icon: '📚', label: 'Curso de Capacitación', color: '#EA580C', bg: '#FFF7ED', border: '#FDBA74' },
+            SEMINARIO:     { icon: '🎤', label: 'Seminario / Congreso',  color: '#DB2777', bg: '#FDF2F8', border: '#FBCFE8' },
+          }
+          return (
+            <section className="pb-12">
+              <div className="text-center mb-8">
+                <span className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4 border border-amber-100">
+                  🏆 Formación y credenciales
+                </span>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Preparación profesional</h2>
+                <p className="text-gray-400 text-sm">Títulos, registros y certificaciones que avalan la experiencia de {firstName}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {doctor.credentials.map((cred) => {
+                  const m = CRED_META[cred.type] ?? CRED_META.CERTIFICADO
+                  const isPdf = cred.mimeType === 'application/pdf'
+                  return (
+                    <a
+                      key={cred.id}
+                      href={cred.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-start gap-4 bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                      style={{ borderColor: m.border }}
+                    >
+                      {/* Icon */}
+                      <div className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
+                        style={{ background: m.bg, border: `1px solid ${m.border}` }}>
+                        {m.icon}
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
+                          style={{ color: m.color, background: m.bg }}>
+                          {m.label}
+                        </span>
+                        <p className="font-bold text-gray-900 text-sm leading-snug truncate">{cred.title}</p>
+                        {cred.institution && (
+                          <p className="text-gray-500 text-xs mt-0.5 truncate">{cred.institution}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          {cred.year && (
+                            <span className="text-xs text-gray-400 font-medium">{cred.year}</span>
+                          )}
+                          <span className="text-xs text-gray-300">·</span>
+                          <span className="text-xs text-gray-400">{isPdf ? '📄 Ver PDF' : '🖼️ Ver imagen'}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                            className="ml-auto text-gray-300 group-hover:text-blue-400 transition-colors flex-shrink-0">
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </a>
+                  )
+                })}
+              </div>
+            </section>
+          )
+        })()}
 
         {/* ── CTA CON FOTO DEL DOCTOR ── */}
         <section className="mb-12 rounded-3xl overflow-hidden shadow-xl"

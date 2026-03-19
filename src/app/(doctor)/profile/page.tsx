@@ -1728,8 +1728,9 @@ export default function ProfilePage() {
 
       {/* ── MODAL AGREGAR CREDENCIAL ─────────────────────── */}
       {showCredModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCredModal(false)} />
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCredModal(false)} />
           <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 z-10">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Agregar credencial</h3>
@@ -1860,6 +1861,7 @@ export default function ProfilePage() {
                 {credUploading ? 'Subiendo...' : 'Guardar credencial'}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}
