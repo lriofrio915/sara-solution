@@ -172,6 +172,8 @@ export default function ProfilePage() {
   const [credUploading, setCredUploading] = useState(false)
   const [credError, setCredError] = useState<string | null>(null)
   const credFileRef = useRef<HTMLInputElement>(null)
+  const [confirmDeleteCredId, setConfirmDeleteCredId] = useState<string | null>(null)
+  const [credDeleting, setCredDeleting] = useState(false)
 
   // Firma electrónica
   const [sigConfigured, setSigConfigured] = useState(false)
@@ -408,10 +410,13 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleCredentialDelete(id: string) {
-    if (!confirm('¿Eliminar esta credencial? Esta acción no se puede deshacer.')) return
-    await fetch(`/api/profile/credentials?id=${id}`, { method: 'DELETE' })
-    setCredentials(prev => prev.filter(c => c.id !== id))
+  async function confirmCredentialDelete() {
+    if (!confirmDeleteCredId) return
+    setCredDeleting(true)
+    await fetch(`/api/profile/credentials?id=${confirmDeleteCredId}`, { method: 'DELETE' })
+    setCredentials(prev => prev.filter(c => c.id !== confirmDeleteCredId))
+    setConfirmDeleteCredId(null)
+    setCredDeleting(false)
   }
 
   function addBranch() {
@@ -1868,7 +1873,7 @@ export default function ProfilePage() {
                       </a>
                       <button
                         type="button"
-                        onClick={() => handleCredentialDelete(cred.id)}
+                        onClick={() => setConfirmDeleteCredId(cred.id)}
                         className="p-2 rounded-lg bg-white/80 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 dark:text-gray-400 hover:text-red-500 transition-colors border border-white/60 dark:border-gray-600"
                         title="Eliminar"
                       >
@@ -1885,6 +1890,44 @@ export default function ProfilePage() {
         </div>
       </div>
       </> )}
+
+      {/* ── MODAL CONFIRMAR ELIMINACIÓN CREDENCIAL ─────────── */}
+      {confirmDeleteCredId && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !credDeleting && setConfirmDeleteCredId(null)} />
+            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-2xl">
+                  🗑️
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">¿Eliminar credencial?</h3>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">Esta acción es permanente y no se puede deshacer. El archivo también será eliminado del almacenamiento.</p>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteCredId(null)}
+                  disabled={credDeleting}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmCredentialDelete}
+                  disabled={credDeleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  {credDeleting ? 'Eliminando...' : 'Sí, eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL AGREGAR CREDENCIAL (siempre montado) ────── */}
       {showCredModal && (
