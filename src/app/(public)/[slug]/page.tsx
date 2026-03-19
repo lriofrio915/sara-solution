@@ -266,20 +266,18 @@ export default async function DoctorPublicPage({ params }: Props) {
         {/* ── MODALIDADES DE ATENCIÓN ───────────────────────── */}
         {modes.length > 0 && (
           <section className="py-12 border-b border-gray-100">
-            <div className="flex items-center gap-3 mb-7">
-              <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🩺</span>
-              <div>
-                <h2 className="font-bold text-gray-900 text-xl">Modalidades de atención</h2>
-                <p className="text-gray-400 text-sm">Cómo puedes ser atendido por {firstName}</p>
-              </div>
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl mb-3">🩺</span>
+              <h2 className="font-bold text-gray-900 text-xl">Modalidades de atención</h2>
+              <p className="text-gray-400 text-sm mt-1">Cómo puedes ser atendido por {firstName}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
               {modes.map((m) => {
                 const meta = MODE_META[m]
                 if (!meta) return null
                 return (
-                  <div key={m} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    <span className="text-3xl flex-shrink-0">{meta.icon}</span>
+                  <div key={m} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <span className="text-4xl">{meta.icon}</span>
                     <div>
                       <p className="font-bold text-gray-900 text-sm">{meta.label}</p>
                       <p className="text-gray-500 text-xs mt-0.5">{meta.desc}</p>
@@ -370,18 +368,16 @@ export default async function DoctorPublicPage({ params }: Props) {
         {/* ── SERVICIOS Y PRECIOS ────────────────────────────── */}
         {servicesList.length > 0 && (
           <section className="py-12 border-b border-gray-100">
-            <div className="flex items-center gap-3 mb-7">
-              <span className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-xl flex-shrink-0">💼</span>
-              <div>
-                <h2 className="font-bold text-gray-900 text-xl">Servicios y precios</h2>
-                <p className="text-gray-400 text-sm">Consultas y procedimientos que ofrece {firstName}</p>
-              </div>
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-2xl mb-3">💼</span>
+              <h2 className="font-bold text-gray-900 text-xl">Servicios y precios</h2>
+              <p className="text-gray-400 text-sm mt-1">Consultas y procedimientos que ofrece {firstName}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {servicesList.map((service, i) => (
                 <div key={i}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 transition-all duration-200 group flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition-transform"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 transition-all duration-200 group flex flex-col items-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
                     {service.emoji || '🩺'}
                   </div>
@@ -403,14 +399,12 @@ export default async function DoctorPublicPage({ params }: Props) {
         {/* ── MÉTODOS DE PAGO ───────────────────────────────── */}
         {paymentData && paymentData.methods && paymentData.methods.length > 0 && (
           <section className="py-12 border-b border-gray-100">
-            <div className="flex items-center gap-3 mb-7">
-              <span className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">💰</span>
-              <div>
-                <h2 className="font-bold text-gray-900 text-xl">Métodos de pago</h2>
-                <p className="text-gray-400 text-sm">Opciones disponibles para pagar tu consulta</p>
-              </div>
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-2xl mb-3">💰</span>
+              <h2 className="font-bold text-gray-900 text-xl">Métodos de pago</h2>
+              <p className="text-gray-400 text-sm mt-1">Opciones disponibles para pagar tu consulta</p>
             </div>
-            <div className="flex flex-wrap gap-3 mb-5">
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
               {paymentData.methods.map((method) => {
                 const meta = PAYMENT_META[method]
                 if (!meta) return null
@@ -424,7 +418,7 @@ export default async function DoctorPublicPage({ params }: Props) {
             </div>
             {/* Datos bancarios */}
             {paymentData.methods.includes('TRANSFER') && paymentData.bankName && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 max-w-sm">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 max-w-sm mx-auto text-center">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Datos para transferencia</p>
                 <div className="space-y-1.5 text-sm text-gray-600">
                   {paymentData.bankName && <p><span className="font-semibold text-gray-700">Banco:</span> {paymentData.bankName}</p>}
