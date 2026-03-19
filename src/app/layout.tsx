@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     'consultorio Ecuador',
   ],
   authors: [{ name: 'Sara Medical' }],
+  icons: {
+    icon: 'https://res.cloudinary.com/deusntwkn/image/upload/v1773867085/icono_sara_bj4txo.png',
+    apple: 'https://res.cloudinary.com/deusntwkn/image/upload/v1773867085/icono_sara_bj4txo.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'es_EC',

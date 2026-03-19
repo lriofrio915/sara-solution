@@ -82,7 +82,7 @@ function Hero() {
               ))}
             </div>
             <p className="text-white/70 text-sm">
-              <strong className="text-white">+200 médicos</strong> ya usan Sara
+              <strong className="text-white">42 miembros</strong> ya usan Sara
             </p>
           </div>
         </div>
