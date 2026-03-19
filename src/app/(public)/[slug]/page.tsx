@@ -112,7 +112,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
 
       {/* ── STICKY HEADER ── */}
       <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 shadow-sm">
@@ -136,7 +136,7 @@ export default async function DoctorPublicPage({ params }: Props) {
       <main className="max-w-5xl mx-auto px-4">
 
         {/* ── HERO ── */}
-        <section className="py-12 md:py-20 overflow-x-hidden">
+        <section className="py-12 md:py-20">
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
             {/* Foto del doctor — prominente */}
@@ -273,15 +273,15 @@ export default async function DoctorPublicPage({ params }: Props) {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Servicios</h2>
               <p className="text-gray-400 text-sm">Todo lo que {firstName} ofrece para tu bienestar</p>
             </div>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
               {servicesList.map((service, i) => (
                 <div key={i}
-                  className="w-[calc(50%-8px)] sm:w-48 md:w-52 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md hover:-translate-y-1 hover:border-blue-100 transition-all duration-200 group">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md hover:-translate-y-1 hover:border-blue-100 transition-all duration-200 group">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 text-xl md:text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
                     {SERVICE_ICONS[i % SERVICE_ICONS.length]}
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm leading-snug">{service}</p>
+                  <p className="font-semibold text-gray-800 text-xs md:text-sm leading-snug">{service}</p>
                 </div>
               ))}
             </div>
