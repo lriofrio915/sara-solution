@@ -217,22 +217,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                 <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">{doctor.bio}</p>
               )}
 
-              {/* Modalidades pills */}
-              {modes.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-6">
-                  {modes.map((m) => {
-                    const meta = MODE_META[m]
-                    if (!meta) return null
-                    return (
-                      <span key={m} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100">
-                        {meta.icon} {meta.label}
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+<div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                 <Link href={`/${params.slug}/chat`}
                   className="flex items-center justify-center gap-2.5 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 transition-all hover:-translate-y-0.5 text-base"
                   style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
