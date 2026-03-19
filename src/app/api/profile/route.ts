@@ -22,6 +22,7 @@ export async function GET() {
         phone: true,
         bio: true,
         avatarUrl: true,
+        bannerUrl: true,
         address: true,
         whatsapp: true,
         webhookUrl: true,
@@ -60,7 +61,7 @@ export async function PATCH(req: Request) {
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { name, specialty, phone, bio, avatarUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData } = body
+    const { name, specialty, phone, bio, avatarUrl, bannerUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData } = body
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
@@ -86,6 +87,7 @@ export async function PATCH(req: Request) {
         ...(phone !== undefined && { phone: phone || null }),
         ...(bio !== undefined && { bio: bio || null }),
         ...(avatarUrl !== undefined && { avatarUrl: avatarUrl || null }),
+        ...(bannerUrl !== undefined && { bannerUrl: bannerUrl || null }),
         ...(address !== undefined && { address: address || null }),
         ...(whatsapp !== undefined && { whatsapp: whatsapp || null }),
         ...(webhookUrl !== undefined && { webhookUrl: webhookUrl || null }),
@@ -114,6 +116,7 @@ export async function PATCH(req: Request) {
         phone: true,
         bio: true,
         avatarUrl: true,
+        bannerUrl: true,
         address: true,
         whatsapp: true,
         webhookUrl: true,

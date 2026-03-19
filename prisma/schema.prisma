@@ -92,6 +92,7 @@ model Doctor {
   plan      Plan     @default(FREE)
   active    Boolean  @default(true)
   avatarUrl String?
+  bannerUrl String?  // Foto para la sección CTA al final de la página pública
   bio       String?
   address   String?
   whatsapp    String?   // WhatsApp Business — Agente Sara IA

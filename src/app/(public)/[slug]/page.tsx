@@ -61,7 +61,7 @@ export default async function DoctorPublicPage({ params }: Props) {
     where: { slug: params.slug },
     select: {
       id: true, name: true, specialty: true, bio: true,
-      avatarUrl: true, address: true, whatsapp: true, webhookUrl: true,
+      avatarUrl: true, bannerUrl: true, address: true, whatsapp: true, webhookUrl: true,
       branches: true, schedules: true, services: true, phone: true,
       credentials: { orderBy: [{ type: 'asc' as const }, { createdAt: 'desc' as const }] },
     },
@@ -369,23 +369,24 @@ export default async function DoctorPublicPage({ params }: Props) {
         })()}
 
         {/* ── CTA CON FOTO DEL DOCTOR ── */}
+        {(() => {
+          const ctaPhoto = doctor.bannerUrl ?? doctor.avatarUrl
+          return (
         <section className="mb-12 rounded-3xl overflow-hidden shadow-xl"
           style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)' }}>
-          <div className="flex flex-col md:flex-row items-center">
+          <div className="flex flex-col md:flex-row items-stretch">
 
             {/* Foto del doctor — lado izquierdo */}
-            <div className="w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative overflow-hidden">
-              {doctor.avatarUrl ? (
+            <div className="w-full md:w-64 flex-shrink-0 overflow-hidden" style={{ minHeight: '220px' }}>
+              {ctaPhoto ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={doctor.avatarUrl} alt={doctor.name}
-                  className="w-full h-full object-cover object-top md:absolute md:inset-0" />
+                <img src={ctaPhoto} alt={doctor.name}
+                  className="w-full h-full object-cover object-top" style={{ minHeight: '220px' }} />
               ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20">
+                <div className="w-full h-full flex items-center justify-center opacity-20" style={{ minHeight: '220px' }}>
                   <div className="text-white text-8xl font-bold">{initials}</div>
                 </div>
               )}
-              {/* Gradiente de transición */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-blue-800/60 hidden md:block" />
             </div>
 
             {/* Texto + botón */}
@@ -407,6 +408,8 @@ export default async function DoctorPublicPage({ params }: Props) {
             </div>
           </div>
         </section>
+          )
+        })()}
 
       </main>
 

@@ -14,6 +14,7 @@ interface DoctorProfile {
   phone: string | null
   bio: string | null
   avatarUrl: string | null
+  bannerUrl: string | null
   address: string | null
   whatsapp: string | null
   schedules: string | null
@@ -104,6 +105,9 @@ export default function ProfilePage() {
   const [branches, setBranches] = useState<Branch[]>([])
   const [copied, setCopied] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null)
+  const [bannerUploading, setBannerUploading] = useState(false)
+  const bannerRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingAvail, setSavingAvail] = useState(false)
@@ -207,6 +211,7 @@ export default function ProfilePage() {
       .then((data: DoctorProfile) => {
         setProfile(data)
         setAvatarUrl(data.avatarUrl)
+        setBannerUrl(data.bannerUrl)
         setForm({
           name: data.name ?? '',
           specialty: data.specialty ?? '',
@@ -487,6 +492,35 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleBannerChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+    setBannerUploading(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()
+      const path = `banner-${profile.id}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = `${data.publicUrl}?t=${Date.now()}`
+      setBannerUrl(url)
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bannerUrl: url }),
+      })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : JSON.stringify(err)
+      setError(`Error al subir la imagen: ${msg}`)
+    } finally {
+      setBannerUploading(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -509,6 +543,7 @@ export default function ProfilePage() {
         body: JSON.stringify({
           ...form,
           avatarUrl,
+          bannerUrl,
           slug: form.slug,
           branches: branches.length > 0 ? JSON.stringify(branches.filter((b) => b.address.trim())) : null,
           services: services.length > 0 ? JSON.stringify(services) : null,
@@ -686,6 +721,70 @@ export default function ProfilePage() {
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={handleAvatarChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Foto de portada */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Foto de portada</h2>
+            <p className="text-gray-400 text-xs mt-0.5">Aparece al final de tu página pública junto a la llamada a la acción. Idealmente una foto profesional de medio cuerpo o cuerpo completo.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            {/* Preview */}
+            <div className="relative w-full sm:w-48 h-36 rounded-xl overflow-hidden bg-gradient-to-br from-primary to-secondary flex-shrink-0 border border-gray-100 dark:border-gray-700">
+              {bannerUrl ? (
+                <img src={bannerUrl} alt="Portada" className="w-full h-full object-cover object-top" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="Portada" className="w-full h-full object-cover object-top opacity-60" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-white/40 text-4xl font-bold">{initials}</span>
+                </div>
+              )}
+              {bannerUploading && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
+                </div>
+              )}
+              {!bannerUrl && avatarUrl && (
+                <div className="absolute bottom-1 left-0 right-0 text-center text-white/60 text-[10px]">usando foto de perfil</div>
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <button
+                type="button"
+                onClick={() => bannerRef.current?.click()}
+                disabled={bannerUploading}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {bannerUploading ? 'Subiendo...' : bannerUrl ? 'Cambiar foto de portada' : 'Subir foto de portada'}
+              </button>
+              {bannerUrl && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setBannerUrl(null)
+                    await fetch('/api/profile', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ bannerUrl: null }),
+                    })
+                  }}
+                  className="block text-xs text-red-500 hover:underline"
+                >
+                  × Eliminar (usará foto de perfil)
+                </button>
+              )}
+              <p className="text-gray-400 text-xs">JPG, PNG o WebP. Recomendado: formato vertical o cuadrado.</p>
+              <input
+                ref={bannerRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleBannerChange}
               />
             </div>
           </div>
