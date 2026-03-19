@@ -148,6 +148,26 @@ export default function ProfilePage() {
   const [accountType, setAccountType] = useState('SAVINGS')
   const [accountCedula, setAccountCedula] = useState('')
 
+  // Vitrina profesional — credenciales
+  interface Credential {
+    id: string
+    type: string
+    title: string
+    institution: string | null
+    year: number | null
+    fileUrl: string
+    mimeType: string
+    fileSize: number
+    createdAt: string
+  }
+  const [credentials, setCredentials] = useState<Credential[]>([])
+  const [showCredModal, setShowCredModal] = useState(false)
+  const [credForm, setCredForm] = useState({ type: 'SENESCYT', title: '', institution: '', year: '' })
+  const [credFile, setCredFile] = useState<File | null>(null)
+  const [credUploading, setCredUploading] = useState(false)
+  const [credError, setCredError] = useState<string | null>(null)
+  const credFileRef = useRef<HTMLInputElement>(null)
+
   // Firma electrónica
   const [sigConfigured, setSigConfigured] = useState(false)
   const [sigSubject, setSigSubject] = useState<string | null>(null)
@@ -159,6 +179,14 @@ export default function ProfilePage() {
   const [sigError, setSigError] = useState<string | null>(null)
   const [sigSuccess, setSigSuccess] = useState<string | null>(null)
   const sigFileRef = useRef<HTMLInputElement>(null)
+
+  // Load credentials
+  useEffect(() => {
+    fetch('/api/profile/credentials')
+      .then(r => r.json())
+      .then(d => setCredentials(d.credentials ?? []))
+      .catch(() => {})
+  }, [])
 
   // Load signature status
   useEffect(() => {
@@ -345,6 +373,39 @@ export default function ProfilePage() {
     } finally {
       setSigDeleting(false)
     }
+  }
+
+  async function handleCredentialUpload() {
+    if (!credFile) { setCredError('Selecciona un archivo'); return }
+    if (!credForm.title.trim()) { setCredError('Ingresa el título de la credencial'); return }
+    setCredUploading(true)
+    setCredError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', credFile)
+      fd.append('type', credForm.type)
+      fd.append('title', credForm.title)
+      fd.append('institution', credForm.institution)
+      fd.append('year', credForm.year)
+      const res = await fetch('/api/profile/credentials', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error al subir credencial')
+      setCredentials(prev => [data.credential, ...prev])
+      setShowCredModal(false)
+      setCredForm({ type: 'SENESCYT', title: '', institution: '', year: '' })
+      setCredFile(null)
+      if (credFileRef.current) credFileRef.current.value = ''
+    } catch (err) {
+      setCredError(err instanceof Error ? err.message : 'Error al subir')
+    } finally {
+      setCredUploading(false)
+    }
+  }
+
+  async function handleCredentialDelete(id: string) {
+    if (!confirm('¿Eliminar esta credencial? Esta acción no se puede deshacer.')) return
+    await fetch(`/api/profile/credentials?id=${id}`, { method: 'DELETE' })
+    setCredentials(prev => prev.filter(c => c.id !== id))
   }
 
   function addBranch() {
@@ -1561,6 +1622,247 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* ── VITRINA PROFESIONAL ─────────────────────────── */}
+      <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-lg shadow-sm">
+                🏆
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-white">Vitrina Profesional</h2>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Tus títulos, registros y certificaciones que avalan tu experiencia</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setShowCredModal(true); setCredError(null) }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+            >
+              <span className="text-base leading-none">+</span> Agregar
+            </button>
+          </div>
+        </div>
+
+        {/* Credential list */}
+        <div className="p-6">
+          {credentials.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="text-4xl mb-3">🎓</div>
+              <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Aún no has subido ninguna credencial</p>
+              <p className="text-gray-400 dark:text-slate-500 text-xs mt-1">Sube tus títulos, registros SENESCYT, cursos y más para mostrar tu trayectoria profesional</p>
+              <button
+                type="button"
+                onClick={() => { setShowCredModal(true); setCredError(null) }}
+                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 border-2 border-dashed border-primary/40 hover:border-primary text-primary text-sm font-medium rounded-xl transition-colors"
+              >
+                + Agregar primera credencial
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {credentials.map((cred) => {
+                const meta: Record<string, { icon: string; label: string; color: string; bg: string }> = {
+                  SENESCYT:      { icon: '🏛️', label: 'Registro SENESCYT',        color: 'text-blue-700 dark:text-blue-300',   bg: 'bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-800' },
+                  TITULO_TERCER: { icon: '🎓', label: 'Título Tercer Nivel',       color: 'text-teal-700 dark:text-teal-300',   bg: 'bg-teal-50 dark:bg-teal-900/30 border-teal-100 dark:border-teal-800' },
+                  TITULO_CUARTO: { icon: '🏅', label: 'Título Cuarto Nivel',       color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:border-amber-800' },
+                  CERTIFICADO:   { icon: '📜', label: 'Certificado / Diploma',     color: 'text-purple-700 dark:text-purple-300', bg: 'bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800' },
+                  CURSO:         { icon: '📚', label: 'Curso de Capacitación',     color: 'text-orange-700 dark:text-orange-300', bg: 'bg-orange-50 dark:bg-orange-900/30 border-orange-100 dark:border-orange-800' },
+                  SEMINARIO:     { icon: '🎤', label: 'Seminario / Congreso',      color: 'text-rose-700 dark:text-rose-300',   bg: 'bg-rose-50 dark:bg-rose-900/30 border-rose-100 dark:border-rose-800' },
+                }
+                const m = meta[cred.type] ?? meta.CERTIFICADO
+                const isPdf = cred.mimeType === 'application/pdf'
+                const sizeKb = Math.round(cred.fileSize / 1024)
+                return (
+                  <div key={cred.id} className={`flex items-center gap-4 p-4 rounded-xl border ${m.bg} transition-all`}>
+                    {/* Type badge */}
+                    <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white dark:bg-gray-800 border border-white/60 dark:border-gray-600 flex items-center justify-center text-xl shadow-sm">
+                      {m.icon}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${m.color} bg-white/70 dark:bg-white/10`}>{m.label}</span>
+                        {cred.year && <span className="text-xs text-gray-400 dark:text-slate-500">{cred.year}</span>}
+                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm mt-0.5 truncate">{cred.title}</p>
+                      {cred.institution && (
+                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{cred.institution}</p>
+                      )}
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{isPdf ? '📄 PDF' : '🖼️ Imagen'} · {sizeKb < 1024 ? `${sizeKb} KB` : `${(sizeKb/1024).toFixed(1)} MB`}</p>
+                    </div>
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <a
+                        href={cred.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-white/80 dark:bg-gray-700 hover:bg-white dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors border border-white/60 dark:border-gray-600"
+                        title="Ver documento"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCredentialDelete(cred.id)}
+                        className="p-2 rounded-lg bg-white/80 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 dark:text-gray-400 hover:text-red-500 transition-colors border border-white/60 dark:border-gray-600"
+                        title="Eliminar"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── MODAL AGREGAR CREDENCIAL ─────────────────────── */}
+      {showCredModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCredModal(false)} />
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 z-10">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Agregar credencial</h3>
+              <button type="button" onClick={() => setShowCredModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {credError && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl">
+                {credError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Type selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de credencial</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'SENESCYT',      icon: '🏛️', label: 'Registro SENESCYT' },
+                    { value: 'TITULO_TERCER', icon: '🎓', label: 'Título Tercer Nivel' },
+                    { value: 'TITULO_CUARTO', icon: '🏅', label: 'Título Cuarto Nivel' },
+                    { value: 'CERTIFICADO',   icon: '📜', label: 'Certificado / Diploma' },
+                    { value: 'CURSO',         icon: '📚', label: 'Curso' },
+                    { value: 'SEMINARIO',     icon: '🎤', label: 'Seminario / Congreso' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setCredForm(f => ({ ...f, type: opt.value }))}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${
+                        credForm.type === opt.value
+                          ? 'border-primary bg-primary/10 text-primary dark:text-blue-300'
+                          : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary/50'
+                      }`}
+                    >
+                      <span>{opt.icon}</span> {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Título / Nombre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={credForm.title}
+                  onChange={e => setCredForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Ej: Médico Cirujano, Especialidad en Cardiología..."
+                  className="input"
+                />
+              </div>
+
+              {/* Institution */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Institución</label>
+                <input
+                  type="text"
+                  value={credForm.institution}
+                  onChange={e => setCredForm(f => ({ ...f, institution: e.target.value }))}
+                  placeholder="Ej: Universidad Central del Ecuador"
+                  className="input"
+                />
+              </div>
+
+              {/* Year */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Año de obtención</label>
+                <input
+                  type="number"
+                  value={credForm.year}
+                  onChange={e => setCredForm(f => ({ ...f, year: e.target.value }))}
+                  placeholder="Ej: 2018"
+                  min="1950"
+                  max={new Date().getFullYear()}
+                  className="input"
+                />
+              </div>
+
+              {/* File upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Documento <span className="text-red-500">*</span>
+                  <span className="text-xs font-normal text-gray-400 ml-1">PDF, JPG, PNG o WebP · Máx 15 MB</span>
+                </label>
+                {credFile ? (
+                  <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                    <span className="text-green-600 dark:text-green-400 text-lg">
+                      {credFile.type === 'application/pdf' ? '📄' : '🖼️'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-green-800 dark:text-green-300 truncate">{credFile.name}</p>
+                      <p className="text-xs text-green-600 dark:text-green-400">{Math.round(credFile.size / 1024)} KB</p>
+                    </div>
+                    <button type="button" onClick={() => { setCredFile(null); if (credFileRef.current) credFileRef.current.value = '' }} className="text-green-500 hover:text-green-700 dark:hover:text-green-300 transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => credFileRef.current?.click()}
+                    className="w-full flex flex-col items-center gap-2 p-5 border-2 border-dashed border-gray-200 dark:border-gray-600 hover:border-primary dark:hover:border-primary rounded-xl transition-colors text-gray-400 dark:text-slate-500 hover:text-primary"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span className="text-sm font-medium">Haz clic para seleccionar archivo</span>
+                    <span className="text-xs">PDF, JPG, PNG, WebP</span>
+                  </button>
+                )}
+                <input ref={credFileRef} type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="hidden" onChange={e => setCredFile(e.target.files?.[0] ?? null)} />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button type="button" onClick={() => setShowCredModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCredentialUpload}
+                disabled={credUploading || !credFile || !credForm.title.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {credUploading ? 'Subiendo...' : 'Guardar credencial'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── ZONA DE PELIGRO ─────────────────────────────── */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-red-100 dark:border-red-900/40 p-6">

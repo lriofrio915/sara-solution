@@ -58,6 +58,15 @@ enum PostStatus {
   FAILED
 }
 
+enum CredentialType {
+  SENESCYT       // Registro de título SENESCYT
+  TITULO_TERCER  // Título de Tercer Nivel
+  TITULO_CUARTO  // Título de Cuarto Nivel / Especialidad
+  CERTIFICADO    // Certificado / Diploma
+  CURSO          // Curso de capacitación
+  SEMINARIO      // Seminario / Congreso
+}
+
 enum ContentType {
   POST
   CAROUSEL
@@ -140,6 +149,7 @@ model Doctor {
   attentions             Attention[]
   diagnoses              Diagnosis[]
   auditLogs              AuditLog[]
+  credentials            DoctorCredential[]
 
   @@index([slug])
   @@index([email])
@@ -681,6 +691,28 @@ model AuditLog {
   @@index([patientId])
   @@index([createdAt])
   @@index([resource, action])
+}
+
+// ─── Doctor Credential (Vitrina Profesional) ─────────────────
+
+model DoctorCredential {
+  id          String         @id @default(cuid())
+  doctorId    String
+  type        CredentialType
+  title       String         // "Médico Cirujano", "Especialidad en Cardiología", etc.
+  institution String?        // "Universidad Central del Ecuador"
+  year        Int?           // Año de obtención
+  storagePath String         // Supabase Storage path
+  fileUrl     String         // URL pública del archivo
+  mimeType    String         // "application/pdf" | "image/jpeg" | ...
+  fileSize    Int            // bytes
+
+  createdAt DateTime @default(now())
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([doctorId, type])
 }
 
 // ─── CatalogoMedicamento (CNMB) ──────────────────────────────
