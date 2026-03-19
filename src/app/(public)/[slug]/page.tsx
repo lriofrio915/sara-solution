@@ -125,7 +125,7 @@ export default async function DoctorPublicPage({ params }: Props) {
             </div>
           </div>
           <Link href={`/${params.slug}/chat`}
-            className="flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-md hover:opacity-90 transition-all hover:-translate-y-0.5 flex-shrink-0"
+            className="flex items-center gap-1.5 text-white font-semibold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow-md hover:opacity-90 transition-all hover:-translate-y-0.5 flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
             <span>📅</span>
             Reservar cita
@@ -136,11 +136,11 @@ export default async function DoctorPublicPage({ params }: Props) {
       <main className="max-w-5xl mx-auto px-4">
 
         {/* ── HERO ── */}
-        <section className="py-12 md:py-20">
+        <section className="py-12 md:py-20 overflow-x-hidden">
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
             {/* Foto del doctor — prominente */}
-            <div className="flex-shrink-0 relative">
+            <div className="flex-shrink-0 relative mb-4 md:mb-0">
               {/* Anillo decorativo */}
               <div className="absolute inset-0 rounded-full scale-110 opacity-20"
                 style={{ background: 'linear-gradient(135deg, #2563EB, #0D9488)' }} />
@@ -160,11 +160,11 @@ export default async function DoctorPublicPage({ params }: Props) {
               <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-2">
                 {doctor.specialty}
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
+              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
                 {displayName}
               </h1>
               {doctor.bio && (
-                <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-xl">
+                <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">
                   {doctor.bio}
                 </p>
               )}
@@ -189,7 +189,7 @@ export default async function DoctorPublicPage({ params }: Props) {
         </section>
 
         {/* ── TRUST BADGES ── */}
-        <div className="flex flex-wrap justify-center gap-6 pb-12 border-b border-gray-100">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-3 pb-10 md:pb-12 border-b border-gray-100">
           {[
             { icon: '🕐', label: 'Atención 24/7' },
             { icon: '🔒', label: 'Datos protegidos' },
@@ -294,7 +294,7 @@ export default async function DoctorPublicPage({ params }: Props) {
           <div className="flex flex-col md:flex-row items-center">
 
             {/* Foto del doctor — lado izquierdo */}
-            <div className="w-full md:w-64 h-56 md:h-auto flex-shrink-0 relative overflow-hidden">
+            <div className="w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative overflow-hidden">
               {doctor.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={doctor.avatarUrl} alt={doctor.name}
@@ -309,7 +309,7 @@ export default async function DoctorPublicPage({ params }: Props) {
             </div>
 
             {/* Texto + botón */}
-            <div className="flex-1 p-8 md:p-12 text-white text-center md:text-left">
+            <div className="flex-1 p-6 md:p-12 text-white text-center md:text-left">
               <p className="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">
                 Atención personalizada
               </p>
@@ -332,8 +332,8 @@ export default async function DoctorPublicPage({ params }: Props) {
 
       {/* ── FORMULARIO DE CONTACTO ── */}
       {doctor.webhookUrl && (
-        <section className="py-12 mb-4">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-2xl mx-auto">
+        <section className="py-12 mb-4 px-4">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 max-w-2xl mx-auto">
             <div className="text-center mb-8">
               <span className="inline-block bg-blue-50 text-blue-600 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
                 Contacto directo
