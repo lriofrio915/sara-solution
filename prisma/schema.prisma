@@ -172,7 +172,6 @@ model AvailabilitySchedule {
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
-  @@unique([doctorId, weekday])
   @@index([doctorId, weekday])
   @@index([doctorId])
 }
