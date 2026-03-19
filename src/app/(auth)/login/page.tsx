@@ -55,8 +55,8 @@ export default function LoginPage() {
       </Suspense>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Bienvenido de vuelta</h2>
-        <p className="text-gray-500 mt-1">Ingresa a tu cuenta de Sara Medical</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Bienvenido de vuelta</h2>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Ingresa a tu cuenta de Sara Medical</p>
       </div>
 
       {info && (

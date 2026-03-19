@@ -2,7 +2,7 @@ import SaraLogo from '@/components/SaraLogo'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Left panel - branding */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right panel - form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 dark:bg-gray-900">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
             <SaraLogo size="sm" />
