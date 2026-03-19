@@ -12,7 +12,6 @@ function getInitials(name: string) {
   return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
-// Palabras de título profesional que se eliminan del nombre para mostrarlo corto
 const TITLE_WORDS = new Set([
   'medico','médico','medica','médica','cirujano','cirujana',
   'doctor','doctora','especialista','licenciado','licenciada',
@@ -20,7 +19,6 @@ const TITLE_WORDS = new Set([
 ])
 const FEMININE_WORDS = new Set(['médica','medica','cirujana','doctora','licenciada','dra','dra.'])
 
-// "Medico Cirujano Luis Eduardo Riofrio Lopez" → "Dr. Luis Riofrio"
 function formatDoctorName(fullName: string): string {
   const isFeminine = fullName.split(' ').some((w) => FEMININE_WORDS.has(w.toLowerCase()))
   const parts = fullName.split(' ').filter((w) => !TITLE_WORDS.has(w.toLowerCase()))
@@ -28,8 +26,8 @@ function formatDoctorName(fullName: string): string {
   return `${isFeminine ? 'Dra.' : 'Dr.'} ${shortName}`
 }
 
-// Íconos médicos variados — se asignan por índice, nunca se repite el mismo consecutivamente
-const SERVICE_ICONS = ['🫀','🧠','🩺','💊','🩻','🔬','🩹','🧬','💉','🏥','👁️','🦴','🫁','🩸','🧪','🌡️','🦷','🫂']
+const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
   return (
@@ -61,17 +59,23 @@ export default async function DoctorPublicPage({ params }: Props) {
     where: { slug: params.slug },
     select: {
       id: true, name: true, specialty: true, bio: true,
-      avatarUrl: true, bannerUrl: true, address: true, whatsapp: true, webhookUrl: true,
-      branches: true, schedules: true, services: true, phone: true,
+      avatarUrl: true, bannerUrl: true,
+      address: true, whatsapp: true, webhookUrl: true, phone: true,
+      branches: true, services: true,
+      consultationModes: true, paymentData: true,
+      province: true, canton: true, parish: true,
+      availabilitySchedules: { orderBy: { weekday: 'asc' } },
       credentials: { orderBy: [{ type: 'asc' as const }, { createdAt: 'desc' as const }] },
     },
   })
 
   if (!doctor) notFound()
 
-  const initials      = getInitials(doctor.name)
-  const displayName   = formatDoctorName(doctor.name)
-  const firstName     = displayName  // usado en WhatsApp y saludos
+  const initials    = getInitials(doctor.name)
+  const displayName = formatDoctorName(doctor.name)
+  const firstName   = displayName
+
+  // Services
   type ServiceItem = { name: string; description?: string; price?: string; emoji?: string }
   let servicesList: ServiceItem[] = []
   if (doctor.services) {
@@ -84,36 +88,65 @@ export default async function DoctorPublicPage({ params }: Props) {
       servicesList = doctor.services.split('\n').map((s) => ({ name: s.trim() })).filter((s) => s.name)
     }
   }
-  const scheduleLines = doctor.schedules
-    ? doctor.schedules.split('\n').map((s) => s.trim()).filter(Boolean)
-    : []
 
+  // Branches
   let parsedBranches: { name: string; address: string }[] = []
-  try {
-    parsedBranches = doctor.branches ? JSON.parse(doctor.branches) : []
-  } catch { /* ignore */ }
+  try { parsedBranches = doctor.branches ? JSON.parse(doctor.branches) : [] } catch { /* */ }
 
+  // Consultation modes
+  let modes: string[] = []
+  try { modes = doctor.consultationModes ? JSON.parse(doctor.consultationModes) : [] } catch { /* */ }
+
+  // Payment
+  type PaymentData = { methods: string[]; bankName?: string; accountNumber?: string; accountHolder?: string; accountType?: string }
+  let paymentData: PaymentData | null = null
+  try { paymentData = doctor.paymentData ? JSON.parse(doctor.paymentData) : null } catch { /* */ }
+
+  // Schedule — group slots by weekday
+  const scheduleByDay = new Map<number, { startTime: string; endTime: string; location?: string | null }[]>()
+  for (const s of doctor.availabilitySchedules) {
+    if (!s.isActive) continue
+    if (!scheduleByDay.has(s.weekday)) scheduleByDay.set(s.weekday, [])
+    scheduleByDay.get(s.weekday)!.push({ startTime: s.startTime, endTime: s.endTime, location: s.location })
+  }
+  const activeDays = DISPLAY_ORDER.filter((d) => scheduleByDay.has(d))
+
+  // WhatsApp
   const whatsappNumber = doctor.whatsapp?.replace(/\D/g, '') ?? null
   const whatsappUrl    = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=Hola+${encodeURIComponent(displayName)}%2C+me+gustar%C3%ADa+agendar+una+cita`
     : null
 
-  // Avatar reutilizable
-  const AvatarLg = () => doctor.avatarUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={doctor.avatarUrl} alt={doctor.name}
-      className="w-full h-full object-cover" />
-  ) : (
-    <div className="w-full h-full flex items-center justify-center text-white font-bold text-5xl"
-      style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
-      {initials}
-    </div>
-  )
+  // Location string
+  const locationParts = [doctor.canton, doctor.province].filter(Boolean)
+  const locationStr = locationParts.join(', ')
 
+  // Credential metadata
+  const CRED_META: Record<string, { icon: string; label: string; color: string; bg: string; border: string }> = {
+    SENESCYT:      { icon: '🏛️', label: 'Registro SENESCYT',    color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
+    TITULO_TERCER: { icon: '🎓', label: 'Título Tercer Nivel',   color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
+    TITULO_CUARTO: { icon: '🏅', label: 'Título Cuarto Nivel',   color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
+    CERTIFICADO:   { icon: '📜', label: 'Certificado / Diploma', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
+    CURSO:         { icon: '📚', label: 'Curso de Capacitación', color: '#EA580C', bg: '#FFF7ED', border: '#FDBA74' },
+    SEMINARIO:     { icon: '🎤', label: 'Seminario / Congreso',  color: '#DB2777', bg: '#FDF2F8', border: '#FBCFE8' },
+  }
+
+  const MODE_META: Record<string, { icon: string; label: string; desc: string }> = {
+    IN_PERSON:   { icon: '🏥', label: 'Presencial',          desc: 'Atención en consultorio' },
+    TELECONSULT: { icon: '💻', label: 'Teleconsulta',        desc: 'Videollamada online' },
+    HOME_VISIT:  { icon: '🏠', label: 'Visita domiciliaria', desc: 'Atención en tu domicilio' },
+  }
+
+  const PAYMENT_META: Record<string, { icon: string; label: string }> = {
+    CASH:     { icon: '💵', label: 'Efectivo' },
+    CARD:     { icon: '💳', label: 'Tarjeta crédito/débito' },
+    TRANSFER: { icon: '🏦', label: 'Transferencia bancaria' },
+  }
+
+  // Avatar helpers
   const AvatarSm = () => doctor.avatarUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={doctor.avatarUrl} alt={doctor.name}
-      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+    <img src={doctor.avatarUrl} alt={doctor.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
   ) : (
     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
       style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
@@ -124,7 +157,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
 
-      {/* ── STICKY HEADER ── */}
+      {/* ── STICKY HEADER ───────────────────────────────────── */}
       <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -138,28 +171,33 @@ export default async function DoctorPublicPage({ params }: Props) {
             className="flex items-center gap-1.5 text-white font-semibold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow-md hover:opacity-90 transition-all hover:-translate-y-0.5 flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
             <span>📅</span>
-            Reservar cita
+            <span className="hidden sm:inline">Reservar cita</span>
+            <span className="sm:hidden">Cita</span>
           </Link>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4">
 
-        {/* ── HERO ── */}
+        {/* ── HERO ──────────────────────────────────────────── */}
         <section className="py-12 md:py-20">
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-
-            {/* Foto del doctor — prominente */}
+            {/* Foto */}
             <div className="flex-shrink-0 relative mb-4 md:mb-0">
-              {/* Anillo decorativo */}
               <div className="absolute inset-0 rounded-full scale-110 opacity-20"
                 style={{ background: 'linear-gradient(135deg, #2563EB, #0D9488)' }} />
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative z-10">
-                <AvatarLg />
+                {doctor.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={doctor.avatarUrl} alt={doctor.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white font-bold text-5xl"
+                    style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
+                    {initials}
+                  </div>
+                )}
               </div>
-              {/* Badge de especialidad */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap
-                bg-white border border-gray-100 shadow-lg rounded-full px-4 py-1.5 flex items-center gap-1.5">
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap bg-white border border-gray-100 shadow-lg rounded-full px-4 py-1.5 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-xs font-semibold text-gray-700">Disponible para citas</span>
               </div>
@@ -167,30 +205,42 @@ export default async function DoctorPublicPage({ params }: Props) {
 
             {/* Texto */}
             <div className="flex-1 text-center md:text-left">
-              <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-2">
-                {doctor.specialty}
-              </p>
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
-                {displayName}
-              </h1>
-              {doctor.bio && (
-                <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">
-                  {doctor.bio}
+              <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-2">{doctor.specialty}</p>
+              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">{displayName}</h1>
+              {locationStr && (
+                <p className="text-gray-400 text-sm font-medium mb-3 flex items-center justify-center md:justify-start gap-1.5">
+                  <span>📍</span> {locationStr}
                 </p>
+              )}
+              {doctor.bio && (
+                <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">{doctor.bio}</p>
+              )}
+
+              {/* Modalidades pills */}
+              {modes.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-6">
+                  {modes.map((m) => {
+                    const meta = MODE_META[m]
+                    if (!meta) return null
+                    return (
+                      <span key={m} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100">
+                        {meta.icon} {meta.label}
+                      </span>
+                    )
+                  })}
+                </div>
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                 <Link href={`/${params.slug}/chat`}
                   className="flex items-center justify-center gap-2.5 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 transition-all hover:-translate-y-0.5 text-base"
                   style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
-                  <span>📅</span>
-                  Reservar mi cita
+                  <span>📅</span> Reservar mi cita
                 </Link>
                 {whatsappUrl && (
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold px-8 py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5 text-base">
-                    <WhatsAppIcon size={20} />
-                    Escribir por WhatsApp
+                    <WhatsAppIcon size={20} /> WhatsApp
                   </a>
                 )}
               </div>
@@ -198,8 +248,8 @@ export default async function DoctorPublicPage({ params }: Props) {
           </div>
         </section>
 
-        {/* ── TRUST BADGES ── */}
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-3 pb-10 md:pb-12 border-b border-gray-100">
+        {/* ── QUICK TRUST BADGES ────────────────────────────── */}
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 pb-12 border-b border-gray-100">
           {[
             { icon: '🕐', label: 'Atención 24/7' },
             { icon: '🔒', label: 'Datos protegidos' },
@@ -213,207 +263,270 @@ export default async function DoctorPublicPage({ params }: Props) {
           ))}
         </div>
 
-        {/* ── HORARIOS + UBICACIÓN ── */}
-        {(scheduleLines.length > 0 || doctor.address || parsedBranches.length > 0) && (
-          <div className={`grid gap-6 py-12 ${scheduleLines.length > 0 ? 'md:grid-cols-2' : ''}`}>
-            {scheduleLines.length > 0 && (
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
-                  Horarios de atención
-                </h2>
-                <ul className="space-y-2.5">
-                  {scheduleLines.map((line, i) => (
-                    <li key={i} className="flex items-start gap-3 text-gray-600 text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
+        {/* ── MODALIDADES DE ATENCIÓN ───────────────────────── */}
+        {modes.length > 0 && (
+          <section className="py-12 border-b border-gray-100">
+            <div className="flex items-center gap-3 mb-7">
+              <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🩺</span>
+              <div>
+                <h2 className="font-bold text-gray-900 text-xl">Modalidades de atención</h2>
+                <p className="text-gray-400 text-sm">Cómo puedes ser atendido por {firstName}</p>
               </div>
-            )}
-
-            {(doctor.address || parsedBranches.length > 0) && (
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">📍</span>
-                  {parsedBranches.length > 0 ? 'Centros de atención' : 'Ubicación'}
-                </h2>
-
-                {/* Consultorio principal */}
-                {doctor.address && (
-                  <div className={parsedBranches.length > 0 ? 'mb-4' : ''}>
-                    {parsedBranches.length > 0 && (
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Consultorio principal</p>
-                    )}
-                    <p className="text-gray-600 text-sm leading-relaxed">{doctor.address}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {modes.map((m) => {
+                const meta = MODE_META[m]
+                if (!meta) return null
+                return (
+                  <div key={m} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <span className="text-3xl flex-shrink-0">{meta.icon}</span>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">{meta.label}</p>
+                      <p className="text-gray-500 text-xs mt-0.5">{meta.desc}</p>
+                    </div>
                   </div>
-                )}
-
-                {/* Sucursales */}
-                {parsedBranches.length > 0 && (
-                  <div className="space-y-3 mt-3">
-                    {parsedBranches.map((branch, i) => (
-                      <div key={i} className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-                        {branch.name && (
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">{branch.name}</p>
-                        )}
-                        <p className="text-gray-600 text-sm leading-relaxed">{branch.address}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {doctor.phone && (
-                  <a href={`tel:${doctor.phone}`}
-                    className="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors mt-4">
-                    <span>📞</span>
-                    {doctor.phone}
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+                )
+              })}
+            </div>
+          </section>
         )}
 
-        {/* ── SERVICIOS ── */}
-        {servicesList.length > 0 && (
-          <section className="pb-12">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Servicios</h2>
-              <p className="text-gray-400 text-sm">Todo lo que {firstName} ofrece para tu bienestar</p>
+        {/* ── HORARIO + UBICACIÓN (grid) ─────────────────────── */}
+        {(activeDays.length > 0 || doctor.address || parsedBranches.length > 0) && (
+          <section className="py-12 border-b border-gray-100">
+            <div className={`grid gap-6 ${activeDays.length > 0 && (doctor.address || parsedBranches.length > 0) ? 'md:grid-cols-2' : ''}`}>
+
+              {/* Horario */}
+              {activeDays.length > 0 && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                  <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
+                    Horario de atención
+                  </h2>
+                  <div className="space-y-3">
+                    {activeDays.map((weekday) => {
+                      const slots = scheduleByDay.get(weekday) ?? []
+                      return (
+                        <div key={weekday} className="flex items-start gap-3">
+                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-700">{DAYS[weekday]}</span>
+                          <div className="flex flex-col gap-1">
+                            {slots.map((slot, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600 font-medium bg-blue-50 px-2.5 py-0.5 rounded-lg">
+                                  {slot.startTime} – {slot.endTime}
+                                </span>
+                                {slot.location && (
+                                  <span className="text-xs text-gray-400">· {slot.location}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Ubicación */}
+              {(doctor.address || parsedBranches.length > 0) && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                  <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">📍</span>
+                    {parsedBranches.length > 0 ? 'Centros de atención' : 'Ubicación'}
+                  </h2>
+
+                  {doctor.address && (
+                    <div className={`${parsedBranches.length > 0 ? 'mb-4' : ''}`}>
+                      {parsedBranches.length > 0 && (
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Consultorio principal</p>
+                      )}
+                      <p className="text-gray-600 text-sm leading-relaxed">{doctor.address}</p>
+                      {locationStr && (
+                        <p className="text-gray-400 text-xs mt-0.5">{locationStr}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {parsedBranches.filter(b => b.address).map((branch, i) => (
+                    <div key={i} className="bg-gray-50 rounded-2xl p-3 border border-gray-100 mb-2">
+                      {branch.name && <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">{branch.name}</p>}
+                      <p className="text-gray-600 text-sm leading-relaxed">{branch.address}</p>
+                    </div>
+                  ))}
+
+                  {doctor.phone && (
+                    <a href={`tel:${doctor.phone}`}
+                      className="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors mt-3">
+                      <span>📞</span> {doctor.phone}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+          </section>
+        )}
+
+        {/* ── SERVICIOS Y PRECIOS ────────────────────────────── */}
+        {servicesList.length > 0 && (
+          <section className="py-12 border-b border-gray-100">
+            <div className="flex items-center gap-3 mb-7">
+              <span className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-xl flex-shrink-0">💼</span>
+              <div>
+                <h2 className="font-bold text-gray-900 text-xl">Servicios y precios</h2>
+                <p className="text-gray-400 text-sm">Consultas y procedimientos que ofrece {firstName}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {servicesList.map((service, i) => (
                 <div key={i}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md hover:-translate-y-1 hover:border-blue-100 transition-all duration-200 group">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 text-xl md:text-2xl group-hover:scale-110 transition-transform"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 transition-all duration-200 group flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
-                    {service.emoji || SERVICE_ICONS[i % SERVICE_ICONS.length]}
+                    {service.emoji || '🩺'}
                   </div>
-                  <p className="font-semibold text-gray-800 text-xs md:text-sm leading-snug">{service.name}</p>
-                  {service.price && (
-                    <p className="text-blue-600 text-xs font-medium mt-1">${service.price}</p>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 text-sm leading-snug">{service.name}</p>
+                    {service.description && (
+                      <p className="text-gray-400 text-xs mt-0.5 leading-relaxed line-clamp-2">{service.description}</p>
+                    )}
+                    {service.price && (
+                      <p className="text-blue-600 text-sm font-bold mt-1.5">{service.price}</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* ── FORMACIÓN Y CREDENCIALES ── */}
-        {doctor.credentials.length > 0 && (() => {
-          const CRED_META: Record<string, { icon: string; label: string; color: string; bg: string; border: string }> = {
-            SENESCYT:      { icon: '🏛️', label: 'Registro SENESCYT',    color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
-            TITULO_TERCER: { icon: '🎓', label: 'Título Tercer Nivel',   color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
-            TITULO_CUARTO: { icon: '🏅', label: 'Título Cuarto Nivel',   color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
-            CERTIFICADO:   { icon: '📜', label: 'Certificado / Diploma', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
-            CURSO:         { icon: '📚', label: 'Curso de Capacitación', color: '#EA580C', bg: '#FFF7ED', border: '#FDBA74' },
-            SEMINARIO:     { icon: '🎤', label: 'Seminario / Congreso',  color: '#DB2777', bg: '#FDF2F8', border: '#FBCFE8' },
-          }
-          return (
-            <section className="pb-12">
-              <div className="text-center mb-8">
-                <span className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4 border border-amber-100">
-                  🏆 Formación y credenciales
-                </span>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Preparación profesional</h2>
-                <p className="text-gray-400 text-sm">Títulos, registros y certificaciones que avalan la experiencia de {firstName}</p>
+        {/* ── MÉTODOS DE PAGO ───────────────────────────────── */}
+        {paymentData && paymentData.methods && paymentData.methods.length > 0 && (
+          <section className="py-12 border-b border-gray-100">
+            <div className="flex items-center gap-3 mb-7">
+              <span className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">💰</span>
+              <div>
+                <h2 className="font-bold text-gray-900 text-xl">Métodos de pago</h2>
+                <p className="text-gray-400 text-sm">Opciones disponibles para pagar tu consulta</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {doctor.credentials.map((cred) => {
-                  const m = CRED_META[cred.type] ?? CRED_META.CERTIFICADO
-                  const isPdf = cred.mimeType === 'application/pdf'
-                  return (
-                    <a
-                      key={cred.id}
-                      href={cred.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-start gap-4 bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                      style={{ borderColor: m.border }}
-                    >
-                      {/* Icon */}
-                      <div className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
-                        style={{ background: m.bg, border: `1px solid ${m.border}` }}>
-                        {m.icon}
+            </div>
+            <div className="flex flex-wrap gap-3 mb-5">
+              {paymentData.methods.map((method) => {
+                const meta = PAYMENT_META[method]
+                if (!meta) return null
+                return (
+                  <div key={method} className="inline-flex items-center gap-2.5 bg-white border border-gray-100 shadow-sm rounded-2xl px-5 py-3 text-sm font-semibold text-gray-700">
+                    <span className="text-xl">{meta.icon}</span>
+                    {meta.label}
+                  </div>
+                )
+              })}
+            </div>
+            {/* Datos bancarios */}
+            {paymentData.methods.includes('TRANSFER') && paymentData.bankName && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 max-w-sm">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Datos para transferencia</p>
+                <div className="space-y-1.5 text-sm text-gray-600">
+                  {paymentData.bankName && <p><span className="font-semibold text-gray-700">Banco:</span> {paymentData.bankName}</p>}
+                  {paymentData.accountHolder && <p><span className="font-semibold text-gray-700">Titular:</span> {paymentData.accountHolder}</p>}
+                  {paymentData.accountNumber && <p><span className="font-semibold text-gray-700">Cuenta:</span> {paymentData.accountNumber}</p>}
+                  {paymentData.accountType && <p><span className="font-semibold text-gray-700">Tipo:</span> {paymentData.accountType === 'SAVINGS' ? 'Ahorros' : 'Corriente'}</p>}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── FORMACIÓN Y CREDENCIALES ──────────────────────── */}
+        {doctor.credentials.length > 0 && (
+          <section className="py-12 border-b border-gray-100">
+            <div className="flex items-center gap-3 mb-7">
+              <span className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-xl flex-shrink-0">🏆</span>
+              <div>
+                <h2 className="font-bold text-gray-900 text-xl">Formación y credenciales</h2>
+                <p className="text-gray-400 text-sm">Títulos, registros y certificaciones de {firstName}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {doctor.credentials.map((cred) => {
+                const m = CRED_META[cred.type] ?? CRED_META.CERTIFICADO
+                return (
+                  <a key={cred.id} href={cred.fileUrl} target="_blank" rel="noopener noreferrer"
+                    className="group flex items-start gap-4 bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                    style={{ borderColor: m.border }}>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
+                      style={{ background: m.bg, border: `1px solid ${m.border}` }}>
+                      {m.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
+                        style={{ color: m.color, background: m.bg }}>
+                        {m.label}
+                      </span>
+                      <p className="font-bold text-gray-900 text-sm leading-snug truncate">{cred.title}</p>
+                      {cred.institution && <p className="text-gray-500 text-xs mt-0.5 truncate">{cred.institution}</p>}
+                      <div className="flex items-center gap-2 mt-2">
+                        {cred.year && <span className="text-xs text-gray-400 font-medium">{cred.year}</span>}
+                        <span className="text-xs text-gray-300">·</span>
+                        <span className="text-xs text-gray-400">{cred.mimeType === 'application/pdf' ? '📄 Ver PDF' : '🖼️ Ver imagen'}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                          className="ml-auto text-gray-300 group-hover:text-blue-400 transition-colors flex-shrink-0">
+                          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
                       </div>
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
-                          style={{ color: m.color, background: m.bg }}>
-                          {m.label}
-                        </span>
-                        <p className="font-bold text-gray-900 text-sm leading-snug truncate">{cred.title}</p>
-                        {cred.institution && (
-                          <p className="text-gray-500 text-xs mt-0.5 truncate">{cred.institution}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          {cred.year && (
-                            <span className="text-xs text-gray-400 font-medium">{cred.year}</span>
-                          )}
-                          <span className="text-xs text-gray-300">·</span>
-                          <span className="text-xs text-gray-400">{isPdf ? '📄 Ver PDF' : '🖼️ Ver imagen'}</span>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                            className="ml-auto text-gray-300 group-hover:text-blue-400 transition-colors flex-shrink-0">
-                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                          </svg>
-                        </div>
-                      </div>
-                    </a>
-                  )
-                })}
+                    </div>
+                  </a>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── CTA CON FOTO ──────────────────────────────────── */}
+        {(() => {
+          const ctaPhoto = doctor.bannerUrl ?? doctor.avatarUrl
+          return (
+            <section className="my-12 rounded-3xl overflow-hidden shadow-xl"
+              style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)' }}>
+              <div className="flex flex-col md:flex-row items-stretch">
+                <div className="w-full md:w-64 flex-shrink-0 overflow-hidden" style={{ minHeight: '220px' }}>
+                  {ctaPhoto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ctaPhoto} alt={doctor.name}
+                      className="w-full h-full object-cover object-top" style={{ minHeight: '220px' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center opacity-20" style={{ minHeight: '220px' }}>
+                      <span className="text-white text-8xl font-bold">{initials}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 p-6 md:p-12 text-white text-center md:text-left flex flex-col justify-center">
+                  <p className="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">Atención personalizada</p>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-3">¿Listo para cuidar tu salud?</h2>
+                  <p className="text-white/75 mb-7 max-w-md leading-relaxed">
+                    {firstName} cuenta con un asistente digital disponible los 7 días de la semana para atenderte, responder tus dudas y agendar tu cita.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                    <Link href={`/${params.slug}/chat`}
+                      className="inline-flex items-center justify-center gap-2.5 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg text-base">
+                      <span>💬</span> Consultar disponibilidad
+                    </Link>
+                    {whatsappUrl && (
+                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2.5 bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-white/20 text-white font-bold px-8 py-4 rounded-2xl transition-colors text-base">
+                        <WhatsAppIcon size={18} /> WhatsApp
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
             </section>
           )
         })()}
 
-        {/* ── CTA CON FOTO DEL DOCTOR ── */}
-        {(() => {
-          const ctaPhoto = doctor.bannerUrl ?? doctor.avatarUrl
-          return (
-        <section className="mb-12 rounded-3xl overflow-hidden shadow-xl"
-          style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)' }}>
-          <div className="flex flex-col md:flex-row items-stretch">
-
-            {/* Foto del doctor — lado izquierdo */}
-            <div className="w-full md:w-64 flex-shrink-0 overflow-hidden" style={{ minHeight: '220px' }}>
-              {ctaPhoto ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={ctaPhoto} alt={doctor.name}
-                  className="w-full h-full object-cover object-top" style={{ minHeight: '220px' }} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20" style={{ minHeight: '220px' }}>
-                  <div className="text-white text-8xl font-bold">{initials}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Texto + botón */}
-            <div className="flex-1 p-6 md:p-12 text-white text-center md:text-left">
-              <p className="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">
-                Atención personalizada
-              </p>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                ¿Listo para cuidar tu salud?
-              </h2>
-              <p className="text-white/75 mb-7 max-w-md leading-relaxed">
-                {firstName} cuenta con un asistente digital disponible los 7 días de la semana para atenderte, responder tus dudas y agendar tu cita.
-              </p>
-              <Link href={`/${params.slug}/chat`}
-                className="inline-flex items-center gap-2.5 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg text-base">
-                <span>💬</span>
-                Consultar disponibilidad
-              </Link>
-            </div>
-          </div>
-        </section>
-          )
-        })()}
-
       </main>
 
-      {/* ── FORMULARIO DE CONTACTO ── */}
+      {/* ── FORMULARIO DE CONTACTO ────────────────────────── */}
       {doctor.webhookUrl && (
         <section className="py-12 mb-4 px-4">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 max-w-2xl mx-auto">
@@ -421,24 +534,20 @@ export default async function DoctorPublicPage({ params }: Props) {
               <span className="inline-block bg-blue-50 text-blue-600 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
                 Contacto directo
               </span>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                ¿Tienes alguna pregunta?
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Deja tus datos y el equipo de {displayName} te responderá a la brevedad.
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">¿Tienes alguna pregunta?</h2>
+              <p className="text-gray-500 text-sm">Deja tus datos y el equipo de {displayName} te responderá a la brevedad.</p>
             </div>
             <DoctorContactForm slug={params.slug} doctorName={displayName} />
           </div>
         </section>
       )}
 
-      {/* ── FOOTER ── */}
+      {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="border-t border-gray-100 bg-white py-6 text-center text-gray-400 text-xs">
         <p>Página gestionada con <a href="https://www.consultorio.site" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-500 hover:text-blue-600 transition-colors">consultorio.site</a></p>
       </footer>
 
-      {/* ── WHATSAPP FLOAT ── */}
+      {/* ── WHATSAPP FLOAT ────────────────────────────────── */}
       {whatsappUrl && (
         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
           className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group">
