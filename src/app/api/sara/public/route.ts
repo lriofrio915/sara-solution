@@ -136,7 +136,19 @@ function executePublicTool(
           locations,
           phone: doctor.phone ?? doctor.whatsapp ?? 'No disponible',
           whatsapp: doctor.whatsapp,
-          services: doctor.services ? doctor.services.split('\n').filter(Boolean) : [],
+          services: (() => {
+            if (!doctor.services) return []
+            try {
+              const parsed = JSON.parse(doctor.services)
+              return Array.isArray(parsed)
+                ? parsed.map((s: { name?: string; description?: string; price?: string; emoji?: string }) =>
+                    `${s.emoji ?? ''} ${s.name ?? ''}${s.price ? ` ($${s.price})` : ''}${s.description ? ` — ${s.description}` : ''}`.trim()
+                  ).filter(Boolean)
+                : doctor.services.split('\n').filter(Boolean)
+            } catch {
+              return doctor.services.split('\n').filter(Boolean)
+            }
+          })(),
         },
       })
     }
@@ -168,7 +180,7 @@ Fecha y hora actual (Ecuador): ${now}
 Ayudar al paciente a agendar una cita médica de forma rápida y efectiva.
 
 ## Herramientas disponibles:
-- get_doctor_info: información del consultorio
+- get_doctor_info: información del consultorio (dirección, teléfono, **servicios y precios**). Llámala SIEMPRE que el paciente pregunte por servicios, precios o información del consultorio. NUNCA inventes servicios ni precios.
 - check_available_slots: horarios disponibles para una fecha (SIEMPRE úsalo antes de agendar)
 - register_patient: registrar al paciente
 - schedule_appointment: crear la cita (SOLO con un slot confirmado como disponible)
@@ -187,6 +199,7 @@ Ayudar al paciente a agendar una cita médica de forma rápida y efectiva.
 - NUNCA confirmes una cita sin haber recibido { success: true } de schedule_appointment
 - Si schedule_appointment devuelve error, comunícaselo al paciente y ofrece otro horario
 - NUNCA inventes horarios disponibles — SIEMPRE usa check_available_slots primero
+- NUNCA inventes servicios ni precios — SIEMPRE usa get_doctor_info y responde con los datos exactos que devuelva
 - NUNCA registres ni confirmes datos que no te haya dado el paciente explícitamente
 - Si una herramienta devuelve error, infórmalo honestamente y busca alternativa
 - NUNCA des consejos médicos ni diagnósticos
