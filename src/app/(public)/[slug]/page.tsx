@@ -71,9 +71,18 @@ export default async function DoctorPublicPage({ params }: Props) {
   const initials      = getInitials(doctor.name)
   const displayName   = formatDoctorName(doctor.name)
   const firstName     = displayName  // usado en WhatsApp y saludos
-  const servicesList = doctor.services
-    ? doctor.services.split('\n').map((s) => s.trim()).filter(Boolean)
-    : []
+  type ServiceItem = { name: string; description?: string; price?: string; emoji?: string }
+  let servicesList: ServiceItem[] = []
+  if (doctor.services) {
+    try {
+      const parsed = JSON.parse(doctor.services)
+      servicesList = Array.isArray(parsed)
+        ? parsed.filter((s: ServiceItem) => s?.name)
+        : doctor.services.split('\n').map((s) => ({ name: s.trim() })).filter((s) => s.name)
+    } catch {
+      servicesList = doctor.services.split('\n').map((s) => ({ name: s.trim() })).filter((s) => s.name)
+    }
+  }
   const scheduleLines = doctor.schedules
     ? doctor.schedules.split('\n').map((s) => s.trim()).filter(Boolean)
     : []
@@ -279,9 +288,12 @@ export default async function DoctorPublicPage({ params }: Props) {
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md hover:-translate-y-1 hover:border-blue-100 transition-all duration-200 group">
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-3 text-xl md:text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
-                    {SERVICE_ICONS[i % SERVICE_ICONS.length]}
+                    {service.emoji || SERVICE_ICONS[i % SERVICE_ICONS.length]}
                   </div>
-                  <p className="font-semibold text-gray-800 text-xs md:text-sm leading-snug">{service}</p>
+                  <p className="font-semibold text-gray-800 text-xs md:text-sm leading-snug">{service.name}</p>
+                  {service.price && (
+                    <p className="text-blue-600 text-xs font-medium mt-1">${service.price}</p>
+                  )}
                 </div>
               ))}
             </div>
