@@ -111,6 +111,7 @@ export default function ProfilePage() {
   const [availSuccess, setAvailSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [activeTab, setActiveTab] = useState<'perfil'|'consultorio'|'servicios'|'legal'|'cuenta'>('perfil')
   const [showDeleteZone, setShowDeleteZone] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -596,11 +597,38 @@ export default function ProfilePage() {
       .map((b) => ({ label: b.name ? `${b.name} — ${b.address}` : b.address, value: b.address })),
   ]
 
+  const TABS = [
+    { id: 'perfil',      icon: '👤', label: 'Perfil' },
+    { id: 'consultorio', icon: '🏥', label: 'Consultorio' },
+    { id: 'servicios',   icon: '💼', label: 'Servicios' },
+    { id: 'legal',       icon: '📋', label: 'Legal & Docs' },
+    { id: 'cuenta',      icon: '⚙️',  label: 'Cuenta' },
+  ] as const
+
   return (
     <div className="p-6 md:p-8 md:pt-10 max-w-3xl">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Perfil</h1>
         <p className="text-gray-500 dark:text-slate-300 mt-1">Actualiza tu información profesional</p>
+      </div>
+
+      {/* ── Tab navigation ──────────────────────────────── */}
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1 mb-6 overflow-x-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-1 justify-center ${
+              activeTab === tab.id
+                ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
+                : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
+            }`}
+          >
+            <span className="hidden sm:inline">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -616,6 +644,8 @@ export default function ProfilePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ══════════════ TAB: PERFIL ══════════════════════ */}
+        {activeTab === 'perfil' && (<>
         {/* Avatar */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Foto de perfil</h2>
@@ -929,6 +959,16 @@ export default function ProfilePage() {
           )}
         </div>
 
+        <div className="flex gap-3">
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+        </> )}
+
+        {/* ══════════════ TAB: LEGAL & DOCS ════════════════ */}
+        {activeTab === 'legal' && (<>
+
         {/* ── SECCIÓN A: Datos Legales y Profesionales ───────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
           <div>
@@ -1084,6 +1124,16 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        <div className="flex gap-3">
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+        </> )}
+
+        {/* ══════════════ TAB: CONSULTORIO ═════════════════ */}
+        {activeTab === 'consultorio' && (<>
+
         {/* ── SECCIÓN C: Modalidades de Consulta ──────────────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
           <div>
@@ -1131,6 +1181,16 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
+
+        <div className="flex gap-3">
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+        </> )}
+
+        {/* ══════════════ TAB: SERVICIOS ═══════════════════ */}
+        {activeTab === 'servicios' && (<>
 
         {/* ── SECCIÓN D: Servicios y Precios ──────────────────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
@@ -1357,17 +1417,15 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
+        </> )}
       </form>
 
-      {/* ── HORARIO DE ATENCIÓN ─────────────────────────────── */}
+      {/* ── HORARIO DE ATENCIÓN (tab Consultorio) ───────────── */}
+      {activeTab === 'consultorio' && (
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
         <div>
           <h2 className="font-semibold text-gray-900 dark:text-white">Horario de atención</h2>
@@ -1516,8 +1574,10 @@ export default function ProfilePage() {
           {savingAvail ? 'Guardando...' : 'Guardar horarios'}
         </button>
       </div>
+      )}
 
-      {/* ── FIRMA ELECTRÓNICA ───────────────────────────── */}
+      {/* ── FIRMA ELECTRÓNICA + VITRINA (tab Legal & Docs) ── */}
+      {activeTab === 'legal' && (<>
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
         <div>
           <h2 className="font-semibold text-gray-900 dark:text-white">Firma Electrónica (FirmaEC / BCE)</h2>
@@ -1725,8 +1785,9 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+      </> )}
 
-      {/* ── MODAL AGREGAR CREDENCIAL ─────────────────────── */}
+      {/* ── MODAL AGREGAR CREDENCIAL (siempre montado) ────── */}
       {showCredModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
@@ -1866,7 +1927,8 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── ZONA DE PELIGRO ─────────────────────────────── */}
+      {/* ── ZONA DE PELIGRO (tab Cuenta) ─────────────────── */}
+      {activeTab === 'cuenta' && (
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-red-100 dark:border-red-900/40 p-6">
         <button
           type="button"
@@ -1925,6 +1987,7 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }
