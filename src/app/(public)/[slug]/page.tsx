@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import DoctorContactForm from '@/components/DoctorContactForm'
+import PublicPageActions from '@/components/PublicPageActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -155,15 +156,15 @@ export default async function DoctorPublicPage({ params }: Props) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
 
       {/* ── STICKY HEADER ───────────────────────────────────── */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-40 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <AvatarSm />
             <div>
-              <p className="font-bold text-gray-900 text-sm leading-tight">{displayName}</p>
+              <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{displayName}</p>
               <p className="text-blue-600 text-xs font-medium">{doctor.specialty}</p>
             </div>
           </div>
@@ -206,14 +207,14 @@ export default async function DoctorPublicPage({ params }: Props) {
             {/* Texto */}
             <div className="flex-1 text-center md:text-left">
               <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-2">{doctor.specialty}</p>
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">{displayName}</h1>
+              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">{displayName}</h1>
               {locationStr && (
                 <p className="text-gray-400 text-sm font-medium mb-3 flex items-center justify-center md:justify-start gap-1.5">
                   <span>📍</span> {locationStr}
                 </p>
               )}
               {doctor.bio && (
-                <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">{doctor.bio}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl">{doctor.bio}</p>
               )}
 
               {/* Modalidades pills */}
@@ -249,14 +250,14 @@ export default async function DoctorPublicPage({ params }: Props) {
         </section>
 
         {/* ── QUICK TRUST BADGES ────────────────────────────── */}
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 pb-12 border-b border-gray-100">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 pb-12 border-b border-gray-100 dark:border-gray-800">
           {[
             { icon: '🕐', label: 'Atención 24/7' },
             { icon: '🔒', label: 'Datos protegidos' },
             { icon: '⚡', label: 'Respuesta inmediata' },
             { icon: '📋', label: 'Sin filas de espera' },
           ].map((b) => (
-            <div key={b.label} className="flex items-center gap-2 text-gray-500 text-sm">
+            <div key={b.label} className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
               <span className="text-xl">{b.icon}</span>
               <span className="font-medium">{b.label}</span>
             </div>
@@ -265,22 +266,22 @@ export default async function DoctorPublicPage({ params }: Props) {
 
         {/* ── MODALIDADES DE ATENCIÓN ───────────────────────── */}
         {modes.length > 0 && (
-          <section className="py-12 border-b border-gray-100">
+          <section className="py-12 border-b border-gray-100 dark:border-gray-800">
             <div className="flex flex-col items-center text-center mb-8">
-              <span className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl mb-3">🩺</span>
-              <h2 className="font-bold text-gray-900 text-xl">Modalidades de atención</h2>
-              <p className="text-gray-400 text-sm mt-1">Cómo puedes ser atendido por {firstName}</p>
+              <span className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-2xl mb-3">🩺</span>
+              <h2 className="font-bold text-gray-900 dark:text-white text-xl">Modalidades de atención</h2>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Cómo puedes ser atendido por {firstName}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
               {modes.map((m) => {
                 const meta = MODE_META[m]
                 if (!meta) return null
                 return (
-                  <div key={m} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                  <div key={m} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 flex flex-col items-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all w-full sm:w-52">
                     <span className="text-4xl">{meta.icon}</span>
                     <div>
-                      <p className="font-bold text-gray-900 text-sm">{meta.label}</p>
-                      <p className="text-gray-500 text-xs mt-0.5">{meta.desc}</p>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm">{meta.label}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{meta.desc}</p>
                     </div>
                   </div>
                 )
@@ -291,14 +292,14 @@ export default async function DoctorPublicPage({ params }: Props) {
 
         {/* ── HORARIO + UBICACIÓN (grid) ─────────────────────── */}
         {(activeDays.length > 0 || doctor.address || parsedBranches.length > 0) && (
-          <section className="py-12 border-b border-gray-100">
+          <section className="py-12 border-b border-gray-100 dark:border-gray-800">
             <div className={`grid gap-6 ${activeDays.length > 0 && (doctor.address || parsedBranches.length > 0) ? 'md:grid-cols-2' : ''}`}>
 
               {/* Horario */}
               {activeDays.length > 0 && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                  <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
                     Horario de atención
                   </h2>
                   <div className="space-y-3">
@@ -306,11 +307,11 @@ export default async function DoctorPublicPage({ params }: Props) {
                       const slots = scheduleByDay.get(weekday) ?? []
                       return (
                         <div key={weekday} className="flex items-start gap-3">
-                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-700">{DAYS[weekday]}</span>
+                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-700 dark:text-gray-300">{DAYS[weekday]}</span>
                           <div className="flex flex-col gap-1">
                             {slots.map((slot, i) => (
                               <div key={i} className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600 font-medium bg-blue-50 px-2.5 py-0.5 rounded-lg">
+                                <span className="text-sm text-gray-600 dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-lg">
                                   {slot.startTime} – {slot.endTime}
                                 </span>
                                 {slot.location && (
@@ -328,9 +329,9 @@ export default async function DoctorPublicPage({ params }: Props) {
 
               {/* Ubicación */}
               {(doctor.address || parsedBranches.length > 0) && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                  <h2 className="font-bold text-gray-900 text-lg mb-5 flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">📍</span>
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-xl flex-shrink-0">📍</span>
                     {parsedBranches.length > 0 ? 'Centros de atención' : 'Ubicación'}
                   </h2>
 
@@ -339,7 +340,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                       {parsedBranches.length > 0 && (
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Consultorio principal</p>
                       )}
-                      <p className="text-gray-600 text-sm leading-relaxed">{doctor.address}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{doctor.address}</p>
                       {locationStr && (
                         <p className="text-gray-400 text-xs mt-0.5">{locationStr}</p>
                       )}
@@ -347,15 +348,15 @@ export default async function DoctorPublicPage({ params }: Props) {
                   )}
 
                   {parsedBranches.filter(b => b.address).map((branch, i) => (
-                    <div key={i} className="bg-gray-50 rounded-2xl p-3 border border-gray-100 mb-2">
-                      {branch.name && <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">{branch.name}</p>}
-                      <p className="text-gray-600 text-sm leading-relaxed">{branch.address}</p>
+                    <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-3 border border-gray-100 dark:border-gray-600 mb-2">
+                      {branch.name && <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-0.5">{branch.name}</p>}
+                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{branch.address}</p>
                     </div>
                   ))}
 
                   {doctor.phone && (
                     <a href={`tel:${doctor.phone}`}
-                      className="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors mt-3">
+                      className="inline-flex items-center gap-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-xl transition-colors mt-3">
                       <span>📞</span> {doctor.phone}
                     </a>
                   )}
@@ -367,24 +368,24 @@ export default async function DoctorPublicPage({ params }: Props) {
 
         {/* ── SERVICIOS Y PRECIOS ────────────────────────────── */}
         {servicesList.length > 0 && (
-          <section className="py-12 border-b border-gray-100">
+          <section className="py-12 border-b border-gray-100 dark:border-gray-800">
             <div className="flex flex-col items-center text-center mb-8">
-              <span className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-2xl mb-3">💼</span>
-              <h2 className="font-bold text-gray-900 text-xl">Servicios y precios</h2>
-              <p className="text-gray-400 text-sm mt-1">Consultas y procedimientos que ofrece {firstName}</p>
+              <span className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-2xl mb-3">💼</span>
+              <h2 className="font-bold text-gray-900 dark:text-white text-xl">Servicios y precios</h2>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Consultas y procedimientos que ofrece {firstName}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {servicesList.map((service, i) => (
                 <div key={i}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 transition-all duration-200 group flex flex-col items-center text-center gap-3">
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 dark:hover:border-blue-900 transition-all duration-200 group flex flex-col items-center text-center gap-3">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
                     {service.emoji || '🩺'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 text-sm leading-snug">{service.name}</p>
+                    <p className="font-bold text-gray-800 dark:text-gray-200 text-sm leading-snug">{service.name}</p>
                     {service.description && (
-                      <p className="text-gray-400 text-xs mt-0.5 leading-relaxed line-clamp-2">{service.description}</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5 leading-relaxed line-clamp-2">{service.description}</p>
                     )}
                     {service.price && (
                       <p className="text-blue-600 text-sm font-bold mt-1.5">{service.price}</p>
@@ -398,47 +399,35 @@ export default async function DoctorPublicPage({ params }: Props) {
 
         {/* ── MÉTODOS DE PAGO ───────────────────────────────── */}
         {paymentData && paymentData.methods && paymentData.methods.length > 0 && (
-          <section className="py-12 border-b border-gray-100">
+          <section className="py-12 border-b border-gray-100 dark:border-gray-800">
             <div className="flex flex-col items-center text-center mb-8">
-              <span className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-2xl mb-3">💰</span>
-              <h2 className="font-bold text-gray-900 text-xl">Métodos de pago</h2>
-              <p className="text-gray-400 text-sm mt-1">Opciones disponibles para pagar tu consulta</p>
+              <span className="w-12 h-12 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-2xl mb-3">💰</span>
+              <h2 className="font-bold text-gray-900 dark:text-white text-xl">Métodos de pago</h2>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Opciones disponibles para pagar tu consulta</p>
             </div>
-            <div className="flex flex-wrap justify-center gap-3 mb-6">
+            <div className="flex flex-wrap justify-center gap-3">
               {paymentData.methods.map((method) => {
                 const meta = PAYMENT_META[method]
                 if (!meta) return null
                 return (
-                  <div key={method} className="inline-flex items-center gap-2.5 bg-white border border-gray-100 shadow-sm rounded-2xl px-5 py-3 text-sm font-semibold text-gray-700">
+                  <div key={method} className="inline-flex items-center gap-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm rounded-2xl px-5 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     <span className="text-xl">{meta.icon}</span>
                     {meta.label}
                   </div>
                 )
               })}
             </div>
-            {/* Datos bancarios */}
-            {paymentData.methods.includes('TRANSFER') && paymentData.bankName && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 max-w-sm mx-auto text-center">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Datos para transferencia</p>
-                <div className="space-y-1.5 text-sm text-gray-600">
-                  {paymentData.bankName && <p><span className="font-semibold text-gray-700">Banco:</span> {paymentData.bankName}</p>}
-                  {paymentData.accountHolder && <p><span className="font-semibold text-gray-700">Titular:</span> {paymentData.accountHolder}</p>}
-                  {paymentData.accountNumber && <p><span className="font-semibold text-gray-700">Cuenta:</span> {paymentData.accountNumber}</p>}
-                  {paymentData.accountType && <p><span className="font-semibold text-gray-700">Tipo:</span> {paymentData.accountType === 'SAVINGS' ? 'Ahorros' : 'Corriente'}</p>}
-                </div>
-              </div>
-            )}
           </section>
         )}
 
         {/* ── FORMACIÓN Y CREDENCIALES ──────────────────────── */}
         {doctor.credentials.length > 0 && (
-          <section className="py-12 border-b border-gray-100">
+          <section className="py-12 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3 mb-7">
-              <span className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-xl flex-shrink-0">🏆</span>
+              <span className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-xl flex-shrink-0">🏆</span>
               <div>
-                <h2 className="font-bold text-gray-900 text-xl">Formación y credenciales</h2>
-                <p className="text-gray-400 text-sm">Títulos, registros y certificaciones de {firstName}</p>
+                <h2 className="font-bold text-gray-900 dark:text-white text-xl">Formación y credenciales</h2>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">Títulos, registros y certificaciones de {firstName}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -446,7 +435,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                 const m = CRED_META[cred.type] ?? CRED_META.CERTIFICADO
                 return (
                   <a key={cred.id} href={cred.fileUrl} target="_blank" rel="noopener noreferrer"
-                    className="group flex items-start gap-4 bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                    className="group flex items-start gap-4 bg-white dark:bg-gray-800 rounded-2xl border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                     style={{ borderColor: m.border }}>
                     <div className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
                       style={{ background: m.bg, border: `1px solid ${m.border}` }}>
@@ -457,8 +446,8 @@ export default async function DoctorPublicPage({ params }: Props) {
                         style={{ color: m.color, background: m.bg }}>
                         {m.label}
                       </span>
-                      <p className="font-bold text-gray-900 text-sm leading-snug truncate">{cred.title}</p>
-                      {cred.institution && <p className="text-gray-500 text-xs mt-0.5 truncate">{cred.institution}</p>}
+                      <p className="font-bold text-gray-900 dark:text-white text-sm leading-snug truncate">{cred.title}</p>
+                      {cred.institution && <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 truncate">{cred.institution}</p>}
                       <div className="flex items-center gap-2 mt-2">
                         {cred.year && <span className="text-xs text-gray-400 font-medium">{cred.year}</span>}
                         <span className="text-xs text-gray-300">·</span>
@@ -494,13 +483,13 @@ export default async function DoctorPublicPage({ params }: Props) {
                     </div>
                   )}
                 </div>
-                <div className="flex-1 p-6 md:p-12 text-white text-center md:text-left flex flex-col justify-center">
+                <div className="flex-1 p-6 md:p-12 text-white text-center flex flex-col justify-center items-center">
                   <p className="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">Atención personalizada</p>
                   <h2 className="text-2xl md:text-3xl font-bold mb-3">¿Listo para cuidar tu salud?</h2>
                   <p className="text-white/75 mb-7 max-w-md leading-relaxed">
                     {firstName} cuenta con un asistente digital disponible los 7 días de la semana para atenderte, responder tus dudas y agendar tu cita.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link href={`/${params.slug}/chat`}
                       className="inline-flex items-center justify-center gap-2.5 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg text-base">
                       <span>💬</span> Consultar disponibilidad
@@ -523,13 +512,13 @@ export default async function DoctorPublicPage({ params }: Props) {
       {/* ── FORMULARIO DE CONTACTO ────────────────────────── */}
       {doctor.webhookUrl && (
         <section className="py-12 mb-4 px-4">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 max-w-2xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8 max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <span className="inline-block bg-blue-50 text-blue-600 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+              <span className="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
                 Contacto directo
               </span>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">¿Tienes alguna pregunta?</h2>
-              <p className="text-gray-500 text-sm">Deja tus datos y el equipo de {displayName} te responderá a la brevedad.</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">¿Tienes alguna pregunta?</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Deja tus datos y el equipo de {displayName} te responderá a la brevedad.</p>
             </div>
             <DoctorContactForm slug={params.slug} doctorName={displayName} />
           </div>
@@ -537,9 +526,12 @@ export default async function DoctorPublicPage({ params }: Props) {
       )}
 
       {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="border-t border-gray-100 bg-white py-6 text-center text-gray-400 text-xs">
+      <footer className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 py-6 text-center text-gray-400 dark:text-gray-600 text-xs">
         <p>Página gestionada con <a href="https://www.consultorio.site" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-500 hover:text-blue-600 transition-colors">consultorio.site</a></p>
       </footer>
+
+      {/* ── FLOATING ACTIONS (dark mode toggle + scroll to top) ── */}
+      <PublicPageActions />
 
       {/* ── WHATSAPP FLOAT ────────────────────────────────── */}
       {whatsappUrl && (
