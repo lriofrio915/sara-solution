@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import NavHeader from '@/components/landing/NavHeader'
 import BackToTop from '@/components/landing/BackToTop'
-import WhatsAppButton from '@/components/landing/WhatsAppButton'
+import SaraChatWidget from '@/components/landing/SaraChatWidget'
 import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 import DemoSection from '@/components/landing/DemoSection'
 
@@ -520,43 +520,46 @@ function HowItWorks() {
 
 const plans = [
   {
-    name: 'Starter',
-    price: '$59',
-    period: '/mes',
-    desc: 'Todo lo que necesitas para digitalizar tu consultorio desde el primer día.',
-    highlight: false,
-    badge: null,
-    checkoutUrl: 'https://pay.hotmart.com/A104847710N?checkoutMode=2',
-    features: [
-      { icon: '✔', text: 'Hasta 50 pacientes activos.' },
-      { icon: '✔', text: 'Agenda inteligente (Vista diaria/semanal/mensual).' },
-      { icon: '✔', text: 'Fichas médicas, recetas digitales y CIE-10.' },
-      { icon: '✔', text: 'Web Médica Profesional (Subdominio).' },
-      { icon: '✔', text: 'Captación de pacientes vía WhatsApp.' },
-      { icon: '✔', text: 'Soporte técnico por email.' },
-    ],
-    cta: 'Comenzar ahora',
-    ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
-  },
-  {
-    name: 'Pro',
+    name: 'Pro Mensual',
     price: '$79',
     period: '/mes',
-    desc: 'Automatiza tu atención con IA y nunca pierdas un paciente fuera de horario.',
-    highlight: true,
+    desc: 'Todo el poder de Sara Medical para tu consultorio, sin compromisos.',
+    highlight: false,
     badge: 'Más popular',
+    badgeBg: 'bg-primary',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
     features: [
-      { icon: '✔', text: 'Pacientes ilimitados (Starter solo permite 50).' },
-      { icon: '✔', text: 'Todo lo del Plan Starter incluido.' },
+      { icon: '✔', text: 'Pacientes ilimitados.' },
       { icon: '🤖', text: 'Agente Sara IA en tu WhatsApp Business.' },
-      { icon: '✔', text: 'Atención, respuestas y agendamiento 24/7.' },
-      { icon: '✔', text: 'Marketing Suite: Contenido e imágenes con IA para RRSS.' },
-      { icon: '✔', text: 'Recordatorios automáticos y Calificaciones.' },
+      { icon: '✔', text: 'Agenda, fichas, recetas digitales y CIE-10.' },
+      { icon: '✔', text: 'Atención y agendamiento automático 24/7.' },
+      { icon: '✔', text: 'Marketing Suite con IA para redes sociales.' },
+      { icon: '✔', text: 'Web Médica Profesional incluida.' },
       { icon: '✔', text: 'Soporte Prioritario.' },
     ],
-    cta: 'Quiero el Plan Pro',
-    ctaStyle: 'bg-primary text-white hover:bg-primary-dark',
+    cta: 'Elegir Plan Mensual',
+    ctaStyle: 'border-2 border-primary text-primary hover:bg-primary hover:text-white',
+  },
+  {
+    name: 'Pro Anual',
+    price: '$645',
+    priceMonthly: '$53.75',
+    period: '/año',
+    savings: 'Ahorras $303 al año',
+    desc: 'La forma más inteligente de crecer tu consultorio. Paga menos, obtén más.',
+    highlight: true,
+    badge: '⭐ Mejor oferta',
+    badgeBg: 'bg-accent',
+    checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
+    features: [
+      { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
+      { icon: '💰', text: 'Equivale a $53.75/mes — 2 meses gratis.' },
+      { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor).' },
+      { icon: '✔', text: 'Soporte VIP prioritario todo el año.' },
+      { icon: '✔', text: 'Acceso anticipado a nuevas funcionalidades.' },
+    ],
+    cta: 'Elegir Plan Anual',
+    ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
   },
   {
     name: 'Enterprise',
@@ -567,6 +570,7 @@ const plans = [
     desc: 'La solución completa para clínicas y grupos médicos con múltiples sedes.',
     highlight: false,
     badge: null,
+    badgeBg: '',
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan PRO incluido.' },
@@ -605,14 +609,15 @@ function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl p-8 transition-shadow duration-200 ${
+              className={`relative flex flex-col rounded-2xl p-8 transition-all duration-200 ${
                 plan.highlight
-                  ? 'bg-gradient-to-b from-primary to-blue-700 text-white shadow-2xl shadow-primary/30 scale-[1.03]'
+                  ? 'text-white shadow-2xl shadow-primary/40 scale-[1.04] ring-2 ring-white/20'
                   : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
               }`}
+              style={plan.highlight ? { background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' } : {}}
             >
               {plan.badge && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 ${plan.badgeBg} text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap`}>
                   {plan.badge}
                 </div>
               )}
@@ -621,7 +626,8 @@ function Pricing() {
                 <p className={`font-bold text-lg mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                   {plan.name}
                 </p>
-                <div className="flex items-end gap-1">
+
+                <div className="flex items-end gap-1 mb-1">
                   <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                     {plan.price}
                   </span>
@@ -632,6 +638,19 @@ function Pricing() {
                     )}
                   </span>
                 </div>
+
+                {/* Pro Anual: mostrar equivalente mensual + ahorro */}
+                {'priceMonthly' in plan && plan.priceMonthly && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <span className="inline-flex items-center gap-1 bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                      ≈ {plan.priceMonthly as string}/mes
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-accent/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                      💰 {(plan as { savings?: string }).savings}
+                    </span>
+                  </div>
+                )}
+
                 {'priceNote' in plan && plan.priceNote && (
                   <div className="mt-1.5 mb-2">
                     <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
@@ -642,7 +661,8 @@ function Pricing() {
                     </span>
                   </div>
                 )}
-                <p className={`text-sm ${plan.highlight ? 'text-blue-200' : 'text-gray-500'}`}>
+
+                <p className={`text-sm ${plan.highlight ? 'text-blue-100' : 'text-gray-500'}`}>
                   {plan.desc}
                 </p>
               </div>
@@ -862,7 +882,7 @@ export default function LandingPage() {
         <CTAFinal />
       </main>
       <Footer />
-      <WhatsAppButton />
+      <SaraChatWidget />
       <BackToTop />
     </>
   )

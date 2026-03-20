@@ -50,7 +50,7 @@ export default function DemoSection() {
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">+120 médicos en Ecuador</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">+200 médicos en Ecuador</p>
                 <p className="text-xs text-gray-400 dark:text-slate-400">ya usan Sara Medical en su consultorio</p>
               </div>
             </div>
