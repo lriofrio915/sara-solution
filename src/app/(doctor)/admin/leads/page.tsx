@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Search, Plus, Download, LayoutList, Columns, Pencil, Trash2, X, Users } from 'lucide-react'
 import type { Lead } from '@/types'
+import PhoneInput from '@/components/PhoneInput'
 
 const STATUSES = ['NUEVO', 'CONTACTADO', 'INTERESADO', 'CONVERTIDO', 'PERDIDO'] as const
 const SOURCES = ['LANDING', 'FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'LINKEDIN', 'GOOGLE', 'WHATSAPP', 'REFERIDO', 'OTRO'] as const
@@ -394,10 +395,10 @@ export default function AdminLeadsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
-                  <input
+                  <PhoneInput
                     value={form.phone}
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                    placeholder="+593..."
+                    placeholder="+593 99 123 4567"
                     className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>

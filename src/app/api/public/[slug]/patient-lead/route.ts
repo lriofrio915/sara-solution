@@ -22,7 +22,7 @@ export async function POST(
 
     const doctor = await prisma.doctor.findUnique({
       where: { slug: params.slug },
-      select: { id: true, name: true, webhookUrl: true },
+      select: { id: true, name: true, webhookUrl: true, whatsapp: true, phone: true },
     })
 
     if (!doctor) {
@@ -42,22 +42,36 @@ export async function POST(
       },
     })
 
-    // Fire webhook asynchronously (non-blocking)
+    const payload = {
+      doctorName: doctor.name,
+      doctorSlug: params.slug,
+      patientName: name.trim(),
+      patientPhone: phone?.trim() || null,
+      patientEmail: email?.trim() || null,
+      message: message?.trim() || null,
+      source: source ?? 'CHAT',
+      campaign: campaign ?? null,
+      timestamp: new Date().toISOString(),
+    }
+
+    // Fire doctor-specific webhook asynchronously (non-blocking)
     if (doctor.webhookUrl) {
       fetch(doctor.webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doctorName: doctor.name,
-          doctorSlug: params.slug,
-          patientName: name.trim(),
-          patientPhone: phone?.trim() || null,
-          patientEmail: email?.trim() || null,
-          message: message?.trim() || null,
-          source: source ?? 'CHAT',
-          campaign: campaign ?? null,
-          timestamp: new Date().toISOString(),
-        }),
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000),
+      }).catch(() => { /* non-fatal */ })
+    }
+
+    // Fire centralized n8n notification webhook
+    const centralUrl = process.env.N8N_DOCTOR_LEAD_NOTIFY_URL
+    if (centralUrl) {
+      const doctorPhone = doctor.whatsapp || doctor.phone || null
+      fetch(centralUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, doctorPhone }),
         signal: AbortSignal.timeout(10000),
       }).catch(() => { /* non-fatal */ })
     }

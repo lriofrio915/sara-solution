@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import PhoneInput from '@/components/PhoneInput'
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
@@ -174,8 +175,7 @@ export default function RegisterPage() {
 
         <div>
           <label className="label">WhatsApp Personal</label>
-          <input
-            type="tel"
+          <PhoneInput
             name="phone"
             value={form.phone}
             onChange={handleChange}
@@ -192,8 +192,7 @@ export default function RegisterPage() {
             WhatsApp Business{' '}
             <span className="text-gray-400 font-normal text-xs">(opcional — puedes configurarlo después)</span>
           </label>
-          <input
-            type="tel"
+          <PhoneInput
             name="whatsapp"
             value={form.whatsapp}
             onChange={handleChange}

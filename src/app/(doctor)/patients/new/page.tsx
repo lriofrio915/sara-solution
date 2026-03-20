@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { validateCedula } from '@/lib/cedula-ec'
+import PhoneInput from '@/components/PhoneInput'
 
 const BLOOD_TYPES = ['UNKNOWN', 'A_POS', 'A_NEG', 'B_POS', 'B_NEG', 'AB_POS', 'AB_NEG', 'O_POS', 'O_NEG']
 const BLOOD_LABELS: Record<string, string> = {
@@ -313,12 +314,11 @@ export default function NewPatientPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Teléfono</label>
-              <input
-                type="tel"
+              <PhoneInput
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="+593 999 000 000"
+                placeholder="+593 99 900 0000"
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
               />
             </div>

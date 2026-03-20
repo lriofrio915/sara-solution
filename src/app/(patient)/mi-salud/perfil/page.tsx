@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import PhoneInput from '@/components/PhoneInput'
 
 interface PatientProfile {
   name: string
@@ -106,11 +107,10 @@ export default function PatientPerfilPage() {
           <div>
             <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Teléfono</p>
             {editing ? (
-              <input
-                type="tel"
+              <PhoneInput
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Ej: 0999123456"
+                placeholder="+593 99 123 4567"
                 className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             ) : (

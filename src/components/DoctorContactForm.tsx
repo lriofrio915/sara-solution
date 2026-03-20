@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import PhoneInput from '@/components/PhoneInput'
 
 export default function DoctorContactForm({
   slug,
@@ -71,8 +72,7 @@ export default function DoctorContactForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp / Teléfono *</label>
-          <input
-            type="tel"
+          <PhoneInput
             name="phone"
             value={form.phone}
             onChange={handleChange}

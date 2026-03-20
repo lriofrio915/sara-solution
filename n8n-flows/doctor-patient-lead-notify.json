@@ -1,10 +1,10 @@
 {
-  "name": "Doctor — Notificación WhatsApp de Lead de Paciente",
+  "name": "Doctor — Notificación WhatsApp de Lead de Paciente (Centralizado)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "doctor-lead-REEMPLAZA_CON_TU_SLUG",
+        "path": "doctor-lead-paciente",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -13,7 +13,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [240, 300],
-      "webhookId": "doctor-lead-REEMPLAZA_CON_TU_SLUG"
+      "webhookId": "doctor-lead-paciente"
     },
     {
       "parameters": {
@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extraer datos del body del webhook\nconst raw = $input.first().json;\nconst d = raw.body ?? raw;\n\n// Mapeo de emojis por origen\nconst emoji = {\n  FORMULARIO: '📋',\n  CHAT:       '💬',\n  WHATSAPP:   '📱',\n  REFERIDO:   '🤝',\n  OTRO:       '📌',\n};\nconst src = emoji[d.source] ?? '📌';\n\nconst hora = d.timestamp\n  ? new Date(d.timestamp).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })\n  : new Date().toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });\n\nconst lineas = [\n  '¡Hola! 👋 Tienes un nuevo lead de paciente en tu consultorio.',\n  '',\n  '🩺 *Datos del paciente interesado:*',\n  '',\n  `👤 *Nombre:* ${d.patientName ?? d.name ?? '—'}`,\n  d.patientPhone || d.phone ? `📞 *Teléfono:* ${d.patientPhone ?? d.phone}` : null,\n  d.patientEmail || d.email ? `📧 *Email:* ${d.patientEmail ?? d.email}`     : null,\n  d.message                 ? `💬 *Mensaje:* ${d.message}`                    : null,\n  `${src} *Origen:* ${d.source ?? '—'}`,\n  `🕐 *Fecha:* ${hora}`,\n  '',\n  '💡 _Responde pronto para aumentar la tasa de conversión._',\n].filter(l => l !== null);\n\nconst message = lineas.join('\\n');\n\n// IMPORTANTE: reemplaza el número con el WhatsApp del médico (código país + número sin +)\nconst doctorWhatsApp = 'REEMPLAZA_CON_NUMERO_DEL_MEDICO'; // ej: 593991234567\n\nreturn [{ json: { message, number: doctorWhatsApp } }];"
+        "jsCode": "// Extraer datos del body del webhook\nconst raw = $input.first().json;\nconst d = raw.body ?? raw;\n\n// Mapeo de emojis por origen\nconst emoji = {\n  FORMULARIO: '📋',\n  CHAT:       '💬',\n  WHATSAPP:   '📱',\n  REFERIDO:   '🤝',\n  OTRO:       '📌',\n};\nconst src = emoji[d.source] ?? '📌';\n\nconst hora = d.timestamp\n  ? new Date(d.timestamp).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })\n  : new Date().toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });\n\nconst lineas = [\n  `¡Hola, ${d.doctorName ?? 'Doctor/a'}! 👋 Tienes un nuevo lead de paciente.`,\n  '',\n  '🩺 *Datos del paciente interesado:*',\n  '',\n  `👤 *Nombre:* ${d.patientName ?? d.name ?? '—'}`,\n  d.patientPhone || d.phone ? `📞 *Teléfono:* ${d.patientPhone ?? d.phone}` : null,\n  d.patientEmail || d.email ? `📧 *Email:* ${d.patientEmail ?? d.email}`     : null,\n  d.message                 ? `💬 *Mensaje:* ${d.message}`                    : null,\n  `${src} *Origen:* ${d.source ?? '—'}`,\n  `🕐 *Fecha:* ${hora}`,\n  '',\n  '💡 _Responde pronto para aumentar la tasa de conversión._',\n].filter(l => l !== null);\n\nconst message = lineas.join('\\n');\n\n// Usar el teléfono del médico enviado en el payload (doctorPhone)\n// Se elimina el '+' y cualquier espacio para obtener solo dígitos\nconst doctorWhatsApp = String(d.doctorPhone ?? '').replace(/[^0-9]/g, '');\n\nif (!doctorWhatsApp) {\n  throw new Error('doctorPhone vacío — no se puede enviar la notificación');\n}\n\nreturn [{ json: { message, number: doctorWhatsApp } }];"
       },
       "id": "b1c2d3e4-0003-0003-0003-000000000003",
       "name": "Formatear Mensaje",

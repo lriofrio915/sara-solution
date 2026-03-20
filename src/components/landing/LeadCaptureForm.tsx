@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import PhoneInput from '@/components/PhoneInput'
 
 const SPECIALTIES = [
   'Medicina General', 'Pediatría', 'Ginecología', 'Cardiología', 'Dermatología',
@@ -96,8 +97,7 @@ export default function LeadCaptureForm() {
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             Teléfono / WhatsApp <span className="text-red-500">*</span>
           </label>
-          <input
-            type="tel"
+          <PhoneInput
             value={form.phone}
             onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
             placeholder="+593 99 999 9999"
