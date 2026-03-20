@@ -130,7 +130,7 @@ export default function DoctorChatWidget({
     } catch { /* ignore */ }
   }
 
-  const avatarSrc = doctorAvatar ?? 'https://useileqhvoxljyxpjgfb.supabase.co/storage/v1/object/public/avatars/gemini_sara_perfil.png'
+  const avatarSrc = 'https://useileqhvoxljyxpjgfb.supabase.co/storage/v1/object/public/avatars/gemini_sara_perfil.png'
 
   return (
     <>
