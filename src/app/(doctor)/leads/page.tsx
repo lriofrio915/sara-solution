@@ -142,7 +142,7 @@ export default function DoctorLeadsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8 space-y-6">
 
       {/* Header */}
       <div>
