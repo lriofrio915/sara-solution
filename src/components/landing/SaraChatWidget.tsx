@@ -50,19 +50,30 @@ export default function SaraChatWidget() {
 
   const extractLead = useCallback(async (text: string): Promise<string> => {
     const match = text.match(/\[LEAD:name=([^|]+)\|phone=([^|]+)\|specialty=([^\]]+)\]/)
-    if (!match || leadDone) return text.replace(/\[LEAD:[^\]]+\]/g, '').trim()
+    // Always strip the marker from displayed text
+    const cleanText = text.replace(/\[LEAD:[^\]]+\]/g, '').trim()
+
+    if (!match || leadDone) return cleanText
 
     const [, name, phone, specialty] = match
-    const cleanText = text.replace(/\[LEAD:[^\]]+\]/g, '').trim()
+    const nameTrimmed = name.trim()
+    const phoneTrimmed = phone.trim()
+
+    // Reject if the AI used placeholder/default values instead of real user data
+    const INVALID = ['nombre', 'telefono', 'no especificado', 'no especificada', 'desconocida', '—', '-', '']
+    const nameInvalid = INVALID.some(v => nameTrimmed.toLowerCase() === v) || nameTrimmed.length < 2
+    const phoneInvalid = INVALID.some(v => phoneTrimmed.toLowerCase() === v) || phoneTrimmed.length < 6
+
+    if (nameInvalid || phoneInvalid) return cleanText
 
     try {
       await fetch('/api/leads/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
-          phone: phone.trim(),
-          specialty: specialty.trim() === 'no especificada' ? '' : specialty.trim(),
+          name: nameTrimmed,
+          phone: phoneTrimmed,
+          specialty: INVALID.includes(specialty.trim().toLowerCase()) ? '' : specialty.trim(),
           source: 'LANDING',
           campaign: 'chat-landing',
           utmSource: 'landing-chat',
