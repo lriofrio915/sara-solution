@@ -31,7 +31,6 @@ const adminItems = [
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
   { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
-  { href: '/billing',    icon: Receipt,     label: 'Facturación' },
 ]
 
 // Mobile bottom tab bar: Reportes + primeros 4 clínicos
@@ -40,6 +39,7 @@ const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
 const gearItems = [
   { href: '/profile',   icon: User,     label: 'Mi Perfil' },
   { href: '/knowledge', icon: BookOpen, label: 'Base de Conocimiento' },
+  { href: '/billing',   icon: Receipt,  label: 'Facturación' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────
