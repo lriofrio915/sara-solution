@@ -84,9 +84,10 @@ enum SocialPlatform {
 
 model Doctor {
   id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  specialty String
+  slug        String   @unique
+  name        String
+  titlePrefix String?  // Dr., Dra., MD, Lcdo., Lcda., Esp., Mg., PhD
+  specialty   String
   email     String   @unique
   phone     String?
   plan      Plan     @default(FREE)

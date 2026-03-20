@@ -21,10 +21,11 @@ const TITLE_WORDS = new Set([
 ])
 const FEMININE_WORDS = new Set(['médica','medica','cirujana','doctora','licenciada','dra','dra.'])
 
-function formatDoctorName(fullName: string): string {
-  const isFeminine = fullName.split(' ').some((w) => FEMININE_WORDS.has(w.toLowerCase()))
+function formatDoctorName(fullName: string, titlePrefix?: string | null): string {
   const parts = fullName.split(' ').filter((w) => !TITLE_WORDS.has(w.toLowerCase()))
   const shortName = parts.slice(0, 2).join(' ')
+  if (titlePrefix) return `${titlePrefix} ${shortName}`
+  const isFeminine = fullName.split(' ').some((w) => FEMININE_WORDS.has(w.toLowerCase()))
   return `${isFeminine ? 'Dra.' : 'Dr.'} ${shortName}`
 }
 
@@ -53,7 +54,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: {
-      id: true, name: true, specialty: true, bio: true,
+      id: true, name: true, titlePrefix: true, specialty: true, bio: true,
       avatarUrl: true, bannerUrl: true,
       address: true, webhookUrl: true, phone: true,
       branches: true, services: true,
@@ -67,7 +68,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   if (!doctor) notFound()
 
   const initials    = getInitials(doctor.name)
-  const displayName = formatDoctorName(doctor.name)
+  const displayName = formatDoctorName(doctor.name, doctor.titlePrefix)
   const firstName   = displayName
 
   // Services
@@ -341,10 +342,10 @@ export default async function DoctorPublicPage({ params }: Props) {
               <h2 className="font-bold text-gray-900 dark:text-white text-xl">Servicios y precios</h2>
               <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Consultas y procedimientos que ofrece {firstName}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               {servicesList.map((service, i) => (
                 <div key={i}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 dark:hover:border-blue-900 transition-all duration-200 group flex flex-col items-center text-center gap-3">
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 dark:hover:border-blue-900 transition-all duration-200 group flex flex-col items-center text-center gap-3 w-full sm:w-56">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
                     {service.emoji || '🩺'}

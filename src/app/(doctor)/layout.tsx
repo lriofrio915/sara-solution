@@ -15,7 +15,7 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
-      select: { id: true, name: true, specialty: true, avatarUrl: true },
+      select: { id: true, name: true, titlePrefix: true, specialty: true, avatarUrl: true },
     })
     if (!doctor) redirect('/login')
 
@@ -23,7 +23,7 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     const nameParts = doctor.name.trim().split(/\s+/)
     const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-    const title = detectDoctorTitle(nameParts[0])
+    const title = doctor.titlePrefix || detectDoctorTitle(nameParts[0])
     const displayName = `${title} ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
 
     return (

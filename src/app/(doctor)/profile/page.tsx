@@ -9,6 +9,7 @@ interface DoctorProfile {
   id: string
   slug: string
   name: string
+  titlePrefix: string | null
   specialty: string
   email: string
   phone: string | null
@@ -94,6 +95,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<DoctorProfile | null>(null)
   const [form, setForm] = useState({
     name: '',
+    titlePrefix: '',
     specialty: '',
     phone: '',
     bio: '',
@@ -216,6 +218,7 @@ export default function ProfilePage() {
         setBannerUrl(data.bannerUrl)
         setForm({
           name: data.name ?? '',
+          titlePrefix: data.titlePrefix ?? '',
           specialty: data.specialty ?? '',
           phone: data.phone ?? '',
           bio: data.bio ?? '',
@@ -799,18 +802,41 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
           <h2 className="font-semibold text-gray-900 dark:text-white">Información profesional</h2>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Nombre completo
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
-            />
+          <div className="grid grid-cols-[140px_1fr] gap-3 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Prefijo / Título
+              </label>
+              <select
+                name="titlePrefix"
+                value={form.titlePrefix}
+                onChange={handleChange}
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="">Sin prefijo</option>
+                <option value="Dr.">Dr.</option>
+                <option value="Dra.">Dra.</option>
+                <option value="MD">MD</option>
+                <option value="Lcdo.">Lcdo.</option>
+                <option value="Lcda.">Lcda.</option>
+                <option value="Esp.">Esp.</option>
+                <option value="Mg.">Mg.</option>
+                <option value="PhD">PhD</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Nombre completo
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
+              />
+            </div>
           </div>
 
           <div>
