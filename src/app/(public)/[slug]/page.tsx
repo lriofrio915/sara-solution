@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import DoctorContactForm from '@/components/DoctorContactForm'
 import PublicPageActions from '@/components/PublicPageActions'
+import DoctorChatWidget from '@/components/DoctorChatWidget'
 
 export const dynamic = 'force-dynamic'
 
@@ -495,20 +496,18 @@ export default async function DoctorPublicPage({ params }: Props) {
       </main>
 
       {/* ── FORMULARIO DE CONTACTO ────────────────────────── */}
-      {doctor.webhookUrl && (
-        <section className="py-12 mb-4 px-4">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8 max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <span className="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
-                Contacto directo
-              </span>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">¿Tienes alguna pregunta?</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Deja tus datos y el equipo de {displayName} te responderá a la brevedad.</p>
-            </div>
-            <DoctorContactForm slug={params.slug} doctorName={displayName} />
+      <section className="py-12 mb-4 px-4">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 md:p-8 max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+              Contacto directo
+            </span>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">¿Tienes alguna pregunta?</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Deja tus datos y el equipo de {displayName} te responderá a la brevedad.</p>
           </div>
-        </section>
-      )}
+          <DoctorContactForm slug={params.slug} doctorName={displayName} />
+        </div>
+      </section>
 
       {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 py-6 text-center text-gray-400 dark:text-gray-600 text-xs">
@@ -518,16 +517,12 @@ export default async function DoctorPublicPage({ params }: Props) {
       {/* ── FLOATING ACTIONS (dark mode toggle + scroll to top) ── */}
       <PublicPageActions />
 
-      {/* ── WHATSAPP FLOAT ────────────────────────────────── */}
-      {whatsappUrl && (
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 group">
-          <WhatsAppIcon size={28} />
-          <span className="absolute right-16 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            Escríbenos por WhatsApp
-          </span>
-        </a>
-      )}
+      {/* ── DOCTOR CHAT WIDGET ────────────────────────────── */}
+      <DoctorChatWidget
+        slug={params.slug}
+        doctorName={displayName}
+        doctorAvatar={doctor.avatarUrl}
+      />
     </div>
   )
 }

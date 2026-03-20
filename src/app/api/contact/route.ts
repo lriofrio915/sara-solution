@@ -11,32 +11,42 @@ export async function POST(req: NextRequest) {
 
     const doctor = await prisma.doctor.findUnique({
       where: { slug },
-      select: { webhookUrl: true, name: true },
+      select: { id: true, name: true, webhookUrl: true },
     })
 
     if (!doctor) return NextResponse.json({ error: 'Médico no encontrado' }, { status: 404 })
-    if (!doctor.webhookUrl) return NextResponse.json({ error: 'Médico sin webhook configurado' }, { status: 422 })
 
-    // Reenviar al webhook n8n del médico
-    const res = await fetch(doctor.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        doctorName: doctor.name,
-        doctorSlug: slug,
-        patientName: name,
-        patientPhone: phone,
-        patientEmail: email || null,
-        message: message || null,
-        source: 'landing_form',
-        timestamp: new Date().toISOString(),
-      }),
-      signal: AbortSignal.timeout(10000),
+    // Always save lead in DB
+    await prisma.patientLead.create({
+      data: {
+        doctorId: doctor.id,
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email?.trim() || null,
+        message: message?.trim() || null,
+        source: 'FORMULARIO',
+        campaign: 'formulario-publico',
+        status: 'NUEVO',
+      },
     })
 
-    if (!res.ok) {
-      console.error(`[Contact] Webhook ${slug} respondió ${res.status}`)
-      return NextResponse.json({ error: 'Error al enviar mensaje' }, { status: 502 })
+    // Fire webhook asynchronously if configured
+    if (doctor.webhookUrl) {
+      fetch(doctor.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctorName: doctor.name,
+          doctorSlug: slug,
+          patientName: name.trim(),
+          patientPhone: phone.trim(),
+          patientEmail: email?.trim() || null,
+          message: message?.trim() || null,
+          source: 'FORMULARIO',
+          timestamp: new Date().toISOString(),
+        }),
+        signal: AbortSignal.timeout(10000),
+      }).catch(err => console.error(`[Contact] Webhook ${slug} error:`, err?.message))
     }
 
     return NextResponse.json({ ok: true })

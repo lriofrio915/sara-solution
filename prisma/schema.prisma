@@ -151,6 +151,7 @@ model Doctor {
   diagnoses              Diagnosis[]
   auditLogs              AuditLog[]
   credentials            DoctorCredential[]
+  patientLeads           PatientLead[]
 
   @@index([slug])
   @@index([email])
@@ -580,6 +581,32 @@ model PatientChart {
 
   @@index([patientId])
   @@index([doctorId])
+}
+
+// ─── PatientLead (leads de pacientes captados en la vitrina del médico) ──────
+
+model PatientLead {
+  id       String @id @default(cuid())
+  doctorId String
+
+  name    String
+  phone   String?
+  email   String?
+  message String? @db.Text // Motivo de consulta o mensaje del chat
+
+  source   String @default("FORMULARIO") // FORMULARIO | CHAT | WHATSAPP | REFERIDO | OTRO
+  campaign String?
+  status   String @default("NUEVO")      // NUEVO | CONTACTADO | AGENDADO | PERDIDO
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([doctorId, createdAt])
+  @@index([status])
 }
 
 // ─── Lead ────────────────────────────────────────────────────

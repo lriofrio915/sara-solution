@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, TrendingUp, Receipt,
+  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -27,6 +27,7 @@ const clinicalItems = [
 ]
 
 const adminItems = [
+  { href: '/leads',      icon: UserPlus,    label: 'Leads' },
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
   { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
