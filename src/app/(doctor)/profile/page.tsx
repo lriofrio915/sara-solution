@@ -299,7 +299,7 @@ export default function ProfilePage() {
       .catch(() => {/* availability not critical */})
   }, [])
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
     const sanitized = name === 'slug'
       ? value.toLowerCase().replace(/[^a-z0-9-]/g, '')
