@@ -109,6 +109,15 @@ export default function SaraChatWidget() {
     setUnread(false)
   }
 
+  function clearChat() {
+    setMessages([GREETING])
+    setLeadDone(false)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(LEAD_KEY)
+    } catch { /* ignore */ }
+  }
+
   return (
     <>
       {/* Floating button */}
@@ -168,6 +177,21 @@ export default function SaraChatWidget() {
                   Sara Medical · En línea
                 </p>
               </div>
+              {/* Limpiar chat */}
+              <button
+                onClick={clearChat}
+                className="text-white/60 hover:text-white transition-colors flex-shrink-0 p-1"
+                aria-label="Limpiar conversación"
+                title="Limpiar conversación"
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M9 6V4h6v2" />
+                </svg>
+              </button>
+              {/* Cerrar */}
               <button
                 onClick={() => setOpen(false)}
                 className="text-white/60 hover:text-white transition-colors flex-shrink-0 p-1"
