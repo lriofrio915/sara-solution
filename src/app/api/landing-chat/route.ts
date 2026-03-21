@@ -29,7 +29,7 @@ INFORMACIÓN SOBRE SARA MEDICAL:
 
 PLANES Y PRECIOS:
 - Pro Mensual: $79/mes — Todo incluido, sin límite de pacientes
-- Pro Anual: $645/año ($53.75/mes) — Ahorra $303 vs pago mensual, mejor opción
+- Pro Anual: $649/año ($54.08/mes) — Ahorra $299 vs pago mensual, mejor opción
 - Enterprise: $199/mes — Hasta 5 médicos, multi-sede, white label
 
 PROCESO DE CAPTURA — SIGUE ESTE ORDEN ESTRICTAMENTE:

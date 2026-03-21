@@ -19,7 +19,7 @@ const monthlyFeatures = [
 ]
 
 const annualExtras = [
-  { icon: '💰', text: 'Equivale a $53.75/mes — 2 meses gratis' },
+  { icon: '💰', text: 'Equivale a $54.08/mes — ahorra $299 al año' },
   { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor)' },
   { icon: '⭐', text: 'Soporte VIP prioritario todo el año' },
   { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades' },
@@ -111,15 +111,15 @@ export default async function UpgradePage() {
           style={{ background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' }}
         >
           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-            ⭐ Mejor oferta — Ahorras $303
+            ⭐ Mejor oferta — Ahorras $299
           </div>
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-1">Pro Anual</h2>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-4xl font-extrabold">$645</span>
+              <span className="text-4xl font-extrabold">$649</span>
               <span className="text-blue-200 text-sm mb-1">/año</span>
             </div>
-            <p className="text-blue-200 text-sm">Equivale a $53.75/mes</p>
+            <p className="text-blue-200 text-sm">Equivale a $54.08/mes</p>
           </div>
           <ul className="space-y-2.5 mb-8 flex-1">
             <li className="flex items-start gap-2.5 text-sm text-blue-100">

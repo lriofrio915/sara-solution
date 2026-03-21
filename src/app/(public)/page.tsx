@@ -542,10 +542,10 @@ const plans = [
   },
   {
     name: 'Pro Anual',
-    price: '$645',
-    priceMonthly: '$53.75',
+    price: '$649',
+    priceMonthly: '$54.08',
     period: '/año',
-    savings: 'Ahorras $303 al año',
+    savings: 'Ahorras $299 al año',
     desc: 'La forma más inteligente de crecer tu consultorio. Paga menos, obtén más.',
     highlight: true,
     badge: '⭐ Mejor oferta',
@@ -553,7 +553,7 @@ const plans = [
     checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
-      { icon: '💰', text: 'Equivale a $53.75/mes — 2 meses gratis.' },
+      { icon: '💰', text: 'Equivale a $54.08/mes — ahorra $299 al año.' },
       { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor).' },
       { icon: '✔', text: 'Soporte VIP prioritario todo el año.' },
       { icon: '✔', text: 'Acceso anticipado a nuevas funcionalidades.' },
