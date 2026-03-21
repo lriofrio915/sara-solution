@@ -3,11 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getEffectivePlan } from '@/lib/plan'
 import PlanGate from '@/components/PlanGate'
-import MarketingNav from './_nav'
 
 export const dynamic = 'force-dynamic'
 
-export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default async function AnalyticsLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -23,15 +22,10 @@ export default async function MarketingLayout({ children }: { children: React.Re
   return (
     <PlanGate
       plan={plan}
-      feature="Marketing Suite con IA"
-      description="Genera contenido para redes sociales, gestiona tu branding y activa el autopilot de publicaciones con IA. Disponible en el Plan Pro."
+      feature="Análisis IA"
+      description="Obtén insights profundos sobre tu consultorio con inteligencia artificial: tendencias, diagnósticos frecuentes y predicciones. Disponible en el Plan Pro."
     >
-      <div className="flex flex-col h-full">
-        <MarketingNav />
-        <div className="flex-1 overflow-auto">
-          {children}
-        </div>
-      </div>
+      {children}
     </PlanGate>
   )
 }

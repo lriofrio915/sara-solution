@@ -18,6 +18,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { askSara } from '@/lib/sara'
 import type { SaraMessage } from '@/lib/sara'
+import { getEffectivePlan } from '@/lib/plan'
 
 export const dynamic = 'force-dynamic'
 
@@ -314,15 +315,27 @@ export async function POST(req: Request) {
         select: {
           id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
           province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true, patientFaq: true,
+          plan: true, trialEndsAt: true,
           availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
         },
       })
       if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
+      // Block if plan expired
+      const effectivePlan = getEffectivePlan(doctor)
+      if (effectivePlan === 'FREE') {
+        return NextResponse.json({ reply: 'Lo siento, el servicio de asistente automático no está disponible en este momento. Por favor contacta directamente al consultorio.' })
+      }
       return handleOngoingConversation(activeConv, doctor, message, cleanPhone)
     }
 
     // ── 2. Load all doctors ───────────────────────────────────────────────────
     const allDoctors = await prisma.doctor.findMany({
+      where: {
+        // Only doctors on active plans (TRIAL or PRO/ENTERPRISE)
+        OR: [
+          { plan: { in: ['TRIAL', 'PRO', 'ENTERPRISE'] } },
+        ],
+      },
       select: {
         id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
         province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true, patientFaq: true,

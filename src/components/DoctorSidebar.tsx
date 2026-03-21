@@ -12,6 +12,7 @@ import {
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import { createClient } from '@/lib/supabase/client'
+import type { EffectivePlan } from '@/lib/plan'
 
 // ─── Nav groups ────────────────────────────────────────────────
 
@@ -50,9 +51,11 @@ interface Props {
   initials: string
   avatarUrl: string | null
   isSuperAdmin?: boolean
+  plan?: EffectivePlan
+  trialDaysLeft?: number
 }
 
-export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin }: Props) {
+export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin, plan, trialDaysLeft }: Props) {
   const [open, setOpen] = useState(false)
   const [gearOpen, setGearOpen] = useState(false)
   const pathname = usePathname()
@@ -234,8 +237,24 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
         <NavContent />
 
-        {/* Bottom: avatar (clickable → /profile) + gear */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+        {/* Bottom: plan badge + avatar + gear */}
+        <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+          {/* Plan badge */}
+          {plan && plan !== 'PRO' && plan !== 'ENTERPRISE' && (
+            <Link href="/upgrade" className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                {plan === 'TRIAL'
+                  ? (trialDaysLeft && trialDaysLeft > 0 ? `🎁 Trial — ${trialDaysLeft}d restantes` : '⚠️ Trial vencido')
+                  : '🔒 Plan Free'}
+              </span>
+              <span className="text-xs font-bold text-primary">Upgrade →</span>
+            </Link>
+          )}
+          {(plan === 'PRO' || plan === 'ENTERPRISE') && (
+            <div className="flex items-center px-3 py-2 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20">
+              <span className="text-xs font-semibold text-primary">⭐ Plan {plan === 'ENTERPRISE' ? 'Enterprise' : 'Pro'}</span>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <Link href="/profile" className="flex-shrink-0" aria-label="Mi perfil">
               <AvatarEl size={9} />

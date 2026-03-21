@@ -16,6 +16,7 @@ datasource db {
 
 enum Plan {
   FREE
+  TRIAL
   BASIC
   PRO
   ENTERPRISE
@@ -90,8 +91,9 @@ model Doctor {
   specialty   String
   email     String   @unique
   phone     String?
-  plan      Plan     @default(FREE)
-  active    Boolean  @default(true)
+  plan         Plan      @default(FREE)
+  trialEndsAt  DateTime?
+  active       Boolean   @default(true)
   avatarUrl String?
   bannerUrl String?  // Foto para la sección CTA al final de la página pública
   bio       String?

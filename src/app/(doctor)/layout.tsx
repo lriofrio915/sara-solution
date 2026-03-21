@@ -3,7 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import DoctorSidebar from '@/components/DoctorSidebar'
 import SaraFAB from '@/components/SaraFAB'
+import PlanBanner from '@/components/PlanBanner'
 import { getInitials, detectDoctorTitle } from '@/lib/utils'
+import { getEffectivePlan, getTrialDaysLeft } from '@/lib/plan'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +17,7 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
-      select: { id: true, name: true, titlePrefix: true, specialty: true, avatarUrl: true },
+      select: { id: true, name: true, titlePrefix: true, specialty: true, avatarUrl: true, plan: true, trialEndsAt: true },
     })
     if (!doctor) redirect('/login')
 
@@ -26,6 +28,9 @@ export default async function DoctorLayout({ children }: { children: React.React
     const title = doctor.titlePrefix || detectDoctorTitle(nameParts[0])
     const displayName = `${title} ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
 
+    const effectivePlan = getEffectivePlan(doctor)
+    const trialDaysLeft = getTrialDaysLeft(doctor.trialEndsAt)
+
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:flex">
         <DoctorSidebar
@@ -34,10 +39,13 @@ export default async function DoctorLayout({ children }: { children: React.React
           initials={getInitials(doctor.name)}
           avatarUrl={doctor.avatarUrl}
           isSuperAdmin={isSuperAdmin}
+          plan={effectivePlan}
+          trialDaysLeft={trialDaysLeft}
         />
 
         {/* Main content — en mobile: padding top (topbar) + bottom (tab bar) */}
         <main className="flex-1 overflow-auto pt-14 pb-20 md:pt-0 md:pb-0">
+          <PlanBanner plan={effectivePlan} trialEndsAt={doctor.trialEndsAt} />
           {children}
         </main>
         <SaraFAB />

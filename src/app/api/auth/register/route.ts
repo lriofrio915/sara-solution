@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendWelcomeEmail } from '@/lib/email'
+import { TRIAL_DAYS } from '@/lib/plan'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,8 @@ export async function POST(request: NextRequest) {
         whatsapp: whatsapp || null,
         specialty: specialty || 'General',
         slug: `${slug}-${userId.slice(0, 6)}`,
-        plan: 'FREE',
+        plan: 'TRIAL',
+        trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
         active: true,
       },
     })

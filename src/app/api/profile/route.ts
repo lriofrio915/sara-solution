@@ -45,6 +45,8 @@ export async function GET() {
         saraPersonality: true,
         saraPatientInstructions: true,
         patientFaq: true,
+        plan: true,
+        trialEndsAt: true,
         // Firma electrónica — solo indicar si está configurada, nunca exponer credenciales — solo indicar si está configurada, nunca exponer credenciales
         signaturePath: true,
       },
