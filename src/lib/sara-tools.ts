@@ -659,6 +659,62 @@ async function searchKnowledge(args: Record<string, unknown>, doctorId: string):
   }
 }
 
+// ─── 10. remember_instruction ────────────────────────────────────────────────
+
+async function rememberInstruction(args: Record<string, unknown>, doctorId: string): Promise<ToolResult> {
+  try {
+    const content = (args.content as string)?.trim()
+    if (!content) return { success: false, error: 'El contenido de la instrucción es requerido' }
+
+    const category = (args.category as string) || 'general'
+
+    const memory = await prisma.saraMemory.create({
+      data: { doctorId, content, category },
+    })
+
+    return {
+      success: true,
+      data: {
+        message: `Instrucción guardada correctamente (ID: ${memory.id})`,
+        memory: { id: memory.id, content: memory.content, category: memory.category },
+      },
+    }
+  } catch (error) {
+    console.error('remember_instruction error:', error)
+    return { success: false, error: 'Error al guardar la instrucción' }
+  }
+}
+
+// ─── 11. forget_instruction ──────────────────────────────────────────────────
+
+async function forgetInstruction(args: Record<string, unknown>, doctorId: string): Promise<ToolResult> {
+  try {
+    const memoryId = args.id as string | undefined
+    const contentHint = args.content as string | undefined
+
+    if (memoryId) {
+      const memory = await prisma.saraMemory.findFirst({ where: { id: memoryId, doctorId } })
+      if (!memory) return { success: false, error: 'No encontré esa instrucción guardada' }
+      await prisma.saraMemory.delete({ where: { id: memoryId } })
+      return { success: true, data: { message: `Instrucción eliminada: "${memory.content}"` } }
+    }
+
+    if (contentHint) {
+      const memory = await prisma.saraMemory.findFirst({
+        where: { doctorId, content: { contains: contentHint, mode: 'insensitive' } },
+      })
+      if (!memory) return { success: false, error: `No encontré una instrucción que contenga "${contentHint}"` }
+      await prisma.saraMemory.delete({ where: { id: memory.id } })
+      return { success: true, data: { message: `Instrucción eliminada: "${memory.content}"` } }
+    }
+
+    return { success: false, error: 'Indica el ID o parte del contenido de la instrucción a eliminar' }
+  } catch (error) {
+    console.error('forget_instruction error:', error)
+    return { success: false, error: 'Error al eliminar la instrucción' }
+  }
+}
+
 // ─── Dispatcher ──────────────────────────────────────────────────────────────
 
 const TOOL_MAP: Record<string, (args: Record<string, unknown>, doctorId: string) => Promise<ToolResult>> = {
@@ -672,6 +728,8 @@ const TOOL_MAP: Record<string, (args: Record<string, unknown>, doctorId: string)
   create_prescription: createPrescription,
   create_reminder: createReminder,
   search_knowledge: searchKnowledge,
+  remember_instruction: rememberInstruction,
+  forget_instruction: forgetInstruction,
 }
 
 export async function executeTool(

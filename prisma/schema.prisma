@@ -145,6 +145,7 @@ model Doctor {
   examOrders             ExamOrder[]
   medicalCertificates    MedicalCertificate[]
   saraConversations      SaraConversation[]
+  saraMemories           SaraMemory[]
   reminders              Reminder[]
   socialPosts            SocialPost[]
   knowledgeDocuments     KnowledgeDocument[]
@@ -352,6 +353,23 @@ model MedicalCertificate {
   @@index([doctorId])
   @@index([appointmentId])
   @@index([doctorId, date])
+}
+
+// ─── Sara Memory ────────────────────────────────────────────
+
+model SaraMemory {
+  id        String   @id @default(cuid())
+  doctorId  String
+  category  String   @default("general") // preference | protocol | schedule_rule | patient_info | billing | general
+  content   String   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([doctorId, category])
 }
 
 // ─── Sara Conversation ──────────────────────────────────────

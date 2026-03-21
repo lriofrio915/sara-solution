@@ -24,6 +24,7 @@ export interface SaraContext {
   patientContext?: string // Contexto del paciente activo (inyectado desde el popup)
   consultorioInfo?: string // Dirección, horario, servicios — para chats de pacientes por WhatsApp
   saraPersonality?: string // Instrucciones personalizadas del médico para el comportamiento de Sara
+  memories?: string // Memorias conversacionales guardadas por el médico
 }
 
 export interface SaraEvent {
@@ -283,6 +284,41 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'remember_instruction',
+      description:
+        'Guarda una instrucción o preferencia del médico en la memoria persistente de Sara. Úsalo cuando el médico diga "recuerda que...", "a partir de ahora...", "siempre que...", o cualquier indicación de comportamiento futuro.',
+      parameters: {
+        type: 'object',
+        properties: {
+          content: { type: 'string', description: 'La instrucción o preferencia a recordar, redactada claramente' },
+          category: {
+            type: 'string',
+            enum: ['preference', 'protocol', 'schedule_rule', 'patient_info', 'billing', 'general'],
+            description: 'Categoría: preference (preferencias personales), protocol (protocolos clínicos), schedule_rule (reglas de agenda), patient_info (info sobre pacientes), billing (facturación), general (otros)',
+          },
+        },
+        required: ['content'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'forget_instruction',
+      description:
+        'Elimina una instrucción guardada en la memoria de Sara. Úsalo cuando el médico diga "olvida que...", "ya no recuerdes...", o quiera eliminar una preferencia anterior.',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'ID exacto de la instrucción a eliminar (si lo conoces)' },
+          content: { type: 'string', description: 'Palabras clave del contenido de la instrucción a eliminar' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'search_knowledge',
       description:
         'Busca información en la base de conocimiento personalizada de la doctora (protocolos, guías clínicas, documentos subidos). Úsala SIEMPRE que el médico pregunte sobre protocolos, tratamientos, dosis o procedimientos.',
@@ -311,6 +347,8 @@ const TOOL_DISPLAY: Record<string, string> = {
   create_reminder: 'Creando recordatorio',
   check_available_slots: 'Consultando disponibilidad',
   search_knowledge: 'Buscando en base de conocimiento',
+  remember_instruction: 'Guardando en memoria',
+  forget_instruction: 'Eliminando de memoria',
 }
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
@@ -347,6 +385,8 @@ Fecha y hora actual: ${now}
 1. Nunca inventes datos médicos - solo trabaja con información confirmada
 2. NUNCA compartas el número de teléfono personal del médico. Si un paciente pide contacto, proporciona únicamente el WhatsApp business del consultorio.
 3. NUNCA inventes información sobre seguros médicos o convenios. Usa ÚNICAMENTE los datos del campo "Seguros/convenios" de la información del consultorio. Si no están registrados, indica que no tienes esa información y que contacten al consultorio.
+4. MEMORIA CONVERSACIONAL: Cuando el médico diga "recuerda que...", "a partir de ahora...", "siempre que..." o similares, usa INMEDIATAMENTE la tool remember_instruction para guardar esa instrucción. Confirma con "✓ Lo guardaré en mi memoria permanente." Cuando diga "olvida que..." o "ya no recuerdes...", usa forget_instruction.
+5. Si el médico pregunta "¿qué recuerdas?" o "¿qué tienes en memoria?", lista las instrucciones de la sección MEMORIAS del system prompt.
 2. Si necesitas más información para completar una tarea, pregunta específicamente qué necesitas
 3. Después de ejecutar una tool, confirma la acción con un resumen claro
 4. Para fechas y horas, usa el formato de Ecuador (GMT-5)
@@ -362,6 +402,10 @@ Fecha y hora actual: ${now}
 - Sé concisa pero completa
 
 Siempre tienes en mente el bienestar del paciente y el tiempo de ${context.doctorName}.${
+    context.memories
+      ? `\n\n## MEMORIAS (instrucciones permanentes del médico — aplica siempre):\n${context.memories}`
+      : ''
+  }${
     context.saraPersonality
       ? `\n\n## INSTRUCCIONES PERSONALIZADAS DEL MÉDICO (máxima prioridad):\n${context.saraPersonality}`
       : ''

@@ -176,6 +176,12 @@ export default function ProfilePage() {
   const [saraPersonality, setSaraPersonality] = useState('')
   const [saraPatientInstructions, setSaraPatientInstructions] = useState('')
 
+  // Sara IA — memorias conversacionales
+  interface SaraMemoryEntry { id: string; category: string; content: string; createdAt: string }
+  const [saraMemories, setSaraMemories] = useState<SaraMemoryEntry[]>([])
+  const [loadingMemories, setLoadingMemories] = useState(false)
+  const [memoriesLoaded, setMemoriesLoaded] = useState(false)
+
   // Insurance / convenios
   const [insurances, setInsurances] = useState<InsuranceEntry[]>(
     INSURANCES_CATALOG.map(c => ({ name: c.name, active: false, requirements: '' }))
@@ -2300,6 +2306,88 @@ export default function ProfilePage() {
               <p>Sara lee estas instrucciones al inicio de cada conversación. Puedes actualizarlas cuando quieras y los cambios aplican desde la próxima conversación.</p>
             </div>
           </div>
+        </div>
+
+        {/* Memorias conversacionales */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-xl flex-shrink-0">🧠</div>
+              <div>
+                <h2 className="font-semibold text-gray-900 dark:text-white">Memoria de Sara</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Instrucciones que Sara ha guardado de tus conversaciones.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setLoadingMemories(true)
+                try {
+                  const r = await fetch('/api/sara/memories')
+                  const d = await r.json()
+                  setSaraMemories(d.memories ?? [])
+                  setMemoriesLoaded(true)
+                } catch { /* ignore */ }
+                finally { setLoadingMemories(false) }
+              }}
+              className="text-sm text-primary font-medium hover:underline flex-shrink-0"
+            >
+              {loadingMemories ? 'Cargando...' : memoriesLoaded ? 'Actualizar' : 'Ver memorias'}
+            </button>
+          </div>
+
+          {!memoriesLoaded && (
+            <p className="text-sm text-gray-400 dark:text-slate-500 italic">
+              Haz clic en &ldquo;Ver memorias&rdquo; para cargar las instrucciones que Sara ha guardado.
+              Puedes añadir memorias desde el chat diciéndole a Sara: <span className="font-medium not-italic text-gray-500 dark:text-slate-400">&ldquo;Recuerda que...&rdquo;</span>
+            </p>
+          )}
+
+          {memoriesLoaded && saraMemories.length === 0 && (
+            <div className="text-center py-6 text-gray-400 dark:text-slate-500">
+              <p className="text-3xl mb-2">🤍</p>
+              <p className="text-sm">Sara aún no tiene memorias guardadas.</p>
+              <p className="text-xs mt-1">Dile en el chat: <span className="italic">&ldquo;Recuerda que prefiero respuestas cortas&rdquo;</span></p>
+            </div>
+          )}
+
+          {memoriesLoaded && saraMemories.length > 0 && (
+            <div className="space-y-2">
+              {saraMemories.map(m => (
+                <div key={m.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl group">
+                  <div className="flex-1 min-w-0">
+                    <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1 ${
+                      m.category === 'preference'    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' :
+                      m.category === 'protocol'      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' :
+                      m.category === 'schedule_rule' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' :
+                      m.category === 'billing'       ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300' :
+                      m.category === 'patient_info'  ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300' :
+                      'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                    }`}>
+                      {m.category === 'preference' ? 'Preferencia' :
+                       m.category === 'protocol' ? 'Protocolo' :
+                       m.category === 'schedule_rule' ? 'Agenda' :
+                       m.category === 'billing' ? 'Facturación' :
+                       m.category === 'patient_info' ? 'Paciente' : 'General'}
+                    </span>
+                    <p className="text-sm text-gray-800 dark:text-gray-200">{m.content}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{new Date(m.createdAt).toLocaleDateString('es-EC', { dateStyle: 'medium' })}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await fetch(`/api/sara/memories?id=${m.id}`, { method: 'DELETE' })
+                      setSaraMemories(prev => prev.filter(x => x.id !== m.id))
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
+                    title="Eliminar memoria"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Botón guardar */}

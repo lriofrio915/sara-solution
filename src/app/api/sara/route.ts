@@ -105,12 +105,30 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // Load persistent memories for this doctor
+  let memoriesText: string | undefined
+  try {
+    const memories = await prisma.saraMemory.findMany({
+      where: { doctorId: doctor.id },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, category: true, content: true },
+    })
+    if (memories.length > 0) {
+      memoriesText = memories
+        .map(m => `- [${m.category}] (ID:${m.id}) ${m.content}`)
+        .join('\n')
+    }
+  } catch (e) {
+    console.error('Error loading sara memories:', e)
+  }
+
   const context = {
     doctorId: doctor.id,
     doctorName: doctor.name,
     doctorSpecialty: doctor.specialty,
     patientContext,
     saraPersonality: (doctor as { saraPersonality?: string | null }).saraPersonality ?? undefined,
+    memories: memoriesText,
   }
 
   // SSE stream
