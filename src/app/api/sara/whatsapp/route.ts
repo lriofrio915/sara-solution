@@ -44,8 +44,8 @@ function buildConsultorioInfo(doctor: DoctorRow): string {
   const location = [doctor.canton, doctor.province].filter(Boolean).join(', ')
   if (location) lines.push(`- Ubicación: ${location}`)
   if (doctor.address) lines.push(`- Dirección: ${doctor.address}`)
-  if (doctor.phone) lines.push(`- Teléfono: ${doctor.phone}`)
-  if (doctor.whatsapp) lines.push(`- WhatsApp: ${doctor.whatsapp}`)
+  if (doctor.whatsapp) lines.push(`- WhatsApp business (citas y consultas): ${doctor.whatsapp}`)
+  // doctor.phone es personal — no se incluye para no ser compartido con pacientes
 
   try {
     const modes: string[] = JSON.parse(doctor.consultationModes ?? '[]')

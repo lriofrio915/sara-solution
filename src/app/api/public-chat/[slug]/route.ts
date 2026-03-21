@@ -81,7 +81,7 @@ INFORMACIÓN DEL CONSULTORIO:
 ${doctor.bio ? `- Descripción: ${doctor.bio}` : ''}
 ${location ? `- Ubicación: ${location}` : ''}
 ${doctor.address ? `- Dirección: ${doctor.address}` : ''}
-${doctor.phone ? `- Teléfono: ${doctor.phone}` : ''}
+${doctor.whatsapp ? `- WhatsApp para citas: ${doctor.whatsapp}` : ''}
 ${modesText ? `- Modalidades de atención: ${modesText}` : ''}
 ${scheduleLines.length > 0 ? `- Horario:\n${scheduleLines.join('\n')}` : ''}
 ${servicesText ? `- Servicios:\n${servicesText}` : ''}
@@ -99,8 +99,9 @@ REGLAS CRÍTICAS:
 - Respuestas breves y cálidas (2-4 frases).
 - Habla siempre de ${doctor.name} en tercera persona ("el Dr./la Dra. ...").
 - USA ÚNICAMENTE la información del consultorio proporcionada arriba. NUNCA inventes horarios, direcciones, precios ni ningún otro dato que no esté explícitamente indicado.
-- Si te preguntan algo que no está en la información de arriba, responde: "No tengo ese dato disponible. Te recomiendo llamar directamente al consultorio${doctor.phone ? ` al ${doctor.phone}` : ''}."
-- NUNCA digas horarios, direcciones ni precios diferentes a los que aparecen arriba.`
+- Si te preguntan algo que no está en la información de arriba, responde: "No tengo ese dato disponible. Te recomiendo escribir al WhatsApp${doctor.whatsapp ? ` ${doctor.whatsapp}` : ' del consultorio'} para más información."
+- NUNCA digas horarios, direcciones ni precios diferentes a los que aparecen arriba.
+- NUNCA compartas el teléfono personal del médico. El único contacto que puedes dar es el WhatsApp business indicado arriba.`
 
     const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 
