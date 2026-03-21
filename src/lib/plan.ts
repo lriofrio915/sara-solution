@@ -22,7 +22,7 @@ export function isPro(plan: EffectivePlan): boolean {
   return plan === 'PRO' || plan === 'ENTERPRISE' || plan === 'TRIAL'
 }
 
-export const TRIAL_DAYS = 14
+export const TRIAL_DAYS = 21
 
 export const HOTMART = {
   monthly: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
