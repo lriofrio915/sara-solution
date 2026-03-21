@@ -44,6 +44,7 @@ export async function GET() {
         insurances: true,
         saraPersonality: true,
         saraPatientInstructions: true,
+        patientFaq: true,
         // Firma electrónica — solo indicar si está configurada, nunca exponer credenciales — solo indicar si está configurada, nunca exponer credenciales
         signaturePath: true,
       },
@@ -65,7 +66,7 @@ export async function PATCH(req: Request) {
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { name, titlePrefix, specialty, phone, bio, avatarUrl, bannerUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData, insurances, saraPersonality, saraPatientInstructions } = body
+    const { name, titlePrefix, specialty, phone, bio, avatarUrl, bannerUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData, insurances, saraPersonality, saraPatientInstructions, patientFaq } = body
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
@@ -114,6 +115,7 @@ export async function PATCH(req: Request) {
         ...(insurances !== undefined && { insurances: insurances || null }),
         ...(saraPersonality !== undefined && { saraPersonality: saraPersonality || null }),
         ...(saraPatientInstructions !== undefined && { saraPatientInstructions: saraPatientInstructions || null }),
+        ...(patientFaq !== undefined && { patientFaq: patientFaq || null }),
       },
       select: {
         id: true,
@@ -146,6 +148,7 @@ export async function PATCH(req: Request) {
         insurances: true,
         saraPersonality: true,
         saraPatientInstructions: true,
+        patientFaq: true,
       },
     })
 

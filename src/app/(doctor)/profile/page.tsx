@@ -36,6 +36,7 @@ interface DoctorProfile {
   insurances: string | null
   saraPersonality: string | null
   saraPatientInstructions: string | null
+  patientFaq: string | null
 }
 
 interface InsuranceEntry {
@@ -176,6 +177,10 @@ export default function ProfilePage() {
   const [saraPersonality, setSaraPersonality] = useState('')
   const [saraPatientInstructions, setSaraPatientInstructions] = useState('')
 
+  // Sara IA — FAQ de pacientes
+  interface FaqEntry { question: string; answer: string }
+  const [patientFaq, setPatientFaq] = useState<FaqEntry[]>([])
+
   // Sara IA — memorias conversacionales
   interface SaraMemoryEntry { id: string; category: string; content: string; createdAt: string }
   const [saraMemories, setSaraMemories] = useState<SaraMemoryEntry[]>([])
@@ -312,6 +317,9 @@ export default function ProfilePage() {
         // Sara IA
         setSaraPersonality(data.saraPersonality ?? '')
         setSaraPatientInstructions(data.saraPatientInstructions ?? '')
+        try {
+          setPatientFaq(data.patientFaq ? JSON.parse(data.patientFaq) : [])
+        } catch { setPatientFaq([]) }
         // Insurances
         try {
           if (data.insurances) {
@@ -624,6 +632,9 @@ export default function ProfilePage() {
           insurances: insurances.some(i => i.active) ? JSON.stringify(insurances) : null,
           saraPersonality: saraPersonality.trim() || null,
           saraPatientInstructions: saraPatientInstructions.trim() || null,
+          patientFaq: patientFaq.filter(f => f.question.trim() && f.answer.trim()).length > 0
+            ? JSON.stringify(patientFaq.filter(f => f.question.trim() && f.answer.trim()))
+            : null,
         }),
       })
 
@@ -2295,6 +2306,64 @@ export default function ProfilePage() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
             />
           </div>
+        </div>
+
+        {/* FAQ para pacientes */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-xl flex-shrink-0">❓</div>
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-white">Preguntas frecuentes de pacientes</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Define respuestas exactas para las preguntas más comunes. Sara las usará palabra por palabra cuando un paciente pregunte algo similar.</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-4">
+            {patientFaq.map((faq, idx) => (
+              <div key={idx} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide w-8 flex-shrink-0">P:</span>
+                  <input
+                    type="text"
+                    value={faq.question}
+                    onChange={e => setPatientFaq(prev => prev.map((f, i) => i === idx ? { ...f, question: e.target.value } : f))}
+                    placeholder="¿Cuánto cuesta la consulta?"
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPatientFaq(prev => prev.filter((_, i) => i !== idx))}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0"
+                    title="Eliminar"
+                  >✕</button>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide w-8 flex-shrink-0 pt-2">R:</span>
+                  <textarea
+                    value={faq.answer}
+                    onChange={e => setPatientFaq(prev => prev.map((f, i) => i === idx ? { ...f, answer: e.target.value } : f))}
+                    placeholder="La consulta tiene un valor de $45 e incluye revisión completa."
+                    rows={2}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setPatientFaq(prev => [...prev, { question: '', answer: '' }])}
+            className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            <span className="text-lg leading-none">+</span> Añadir pregunta frecuente
+          </button>
+
+          {patientFaq.length === 0 && (
+            <div className="mt-3 text-xs text-gray-400 dark:text-slate-500 italic">
+              Ejemplos: ¿Atienden emergencias? · ¿Aceptan pagos en cuotas? · ¿Tienen estacionamiento? · ¿Cuánto dura la consulta?
+            </div>
+          )}
         </div>
 
         {/* Tip informativo */}

@@ -124,6 +124,7 @@ model Doctor {
   // Personalización de Sara IA
   saraPersonality          String? @db.Text // Instrucciones de comportamiento de Sara con el médico
   saraPatientInstructions  String? @db.Text // Instrucciones de Sara para el trato con pacientes
+  patientFaq               String? @db.Text // JSON: [{question, answer}] — FAQs para Sara de pacientes
 
   // Métodos de pago y datos bancarios
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}

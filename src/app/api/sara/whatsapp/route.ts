@@ -38,6 +38,7 @@ type DoctorRow = {
   consultationModes: string | null
   insurances: string | null
   saraPatientInstructions: string | null
+  patientFaq: string | null
   availabilitySchedules: { weekday: number; startTime: string; endTime: string; location: string | null }[]
 }
 
@@ -85,6 +86,18 @@ function buildConsultorioInfo(doctor: DoctorRow): string {
       }
     } else {
       lines.push('- Seguros/convenios: No registrados en el sistema')
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const faqItems: { question: string; answer: string }[] = JSON.parse(doctor.patientFaq ?? '[]')
+    const valid = faqItems.filter(f => f.question?.trim() && f.answer?.trim())
+    if (valid.length > 0) {
+      lines.push('- Preguntas frecuentes de pacientes (responde exactamente así):')
+      for (const f of valid) {
+        lines.push(`  P: ${f.question.trim()}`)
+        lines.push(`  R: ${f.answer.trim()}`)
+      }
     }
   } catch { /* ignore */ }
 
@@ -289,7 +302,7 @@ export async function POST(req: Request) {
         where: { id: activeConv.doctorId },
         select: {
           id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-          province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true,
+          province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true, patientFaq: true,
           availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
         },
       })
@@ -301,7 +314,7 @@ export async function POST(req: Request) {
     const allDoctors = await prisma.doctor.findMany({
       select: {
         id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-        province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true,
+        province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true, patientFaq: true,
         availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
       },
       orderBy: { name: 'asc' },

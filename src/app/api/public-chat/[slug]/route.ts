@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
         name: true, specialty: true, bio: true,
         address: true, phone: true, whatsapp: true,
         services: true, consultationModes: true,
-        province: true, canton: true, insurances: true, saraPatientInstructions: true,
+        province: true, canton: true, insurances: true, saraPatientInstructions: true, patientFaq: true,
         availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
       },
     })
@@ -69,6 +69,18 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
       modesText = modes.map(m => modeMap[m] ?? m).join(', ')
     } catch { /* ignore */ }
 
+    // Build FAQ summary
+    let faqText = ''
+    try {
+      const faqItems: { question: string; answer: string }[] = JSON.parse(doctor.patientFaq ?? '[]')
+      if (Array.isArray(faqItems) && faqItems.length > 0) {
+        faqText = faqItems
+          .filter(f => f.question?.trim() && f.answer?.trim())
+          .map(f => `P: ${f.question.trim()}\nR: ${f.answer.trim()}`)
+          .join('\n\n')
+      }
+    } catch { /* ignore */ }
+
     // Build insurances summary
     let insurancesText = ''
     try {
@@ -96,6 +108,8 @@ ${modesText ? `- Modalidades de atención: ${modesText}` : ''}
 ${scheduleLines.length > 0 ? `- Horario:\n${scheduleLines.join('\n')}` : ''}
 ${servicesText ? `- Servicios:\n${servicesText}` : ''}
 ${insurancesText ? `- Seguros/convenios aceptados:\n${insurancesText}` : '- Seguros/convenios: No se ha registrado información de seguros para este consultorio.'}
+
+${faqText ? `\nPREGUNTAS FRECUENTES (responde exactamente así cuando el paciente pregunte algo similar):\n${faqText}` : ''}
 
 PROCESO DE CAPTURA DE LEAD:
 1. Responde cualquier pregunta sobre el médico, horarios, servicios y precios.
