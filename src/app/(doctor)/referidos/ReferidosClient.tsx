@@ -18,7 +18,7 @@ interface Referral {
 }
 
 interface Props {
-  referralCode: string | null
+  referralCode: string
   freeMonthsBalance: number
   doctorName: string
   stats: { total: number; rewarded: number; pending: number }
@@ -29,17 +29,15 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, docto
   const [copied, setCopied] = useState(false)
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.saramedical.com'
-  const referralLink = referralCode ? `${baseUrl}/register?ref=${referralCode}` : null
+  const referralLink = `${baseUrl}/register?ref=${referralCode}`
 
   async function handleCopy() {
-    if (!referralLink) return
     await navigator.clipboard.writeText(referralLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   async function handleShare() {
-    if (!referralLink) return
     const text = `Únete a Sara Medical y lleva tu consultorio al siguiente nivel con IA. Regístrate con mi código y ambos ganamos 1 mes gratis:`
     if (navigator.share) {
       await navigator.share({ title: 'Sara Medical — Invitación', text, url: referralLink })
@@ -86,39 +84,30 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, docto
           Comparte este link con tus colegas. Cuando se registren y contraten un plan, <strong>ambos ganan 1 mes gratis.</strong>
         </p>
 
-        {referralCode ? (
-          <>
-            <div className="flex gap-2">
-              <div className="flex-1 flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 min-w-0">
-                <span className="text-xs text-gray-400 flex-shrink-0 font-mono font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md">
-                  {referralCode}
-                </span>
-                <span className="text-sm text-gray-600 dark:text-gray-300 truncate font-mono">
-                  {referralLink}
-                </span>
-              </div>
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all flex-shrink-0"
-              >
-                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                {copied ? 'Copiado' : 'Copiar'}
-              </button>
-            </div>
-            <button
-              onClick={handleShare}
-              className="mt-3 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors"
-            >
-              <Share2 size={16} />
-              Compartir invitación
-            </button>
-          </>
-        ) : (
-          <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-sm text-amber-700 dark:text-amber-400">
-            <Info size={16} className="flex-shrink-0" />
-            Tu código de referido se generará en tu próximo inicio de sesión.
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 min-w-0">
+            <span className="text-xs font-mono font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md flex-shrink-0">
+              {referralCode}
+            </span>
+            <span className="text-sm text-gray-600 dark:text-gray-300 truncate font-mono">
+              {referralLink}
+            </span>
           </div>
-        )}
+          <button
+            onClick={handleCopy}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all flex-shrink-0"
+          >
+            {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+            {copied ? 'Copiado' : 'Copiar'}
+          </button>
+        </div>
+        <button
+          onClick={handleShare}
+          className="mt-3 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors"
+        >
+          <Share2 size={16} />
+          Compartir invitación
+        </button>
       </div>
 
       {/* Stats */}
@@ -169,15 +158,15 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, docto
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
             <Star size={24} />
           </div>
-          <div className="flex-1">
-            <p className="font-bold text-lg">
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-lg leading-tight">
               Tienes {freeMonthsBalance} mes{freeMonthsBalance !== 1 ? 'es' : ''} gratis acumulado{freeMonthsBalance !== 1 ? 's' : ''}
             </p>
             <p className="text-blue-100 text-sm mt-0.5">
               Estos meses se aplicarán como descuento en tu próxima renovación. Contáctanos para canjearlo.
             </p>
           </div>
-          <ChevronRight size={20} className="text-white/60 flex-shrink-0" />
+          <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
         </div>
       )}
 
@@ -251,9 +240,11 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, docto
         </div>
         <p className="text-xs text-gray-400 dark:text-slate-500 mt-4 flex items-start gap-1.5">
           <Info size={12} className="flex-shrink-0 mt-0.5" />
-          Los meses acumulados no tienen vencimiento. Para canjearlos, contáctanos en{' '}
-          <a href="mailto:soporte@consultorio.site" className="text-primary hover:underline">soporte@consultorio.site</a>
-          {' '}o por WhatsApp al momento de tu renovación.
+          <span>
+            Los meses acumulados no tienen vencimiento. Para canjearlos, contáctanos en{' '}
+            <a href="mailto:soporte@consultorio.site" className="text-primary hover:underline">soporte@consultorio.site</a>
+            {' '}o por WhatsApp al momento de tu renovación.
+          </span>
         </p>
       </div>
 
