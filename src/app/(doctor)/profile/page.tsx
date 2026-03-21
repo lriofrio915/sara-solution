@@ -186,6 +186,8 @@ export default function ProfilePage() {
   const [saraMemories, setSaraMemories] = useState<SaraMemoryEntry[]>([])
   const [loadingMemories, setLoadingMemories] = useState(false)
   const [memoriesLoaded, setMemoriesLoaded] = useState(false)
+  const [savingSara, setSavingSara] = useState(false)
+  const [saraSaved, setSaraSaved] = useState(false)
 
   // Insurance / convenios
   const [insurances, setInsurances] = useState<InsuranceEntry[]>(
@@ -689,6 +691,35 @@ export default function ProfilePage() {
       setError(err instanceof Error ? err.message : 'Error al guardar horarios')
     } finally {
       setSavingAvail(false)
+    }
+  }
+
+  async function handleSaveSara() {
+    setSavingSara(true)
+    setSaraSaved(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          saraPersonality: saraPersonality.trim() || null,
+          saraPatientInstructions: saraPatientInstructions.trim() || null,
+          patientFaq: patientFaq.filter(f => f.question.trim() && f.answer.trim()).length > 0
+            ? JSON.stringify(patientFaq.filter(f => f.question.trim() && f.answer.trim()))
+            : null,
+        }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? 'Error al guardar')
+      }
+      setSaraSaved(true)
+      setTimeout(() => setSaraSaved(false), 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar')
+    } finally {
+      setSavingSara(false)
     }
   }
 
@@ -2247,7 +2278,13 @@ export default function ProfilePage() {
       )}
 
       {/* ══════════════ TAB: SARA IA ════════════════════════ */}
-      {activeTab === 'sara' && (<>
+      {activeTab === 'sara' && (
+      <div className="space-y-6">
+        {saraSaved && (
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm flex items-center gap-2">
+            <span>✓</span> Instrucciones de Sara guardadas correctamente
+          </div>
+        )}
         {/* Instrucciones para la relación médico-Sara */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-start gap-3 mb-4">
@@ -2462,14 +2499,15 @@ export default function ProfilePage() {
         {/* Botón guardar */}
         <div className="flex justify-end">
           <button
-            type="submit"
-            disabled={saving}
+            type="button"
+            onClick={handleSaveSara}
+            disabled={savingSara}
             className="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Guardando...' : 'Guardar instrucciones'}
+            {savingSara ? 'Guardando...' : 'Guardar instrucciones'}
           </button>
         </div>
-      </>)}
+      </div>)}
 
       {/* ── ZONA DE PELIGRO (tab Cuenta) ─────────────────── */}
       {activeTab === 'cuenta' && (
