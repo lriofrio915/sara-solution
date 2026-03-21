@@ -22,6 +22,7 @@ export interface SaraContext {
   doctorName: string
   doctorSpecialty: string
   patientContext?: string // Contexto del paciente activo (inyectado desde el popup)
+  consultorioInfo?: string // Dirección, horario, servicios — para chats de pacientes por WhatsApp
 }
 
 export interface SaraEvent {
@@ -358,6 +359,10 @@ Fecha y hora actual: ${now}
 - Sé concisa pero completa
 
 Siempre tienes en mente el bienestar del paciente y el tiempo de la Dra. ${context.doctorName}.${
+    context.consultorioInfo
+      ? `\n\n## INFORMACIÓN DEL CONSULTORIO (usa SOLO estos datos, NUNCA inventes):\n${context.consultorioInfo}\n\nSi te preguntan algo que no está aquí, responde: "No tengo ese dato. Te recomiendo contactar directamente al consultorio."`
+      : ''
+  }${
     context.patientContext
       ? `\n\n## PACIENTE EN CONTEXTO ACTUAL:\nEl médico está consultando a este paciente ahora mismo. Usa estos datos como base sin necesidad de buscarlos:\n${context.patientContext}`
       : ''

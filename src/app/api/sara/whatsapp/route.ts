@@ -23,12 +23,57 @@ export const dynamic = 'force-dynamic'
 
 const MAX_HISTORY = 20
 
+const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
 type DoctorRow = {
   id: string
   name: string
   specialty: string
   address: string | null
+  phone: string | null
   whatsapp: string | null
+  province: string | null
+  canton: string | null
+  services: string | null
+  consultationModes: string | null
+  availabilitySchedules: { weekday: number; startTime: string; endTime: string; location: string | null }[]
+}
+
+function buildConsultorioInfo(doctor: DoctorRow): string {
+  const lines: string[] = []
+  const location = [doctor.canton, doctor.province].filter(Boolean).join(', ')
+  if (location) lines.push(`- Ubicación: ${location}`)
+  if (doctor.address) lines.push(`- Dirección: ${doctor.address}`)
+  if (doctor.phone) lines.push(`- Teléfono: ${doctor.phone}`)
+  if (doctor.whatsapp) lines.push(`- WhatsApp: ${doctor.whatsapp}`)
+
+  try {
+    const modes: string[] = JSON.parse(doctor.consultationModes ?? '[]')
+    const modeMap: Record<string, string> = {
+      IN_PERSON: 'Presencial', TELECONSULT: 'Teleconsulta', HOME_VISIT: 'Visita domiciliaria',
+    }
+    const modesText = modes.map(m => modeMap[m] ?? m).join(', ')
+    if (modesText) lines.push(`- Modalidades: ${modesText}`)
+  } catch { /* ignore */ }
+
+  if (doctor.availabilitySchedules.length > 0) {
+    lines.push('- Horario de atención:')
+    for (const s of doctor.availabilitySchedules) {
+      lines.push(`  ${DAYS[s.weekday]}: ${s.startTime} – ${s.endTime}${s.location ? ` (${s.location})` : ''}`)
+    }
+  }
+
+  try {
+    const parsed = JSON.parse(doctor.services ?? '[]')
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      lines.push('- Servicios:')
+      for (const s of parsed) {
+        lines.push(`  • ${s.name}${s.price ? ` ($${s.price})` : ''}`)
+      }
+    }
+  } catch { /* ignore */ }
+
+  return lines.join('\n')
 }
 
 // ─── Formatting helpers ───────────────────────────────────────────────────────
@@ -101,7 +146,12 @@ async function callSaraWhatsApp(
   let appointmentBooked = false
   const reply = await askSara(
     history,
-    { doctorId: doctor.id, doctorName: doctor.name, doctorSpecialty: doctor.specialty },
+    {
+      doctorId: doctor.id,
+      doctorName: doctor.name,
+      doctorSpecialty: doctor.specialty,
+      consultorioInfo: buildConsultorioInfo(doctor),
+    },
     (event) => {
       if (event.type === 'tool_done' && event.name === 'schedule_appointment') {
         appointmentBooked = true
@@ -221,7 +271,11 @@ export async function POST(req: Request) {
     if (activeConv) {
       const doctor = await prisma.doctor.findUnique({
         where: { id: activeConv.doctorId },
-        select: { id: true, name: true, specialty: true, address: true, whatsapp: true },
+        select: {
+          id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
+          province: true, canton: true, services: true, consultationModes: true,
+          availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
+        },
       })
       if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
       return handleOngoingConversation(activeConv, doctor, message, cleanPhone)
@@ -229,7 +283,11 @@ export async function POST(req: Request) {
 
     // ── 2. Load all doctors ───────────────────────────────────────────────────
     const allDoctors = await prisma.doctor.findMany({
-      select: { id: true, name: true, specialty: true, address: true, whatsapp: true },
+      select: {
+        id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
+        province: true, canton: true, services: true, consultationModes: true,
+        availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
+      },
       orderBy: { name: 'asc' },
     })
 

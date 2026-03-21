@@ -98,7 +98,9 @@ REGLAS CRÍTICAS:
 - NUNCA uses placeholders como "NOMBRE" o "no especificado" en el marcador.
 - Respuestas breves y cálidas (2-4 frases).
 - Habla siempre de ${doctor.name} en tercera persona ("el Dr./la Dra. ...").
-- Si no sabes algo, sugiere llamar directamente al consultorio.`
+- USA ÚNICAMENTE la información del consultorio proporcionada arriba. NUNCA inventes horarios, direcciones, precios ni ningún otro dato que no esté explícitamente indicado.
+- Si te preguntan algo que no está en la información de arriba, responde: "No tengo ese dato disponible. Te recomiendo llamar directamente al consultorio${doctor.phone ? ` al ${doctor.phone}` : ''}."
+- NUNCA digas horarios, direcciones ni precios diferentes a los que aparecen arriba.`
 
     const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 
