@@ -11,6 +11,6 @@ export const getDoctorByAuthId = cache(async (authId: string, email?: string) =>
     where: email
       ? { OR: [{ id: authId }, { email }] }
       : { id: authId },
-    select: { id: true, name: true, specialty: true, email: true, avatarUrl: true, active: true, slug: true },
+    select: { id: true, name: true, specialty: true, email: true, avatarUrl: true, active: true, slug: true, saraPersonality: true },
   })
 })

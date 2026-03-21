@@ -121,6 +121,10 @@ model Doctor {
   // Modalidades de consulta ofrecidas
   consultationModes String? // JSON: ["IN_PERSON","TELECONSULT","HOME_VISIT"]
 
+  // Personalización de Sara IA
+  saraPersonality          String? @db.Text // Instrucciones de comportamiento de Sara con el médico
+  saraPatientInstructions  String? @db.Text // Instrucciones de Sara para el trato con pacientes
+
   // Métodos de pago y datos bancarios
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
   insurances  String? // JSON: [{name, active, requirements}] — convenios con aseguradoras

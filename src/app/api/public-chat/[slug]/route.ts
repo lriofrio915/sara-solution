@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
         name: true, specialty: true, bio: true,
         address: true, phone: true, whatsapp: true,
         services: true, consultationModes: true,
-        province: true, canton: true, insurances: true,
+        province: true, canton: true, insurances: true, saraPatientInstructions: true,
         availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
       },
     })
@@ -113,7 +113,7 @@ REGLAS CRÍTICAS:
 - Si te preguntan algo que no está en la información de arriba, responde: "No tengo ese dato disponible. Te recomiendo escribir al WhatsApp${doctor.whatsapp ? ` ${doctor.whatsapp}` : ' del consultorio'} para más información."
 - NUNCA digas horarios, direcciones ni precios diferentes a los que aparecen arriba.
 - NUNCA compartas el teléfono personal del médico. El único contacto que puedes dar es el WhatsApp business indicado arriba.
-- NUNCA inventes información sobre seguros médicos o convenios. Si el paciente pregunta, usa ÚNICAMENTE los seguros listados arriba. Si no hay seguros registrados, di claramente que no tienes esa información disponible y que contacte al consultorio.`
+- NUNCA inventes información sobre seguros médicos o convenios. Si el paciente pregunta, usa ÚNICAMENTE los seguros listados arriba. Si no hay seguros registrados, di claramente que no tienes esa información disponible y que contacte al consultorio.${doctor.saraPatientInstructions ? `\n\nINSTRUCCIONES ADICIONALES DEL MÉDICO (seguir siempre):\n${doctor.saraPatientInstructions}` : ''}`
 
     const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 

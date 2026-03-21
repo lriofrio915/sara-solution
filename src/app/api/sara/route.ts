@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
     doctorName: doctor.name,
     doctorSpecialty: doctor.specialty,
     patientContext,
+    saraPersonality: (doctor as { saraPersonality?: string | null }).saraPersonality ?? undefined,
   }
 
   // SSE stream

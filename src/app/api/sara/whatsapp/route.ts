@@ -37,6 +37,7 @@ type DoctorRow = {
   services: string | null
   consultationModes: string | null
   insurances: string | null
+  saraPatientInstructions: string | null
   availabilitySchedules: { weekday: number; startTime: string; endTime: string; location: string | null }[]
 }
 
@@ -165,6 +166,7 @@ async function callSaraWhatsApp(
       doctorName: doctor.name,
       doctorSpecialty: doctor.specialty,
       consultorioInfo: buildConsultorioInfo(doctor),
+      saraPersonality: doctor.saraPatientInstructions ?? undefined,
     },
     (event) => {
       if (event.type === 'tool_done' && event.name === 'schedule_appointment') {
@@ -287,7 +289,7 @@ export async function POST(req: Request) {
         where: { id: activeConv.doctorId },
         select: {
           id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-          province: true, canton: true, services: true, consultationModes: true, insurances: true,
+          province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true,
           availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
         },
       })
@@ -299,7 +301,7 @@ export async function POST(req: Request) {
     const allDoctors = await prisma.doctor.findMany({
       select: {
         id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-        province: true, canton: true, services: true, consultationModes: true, insurances: true,
+        province: true, canton: true, services: true, consultationModes: true, insurances: true, saraPatientInstructions: true,
         availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
       },
       orderBy: { name: 'asc' },

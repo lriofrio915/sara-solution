@@ -34,6 +34,8 @@ interface DoctorProfile {
   paymentData: string | null
   services: string | null
   insurances: string | null
+  saraPersonality: string | null
+  saraPatientInstructions: string | null
 }
 
 interface InsuranceEntry {
@@ -140,7 +142,7 @@ export default function ProfilePage() {
   const [availSuccess, setAvailSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [activeTab, setActiveTab] = useState<'perfil'|'consultorio'|'servicios'|'legal'|'cuenta'>('perfil')
+  const [activeTab, setActiveTab] = useState<'perfil'|'consultorio'|'servicios'|'legal'|'sara'|'cuenta'>('perfil')
   const [showDeleteZone, setShowDeleteZone] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -169,6 +171,10 @@ export default function ProfilePage() {
   // Services
   const [services, setServices] = useState<Service[]>([])
   const [openEmojiPickerIndex, setOpenEmojiPickerIndex] = useState<number | null>(null)
+
+  // Sara IA — instrucciones personalizadas
+  const [saraPersonality, setSaraPersonality] = useState('')
+  const [saraPatientInstructions, setSaraPatientInstructions] = useState('')
 
   // Insurance / convenios
   const [insurances, setInsurances] = useState<InsuranceEntry[]>(
@@ -297,6 +303,9 @@ export default function ProfilePage() {
         } catch {
           setPaymentMethods([])
         }
+        // Sara IA
+        setSaraPersonality(data.saraPersonality ?? '')
+        setSaraPatientInstructions(data.saraPatientInstructions ?? '')
         // Insurances
         try {
           if (data.insurances) {
@@ -607,6 +616,8 @@ export default function ProfilePage() {
           consultationModes: consultationModes.length > 0 ? JSON.stringify(consultationModes) : null,
           paymentData: paymentMethods.length > 0 ? JSON.stringify(paymentDataObj) : null,
           insurances: insurances.some(i => i.active) ? JSON.stringify(insurances) : null,
+          saraPersonality: saraPersonality.trim() || null,
+          saraPatientInstructions: saraPatientInstructions.trim() || null,
         }),
       })
 
@@ -686,6 +697,7 @@ export default function ProfilePage() {
     { id: 'consultorio', icon: '🏥', label: 'Consultorio' },
     { id: 'servicios',   icon: '💼', label: 'Servicios' },
     { id: 'legal',       icon: '📋', label: 'Legal & Docs' },
+    { id: 'sara',        icon: '🤖', label: 'Sara IA' },
     { id: 'cuenta',      icon: '⚙️',  label: 'Cuenta' },
   ] as const
 
@@ -2216,6 +2228,91 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* ══════════════ TAB: SARA IA ════════════════════════ */}
+      {activeTab === 'sara' && (<>
+        {/* Instrucciones para la relación médico-Sara */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-xl flex-shrink-0">🤖</div>
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-white">Cómo quiero que me trate Sara</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Instrucciones sobre el comportamiento, tono y preferencias de Sara cuando habla contigo en el chat interno.</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
+              <p className="font-medium text-gray-500 dark:text-slate-400 mb-1">Ejemplos de instrucciones:</p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li>Llámame siempre por mi nombre: Andrés</li>
+                <li>Usa términos médicos en inglés para los diagnósticos</li>
+                <li>Cuando busques pacientes, ordena por última visita</li>
+                <li>Soy pediatra con enfoque en neonatología, adapta tus sugerencias</li>
+                <li>Responde siempre de forma muy concisa, sin explicaciones largas</li>
+              </ul>
+            </div>
+            <textarea
+              value={saraPersonality}
+              onChange={e => setSaraPersonality(e.target.value)}
+              rows={6}
+              placeholder="Escribe aquí cómo quieres que Sara se comporte contigo..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+            />
+          </div>
+        </div>
+
+        {/* Instrucciones para pacientes */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-xl flex-shrink-0">💬</div>
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-white">Cómo quiero que Sara trate a mis pacientes</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Instrucciones sobre qué decir, qué evitar y cómo comportarse Sara en el chat público y WhatsApp con pacientes.</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-3">
+              <p className="font-medium text-gray-500 dark:text-slate-400 mb-1">Ejemplos de instrucciones:</p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li>Siempre menciona que hacemos descuento del 20% para adultos mayores</li>
+                <li>No agendes citas los días viernes ni en feriados</li>
+                <li>Si preguntan el precio de la consulta, di que es $45 y que incluye revisión</li>
+                <li>Usa un tono muy cálido y familiar, como si fuera una amiga</li>
+                <li>Siempre pregunta si el paciente viene referido por algún colega</li>
+              </ul>
+            </div>
+            <textarea
+              value={saraPatientInstructions}
+              onChange={e => setSaraPatientInstructions(e.target.value)}
+              rows={6}
+              placeholder="Escribe aquí instrucciones especiales para que Sara aplique con tus pacientes..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
+            />
+          </div>
+        </div>
+
+        {/* Tip informativo */}
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl p-5">
+          <div className="flex items-start gap-3">
+            <span className="text-xl flex-shrink-0">💡</span>
+            <div className="text-sm text-indigo-700 dark:text-indigo-300">
+              <p className="font-semibold mb-1">Cuanto más específico seas, mejor funcionará Sara</p>
+              <p>Sara lee estas instrucciones al inicio de cada conversación. Puedes actualizarlas cuando quieras y los cambios aplican desde la próxima conversación.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Botón guardar */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Guardando...' : 'Guardar instrucciones'}
+          </button>
+        </div>
+      </>)}
 
       {/* ── ZONA DE PELIGRO (tab Cuenta) ─────────────────── */}
       {activeTab === 'cuenta' && (
