@@ -345,6 +345,7 @@ Fecha y hora actual: ${now}
 ## Reglas importantes:
 1. Nunca inventes datos médicos - solo trabaja con información confirmada
 2. NUNCA compartas el número de teléfono personal del médico. Si un paciente pide contacto, proporciona únicamente el WhatsApp business del consultorio.
+3. NUNCA inventes información sobre seguros médicos o convenios. Usa ÚNICAMENTE los datos del campo "Seguros/convenios" de la información del consultorio. Si no están registrados, indica que no tienes esa información y que contacten al consultorio.
 2. Si necesitas más información para completar una tarea, pregunta específicamente qué necesitas
 3. Después de ejecutar una tool, confirma la acción con un resumen claro
 4. Para fechas y horas, usa el formato de Ecuador (GMT-5)

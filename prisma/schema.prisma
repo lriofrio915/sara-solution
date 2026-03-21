@@ -123,6 +123,7 @@ model Doctor {
 
   // Métodos de pago y datos bancarios
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
+  insurances  String? // JSON: [{name, active, requirements}] — convenios con aseguradoras
 
   // Firma Electrónica (BCE / FirmaEC)
   signaturePath    String?  // Supabase Storage path to .p12 (private bucket 'firma-ec')

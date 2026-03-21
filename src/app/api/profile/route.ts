@@ -41,7 +41,8 @@ export async function GET() {
         parish: true,
         consultationModes: true,
         paymentData: true,
-        // Firma electrónica — solo indicar si está configurada, nunca exponer credenciales
+        insurances: true,
+        // Firma electrónica — solo indicar si está configurada, nunca exponer credenciales — solo indicar si está configurada, nunca exponer credenciales
         signaturePath: true,
       },
     })
@@ -62,7 +63,7 @@ export async function PATCH(req: Request) {
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { name, titlePrefix, specialty, phone, bio, avatarUrl, bannerUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData } = body
+    const { name, titlePrefix, specialty, phone, bio, avatarUrl, bannerUrl, address, whatsapp, webhookUrl, branches, schedules, services, slug, cedulaId, mspCode, specialtyRegCode, establishmentName, establishmentCode, establishmentRuc, province, canton, parish, consultationModes, paymentData, insurances } = body
 
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
@@ -108,6 +109,7 @@ export async function PATCH(req: Request) {
         ...(parish !== undefined && { parish: parish || null }),
         ...(consultationModes !== undefined && { consultationModes: consultationModes || null }),
         ...(paymentData !== undefined && { paymentData: paymentData || null }),
+        ...(insurances !== undefined && { insurances: insurances || null }),
       },
       select: {
         id: true,
@@ -137,6 +139,7 @@ export async function PATCH(req: Request) {
         parish: true,
         consultationModes: true,
         paymentData: true,
+        insurances: true,
       },
     })
 

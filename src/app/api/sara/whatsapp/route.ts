@@ -36,6 +36,7 @@ type DoctorRow = {
   canton: string | null
   services: string | null
   consultationModes: string | null
+  insurances: string | null
   availabilitySchedules: { weekday: number; startTime: string; endTime: string; location: string | null }[]
 }
 
@@ -70,6 +71,19 @@ function buildConsultorioInfo(doctor: DoctorRow): string {
       for (const s of parsed) {
         lines.push(`  • ${s.name}${s.price ? ` ($${s.price})` : ''}`)
       }
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const ins: { name: string; active: boolean; requirements?: string }[] = JSON.parse(doctor.insurances ?? '[]')
+    const active = ins.filter(i => i.active)
+    if (active.length > 0) {
+      lines.push('- Seguros/convenios aceptados:')
+      for (const i of active) {
+        lines.push(`  • ${i.name}${i.requirements ? ` (${i.requirements})` : ''}`)
+      }
+    } else {
+      lines.push('- Seguros/convenios: No registrados en el sistema')
     }
   } catch { /* ignore */ }
 
@@ -273,7 +287,7 @@ export async function POST(req: Request) {
         where: { id: activeConv.doctorId },
         select: {
           id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-          province: true, canton: true, services: true, consultationModes: true,
+          province: true, canton: true, services: true, consultationModes: true, insurances: true,
           availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
         },
       })
@@ -285,7 +299,7 @@ export async function POST(req: Request) {
     const allDoctors = await prisma.doctor.findMany({
       select: {
         id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
-        province: true, canton: true, services: true, consultationModes: true,
+        province: true, canton: true, services: true, consultationModes: true, insurances: true,
         availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
       },
       orderBy: { name: 'asc' },

@@ -33,7 +33,29 @@ interface DoctorProfile {
   consultationModes: string | null
   paymentData: string | null
   services: string | null
+  insurances: string | null
 }
+
+interface InsuranceEntry {
+  name: string
+  active: boolean
+  requirements: string
+}
+
+const INSURANCES_CATALOG = [
+  { name: 'IESS',                       group: 'Público',  icon: '🏛️' },
+  { name: 'ISSFA',                      group: 'Público',  icon: '🏛️' },
+  { name: 'ISSPOL',                     group: 'Público',  icon: '🏛️' },
+  { name: 'MSP (Gratuidad)',            group: 'Público',  icon: '🏛️' },
+  { name: 'Ecuasanitas',                group: 'Privado',  icon: '🏥' },
+  { name: 'BMI',                        group: 'Privado',  icon: '🏥' },
+  { name: 'Seguros Sucre',              group: 'Privado',  icon: '🏥' },
+  { name: 'Latina Seguros',            group: 'Privado',  icon: '🏥' },
+  { name: 'Chubb Seguros',             group: 'Privado',  icon: '🏥' },
+  { name: 'AIG / Metropolitana',        group: 'Privado',  icon: '🏥' },
+  { name: 'Mapfre',                     group: 'Privado',  icon: '🏥' },
+  { name: 'Seguros del Pichincha',      group: 'Privado',  icon: '🏥' },
+]
 
 interface Branch {
   name: string
@@ -147,6 +169,11 @@ export default function ProfilePage() {
   // Services
   const [services, setServices] = useState<Service[]>([])
   const [openEmojiPickerIndex, setOpenEmojiPickerIndex] = useState<number | null>(null)
+
+  // Insurance / convenios
+  const [insurances, setInsurances] = useState<InsuranceEntry[]>(
+    INSURANCES_CATALOG.map(c => ({ name: c.name, active: false, requirements: '' }))
+  )
 
   // Payment data
   const [paymentMethods, setPaymentMethods] = useState<string[]>([])
@@ -269,6 +296,18 @@ export default function ProfilePage() {
           }
         } catch {
           setPaymentMethods([])
+        }
+        // Insurances
+        try {
+          if (data.insurances) {
+            const saved: InsuranceEntry[] = JSON.parse(data.insurances)
+            setInsurances(INSURANCES_CATALOG.map(c => {
+              const found = saved.find(s => s.name === c.name)
+              return found ?? { name: c.name, active: false, requirements: '' }
+            }))
+          }
+        } catch {
+          /* keep defaults */
         }
       })
       .catch(() => setError('Error cargando perfil'))
@@ -567,6 +606,7 @@ export default function ProfilePage() {
           parish: parish || null,
           consultationModes: consultationModes.length > 0 ? JSON.stringify(consultationModes) : null,
           paymentData: paymentMethods.length > 0 ? JSON.stringify(paymentDataObj) : null,
+          insurances: insurances.some(i => i.active) ? JSON.stringify(insurances) : null,
         }),
       })
 
@@ -1307,6 +1347,89 @@ export default function ProfilePage() {
           <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3">
             <p className="text-xs text-gray-500 dark:text-slate-300 leading-relaxed">
               Esta información es usada por Sara IA para informar correctamente a los pacientes sobre cómo pueden ser atendidos.
+            </p>
+          </div>
+        </div>
+
+        {/* ── SEGUROS Y CONVENIOS ───────────────────────────────── */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white">Seguros y Convenios</h2>
+            <p className="text-gray-400 text-xs mt-0.5">
+              Indica con qué aseguradoras trabajas y los requisitos que debe traer el paciente. Sara IA usará esta información como fuente de verdad.
+            </p>
+          </div>
+
+          {['Público', 'Privado'].map(group => (
+            <div key={group}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-3">
+                {group === 'Público' ? '🏛️ Seguros Públicos' : '🏥 Seguros Privados'}
+              </p>
+              <div className="space-y-3">
+                {INSURANCES_CATALOG.filter(c => c.group === group).map(catalog => {
+                  const idx = insurances.findIndex(i => i.name === catalog.name)
+                  const entry = insurances[idx]
+                  if (!entry) return null
+                  return (
+                    <div key={catalog.name} className={`rounded-xl border-2 transition-all overflow-hidden ${
+                      entry.active
+                        ? 'border-primary/40 bg-primary/5 dark:bg-primary/10'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...insurances]
+                          updated[idx] = { ...entry, active: !entry.active }
+                          setInsurances(updated)
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                      >
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          entry.active ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'
+                        }`}>
+                          {entry.active && (
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`text-sm font-semibold ${entry.active ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {catalog.name}
+                        </span>
+                        {entry.active && (
+                          <span className="ml-auto text-xs bg-primary/10 text-primary dark:bg-primary/20 px-2 py-0.5 rounded-full font-medium">Activo</span>
+                        )}
+                      </button>
+                      {entry.active && (
+                        <div className="px-4 pb-4">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                            Requisitos para el paciente
+                          </label>
+                          <textarea
+                            value={entry.requirements}
+                            onChange={e => {
+                              const updated = [...insurances]
+                              updated[idx] = { ...entry, requirements: e.target.value }
+                              setInsurances(updated)
+                            }}
+                            placeholder={`Ej: Carnet del ${catalog.name} vigente, autorización médica, cédula de identidad...`}
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 flex gap-2">
+            <span className="text-lg">🤖</span>
+            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+              Sara IA consultará esta información como fuente de verdad. Si un paciente pregunta por seguros, Sara responderá exactamente lo que configures aquí — sin inventar datos.
             </p>
           </div>
         </div>
