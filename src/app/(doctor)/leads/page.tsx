@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Search, Plus, Download, LayoutList, Columns, Pencil, Trash2, X, Users } from 'lucide-react'
+import { Search, Plus, Download, LayoutList, Columns, Pencil, Trash2, X, Users, Link2, ExternalLink, Copy, Check, QrCode } from 'lucide-react'
 import PhoneInput from '@/components/PhoneInput'
 
 const STATUSES = ['NUEVO', 'CONTACTADO', 'AGENDADO', 'PERDIDO'] as const
@@ -55,6 +55,10 @@ export default function DoctorLeadsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null)
   const [filters, setFilters] = useState({ search: '', status: '', source: '' })
+  const [slug, setSlug] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const landingUrl = slug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/${slug}` : null
 
   const loadLeads = () => {
     setLoading(true)
@@ -64,7 +68,21 @@ export default function DoctorLeadsPage() {
       .catch(() => setLoading(false))
   }
 
-  useEffect(() => { loadLeads() }, [])
+  useEffect(() => {
+    loadLeads()
+    fetch('/api/profile')
+      .then(r => r.json())
+      .then(data => { if (data.slug) setSlug(data.slug) })
+      .catch(() => {})
+  }, [])
+
+  function copyLink() {
+    if (!landingUrl) return
+    navigator.clipboard.writeText(landingUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   const filtered = useMemo(() => leads.filter(l => {
     const s = filters.search.toLowerCase()
@@ -151,6 +169,63 @@ export default function DoctorLeadsPage() {
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
           Pacientes interesados captados desde tu página pública
         </p>
+      </div>
+
+      {/* Landing link banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/90 to-secondary/90 p-5 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white" />
+          <div className="absolute -bottom-10 -left-4 w-32 h-32 rounded-full bg-white" />
+        </div>
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Link2 size={20} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white/80 mb-0.5">Tu página pública de captación</p>
+              <p className="text-white font-mono text-sm truncate">
+                {landingUrl ?? 'Cargando enlace...'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={copyLink}
+              disabled={!landingUrl}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-all disabled:opacity-50 backdrop-blur-sm border border-white/20"
+            >
+              {copied
+                ? <><Check size={15} /> Copiado</>
+                : <><Copy size={15} /> Copiar enlace</>
+              }
+            </button>
+            {landingUrl && (
+              <a
+                href={landingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-primary text-sm font-semibold hover:bg-white/90 transition-all shadow-md"
+              >
+                <ExternalLink size={15} /> Ver página
+              </a>
+            )}
+          </div>
+        </div>
+        <div className="relative mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-xs text-white/70">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+            El formulario captura leads automáticamente
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-300 inline-block" />
+            Sara IA atiende a tus pacientes 24/7
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-yellow-300 inline-block" />
+            Comparte este enlace en redes y WhatsApp
+          </span>
+        </div>
       </div>
 
       {/* Cards */}
