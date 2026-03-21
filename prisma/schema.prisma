@@ -107,6 +107,11 @@ model Doctor {
   authId String? @unique
   prescriptionCounter Int @default(0)
 
+  // Sistema de referidos
+  referralCode      String?  @unique  // Código único para invitar colegas
+  referredById      String?           // ID del doctor que lo refirió
+  freeMonthsBalance Int      @default(0) // Meses gratis acumulados por referidos
+
   // Datos legales y profesionales
   cedulaId         String?  // Cédula de Identidad (10 dígitos)
   mspCode          String?  // Código MSP / Registro ACESS Tercer Nivel
@@ -163,9 +168,12 @@ model Doctor {
   auditLogs              AuditLog[]
   credentials            DoctorCredential[]
   patientLeads           PatientLead[]
+  givenReferrals         Referral[]    @relation("GivenReferrals")
+  receivedReferral       Referral?     @relation("ReceivedReferral")
 
   @@index([slug])
   @@index([email])
+  @@index([referralCode])
 }
 
 // ─── Availability Schedule ───────────────────────────────────
@@ -783,6 +791,25 @@ model DoctorCredential {
 
   @@index([doctorId])
   @@index([doctorId, type])
+}
+
+// ─── Referral (Sistema de Referidos) ─────────────────────────
+
+model Referral {
+  id          String    @id @default(cuid())
+  referrerId  String                         // Doctor que refirió
+  referredId  String    @unique              // Doctor que fue referido (solo puede tener un referidor)
+  status      String    @default("PENDING")  // PENDING | REWARDED
+  rewardedAt  DateTime?                      // Cuándo se otorgó la recompensa
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  referrer Doctor @relation("GivenReferrals",   fields: [referrerId], references: [id], onDelete: Cascade)
+  referred Doctor @relation("ReceivedReferral",  fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@index([status])
 }
 
 // ─── CatalogoMedicamento (CNMB) ──────────────────────────────

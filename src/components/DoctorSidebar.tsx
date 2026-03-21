@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus,
+  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -32,6 +32,7 @@ const adminItems = [
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
   { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
+  { href: '/referidos',  icon: Gift,        label: 'Referidos' },
 ]
 
 // Mobile bottom tab bar: Reportes + primeros 4 clínicos
