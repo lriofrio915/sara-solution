@@ -56,7 +56,7 @@ export default async function DoctorPublicPage({ params }: Props) {
     select: {
       id: true, name: true, titlePrefix: true, specialty: true, bio: true,
       avatarUrl: true, bannerUrl: true,
-      address: true, webhookUrl: true, phone: true,
+      address: true, webhookUrl: true, whatsapp: true,
       branches: true, services: true,
       consultationModes: true, paymentData: true,
       province: true, canton: true, parish: true,
@@ -322,10 +322,11 @@ export default async function DoctorPublicPage({ params }: Props) {
                     </div>
                   ))}
 
-                  {doctor.phone && (
-                    <a href={`tel:${doctor.phone}`}
+                  {doctor.whatsapp && (
+                    <a href={`https://wa.me/${doctor.whatsapp.replace(/\D/g, '')}`}
+                      target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-xl transition-colors mt-3">
-                      <span>📞</span> {doctor.phone}
+                      <span>💬</span> {doctor.whatsapp}
                     </a>
                   )}
                 </div>
