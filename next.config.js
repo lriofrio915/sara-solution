@@ -8,7 +8,6 @@ const nextConfig = {
       'puppeteer-core',
     ],
   },
-  output: 'standalone',
   images: {
     remotePatterns: [
       {
