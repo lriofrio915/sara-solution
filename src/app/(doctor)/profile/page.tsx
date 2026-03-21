@@ -189,6 +189,12 @@ export default function ProfilePage() {
   const [savingSara, setSavingSara] = useState(false)
   const [saraSaved, setSaraSaved] = useState(false)
 
+  // Sara IA — preguntas sin respuesta (Fase 4)
+  interface UnansweredEntry { id: string; question: string; source: string; createdAt: string }
+  const [unanswered, setUnanswered] = useState<UnansweredEntry[]>([])
+  const [loadingUnanswered, setLoadingUnanswered] = useState(false)
+  const [unansweredLoaded, setUnansweredLoaded] = useState(false)
+
   // Insurance / convenios
   const [insurances, setInsurances] = useState<InsuranceEntry[]>(
     INSURANCES_CATALOG.map(c => ({ name: c.name, active: false, requirements: '' }))
@@ -2346,7 +2352,7 @@ export default function ProfilePage() {
         </div>
 
         {/* FAQ para pacientes */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+        <div id="patient-faq-section" className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-xl flex-shrink-0">❓</div>
             <div>
@@ -2490,6 +2496,96 @@ export default function ProfilePage() {
                   >
                     ✕
                   </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Preguntas sin respuesta — Fase 4 */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center text-xl flex-shrink-0">🙋</div>
+              <div>
+                <h2 className="font-semibold text-gray-900 dark:text-white">Preguntas que Sara no pudo responder</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Preguntas de pacientes para las que Sara no tenía información. Añádelas al FAQ para que Sara pueda responderlas en el futuro.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setLoadingUnanswered(true)
+                try {
+                  const r = await fetch('/api/sara/unanswered')
+                  const d = await r.json()
+                  setUnanswered(d.questions ?? [])
+                  setUnansweredLoaded(true)
+                } catch { /* ignore */ } finally { setLoadingUnanswered(false) }
+              }}
+              className="text-sm text-primary font-medium hover:underline flex-shrink-0"
+            >
+              {loadingUnanswered ? 'Cargando...' : unansweredLoaded ? 'Actualizar' : 'Ver preguntas'}
+            </button>
+          </div>
+
+          {!unansweredLoaded && (
+            <p className="text-sm text-gray-400 dark:text-slate-500 italic">
+              Haz clic en &ldquo;Ver preguntas&rdquo; para cargar las preguntas que Sara no pudo responder.
+            </p>
+          )}
+
+          {unansweredLoaded && unanswered.length === 0 && (
+            <div className="text-center py-6 text-gray-400 dark:text-slate-500">
+              <p className="text-3xl mb-2">✅</p>
+              <p className="text-sm">Sara ha podido responder todas las preguntas de tus pacientes.</p>
+            </div>
+          )}
+
+          {unansweredLoaded && unanswered.length > 0 && (
+            <div className="space-y-3">
+              {unanswered.map(q => (
+                <div key={q.id} className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/40 rounded-xl group">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        q.source === 'whatsapp'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                      }`}>
+                        {q.source === 'whatsapp' ? 'WhatsApp' : 'Chat web'}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500">
+                        {new Date(q.createdAt).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-800 dark:text-gray-200">{q.question}</p>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      type="button"
+                      title="Añadir al FAQ"
+                      onClick={() => {
+                        setPatientFaq(prev => [...prev, { question: q.question, answer: '' }])
+                        setUnanswered(prev => prev.filter(x => x.id !== q.id))
+                        fetch(`/api/sara/unanswered?id=${q.id}`, { method: 'DELETE' }).catch(() => {})
+                        // Scroll al FAQ
+                        document.getElementById('patient-faq-section')?.scrollIntoView({ behavior: 'smooth' })
+                      }}
+                      className="p-1.5 text-xs font-medium text-primary bg-white dark:bg-gray-700 border border-primary/30 rounded-lg hover:bg-primary hover:text-white transition-colors"
+                    >
+                      → FAQ
+                    </button>
+                    <button
+                      type="button"
+                      title="Descartar"
+                      onClick={async () => {
+                        await fetch(`/api/sara/unanswered?id=${q.id}`, { method: 'DELETE' })
+                        setUnanswered(prev => prev.filter(x => x.id !== q.id))
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    >✕</button>
+                  </div>
                 </div>
               ))}
             </div>

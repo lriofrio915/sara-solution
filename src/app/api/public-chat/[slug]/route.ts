@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     const doctor = await prisma.doctor.findUnique({
       where: { slug: params.slug },
       select: {
-        name: true, specialty: true, bio: true,
+        id: true, name: true, specialty: true, bio: true,
         address: true, phone: true, whatsapp: true,
         services: true, consultationModes: true,
         province: true, canton: true, insurances: true, saraPatientInstructions: true, patientFaq: true,
@@ -141,6 +141,17 @@ REGLAS CRÍTICAS:
     })
 
     const text = completion.choices[0]?.message?.content ?? 'Lo siento, intenta de nuevo.'
+
+    // If Sara couldn't answer, log the patient's question for the doctor
+    if (text.includes('No tengo ese dato')) {
+      const patientMsg = [...messages].reverse().find(m => m.role === 'user')?.content
+      if (patientMsg) {
+        prisma.saraUnansweredQuestion.create({
+          data: { doctorId: doctor.id, question: patientMsg.trim(), source: 'public_chat' },
+        }).catch(() => {/* non-critical */})
+      }
+    }
+
     return NextResponse.json({ text })
   } catch (err) {
     console.error('public-chat error:', err)

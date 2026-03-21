@@ -147,6 +147,7 @@ model Doctor {
   medicalCertificates    MedicalCertificate[]
   saraConversations      SaraConversation[]
   saraMemories           SaraMemory[]
+  saraUnanswered         SaraUnansweredQuestion[]
   reminders              Reminder[]
   socialPosts            SocialPost[]
   knowledgeDocuments     KnowledgeDocument[]
@@ -371,6 +372,21 @@ model SaraMemory {
 
   @@index([doctorId])
   @@index([doctorId, category])
+}
+
+// ─── Sara Unanswered Questions ──────────────────────────────
+
+model SaraUnansweredQuestion {
+  id        String   @id @default(cuid())
+  doctorId  String
+  question  String   @db.Text  // Pregunta del paciente que Sara no pudo responder
+  source    String   @default("public_chat") // public_chat | whatsapp
+  createdAt DateTime @default(now())
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([doctorId, createdAt])
 }
 
 // ─── Sara Conversation ──────────────────────────────────────

@@ -188,6 +188,17 @@ async function callSaraWhatsApp(
     },
     6,
   )
+
+  // Log unanswered questions for the doctor
+  if (reply.includes('No tengo ese dato')) {
+    const patientMsg = [...history].reverse().find(m => m.role === 'user')?.content
+    if (patientMsg && !patientMsg.startsWith('[Sistema:')) {
+      prisma.saraUnansweredQuestion.create({
+        data: { doctorId: doctor.id, question: patientMsg.trim(), source: 'whatsapp' },
+      }).catch(() => {/* non-critical */})
+    }
+  }
+
   return { reply, appointmentBooked }
 }
 
