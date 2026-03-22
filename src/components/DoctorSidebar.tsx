@@ -32,8 +32,7 @@ const adminItems = [
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
   { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
-  { href: '/referidos',  icon: Gift,        label: 'Referidos' },
-  { href: '/team',       icon: UsersRound,  label: 'Equipo' },
+  { href: '/billing',    icon: Receipt,     label: 'Facturación' },
 ]
 
 // Item exclusivo para ASSISTANT — aparece primero en la navegación
@@ -45,9 +44,10 @@ const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
 const assistantTabItems = [receptionItem, ...clinicalItems.slice(0, 4)]
 
 const gearItems = [
-  { href: '/profile',   icon: User,     label: 'Mi Perfil' },
-  { href: '/knowledge', icon: BookOpen, label: 'Base de Conocimiento' },
-  { href: '/billing',   icon: Receipt,  label: 'Facturación' },
+  { href: '/profile',   icon: User,       label: 'Mi Perfil' },
+  { href: '/knowledge', icon: BookOpen,   label: 'Base de Conocimiento' },
+  { href: '/team',      icon: UsersRound, label: 'Equipo' },
+  { href: '/referidos', icon: Gift,       label: 'Referidos' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────
