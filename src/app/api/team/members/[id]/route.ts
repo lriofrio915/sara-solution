@@ -28,8 +28,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json()
     const updated = await prisma.doctorMember.update({
       where: { id: params.id },
-      data: { active: body.active ?? !member.active },
-      select: { id: true, name: true, email: true, role: true, active: true },
+      data: {
+        ...(body.active !== undefined && { active: body.active }),
+        ...(body.canSign !== undefined && { canSign: body.canSign }),
+        // Legacy: toggle active if neither field is specified
+        ...(body.active === undefined && body.canSign === undefined && { active: !member.active }),
+      },
+      select: { id: true, name: true, email: true, role: true, active: true, canSign: true },
     })
 
     return NextResponse.json({ member: updated })

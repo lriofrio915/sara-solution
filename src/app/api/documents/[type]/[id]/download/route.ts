@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
+import { getDoctorFromUser } from '@/lib/doctor-auth'
 import { generatePdfFromPrintPage } from '@/lib/pdf-generator'
 import { signPdf, decryptPassword } from '@/lib/firma-ec'
 
@@ -59,9 +60,23 @@ export async function GET(
       return NextResponse.json({ error: 'Tipo de documento no válido' }, { status: 400 })
     }
 
-    // 3. Get doctor
+    // 3. Resolve who is making the request (OWNER or ASSISTANT)
+    const userRef = await getDoctorFromUser(user)
+    if (!userRef) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
+
+    // 4. If ASSISTANT, check canSign permission before we fetch signature fields
+    let assistantCanSign = false
+    if (userRef.role === 'ASSISTANT') {
+      const member = await prisma.doctorMember.findFirst({
+        where: { authId: user.id, doctorId: userRef.id, active: true },
+        select: { canSign: true },
+      })
+      assistantCanSign = member?.canSign ?? false
+    }
+
+    // 5. Fetch doctor's full info including signature fields
     const doctor = await prisma.doctor.findFirst({
-      where: { OR: [{ id: user.id }, { email: user.email! }] },
+      where: { id: userRef.id },
       select: {
         id: true,
         name: true,
@@ -73,18 +88,20 @@ export async function GET(
     })
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
-    // 4. Verify document belongs to this doctor
+    // 6. Verify document belongs to this doctor
     const owned = await verifyOwnership(type, params.id, doctor.id)
     if (!owned) return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 })
 
-    // 5. Generate PDF from print page
+    // 7. Generate PDF from print page
     const cookieHeader = req.headers.get('cookie') ?? ''
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
     let pdfBytes = await generatePdfFromPrintPage(printPath, cookieHeader)
 
-    // 6. Apply digital signature if doctor has FirmaEC configured
+    // 8. Apply digital signature if doctor has FirmaEC configured
+    //    ASSISTANT can only sign if the doctor has granted canSign permission
+    const canApplySignature = userRef.role === 'OWNER' || assistantCanSign
     let signed = false
-    if (doctor.signaturePath && doctor.signatureIv && doctor.signatureTag && doctor.signatureEncPass) {
+    if (canApplySignature && doctor.signaturePath && doctor.signatureIv && doctor.signatureTag && doctor.signatureEncPass) {
       try {
         // Download .p12 from private Supabase Storage bucket
         const storage = createAdminClient().storage

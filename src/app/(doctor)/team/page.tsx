@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, UserPlus, Trash2, ToggleLeft, ToggleRight, Mail, Shield } from 'lucide-react'
+import { Users, UserPlus, Trash2, ToggleLeft, ToggleRight, Mail, Shield, PenLine } from 'lucide-react'
 
 interface Member {
   id: string
@@ -9,6 +9,7 @@ interface Member {
   email: string
   role: 'OWNER' | 'ASSISTANT'
   active: boolean
+  canSign: boolean
   createdAt: string
 }
 
@@ -65,6 +66,15 @@ export default function TeamPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ active: !member.active }),
+    })
+    await loadMembers()
+  }
+
+  async function toggleCanSign(member: Member) {
+    await fetch(`/api/team/members/${member.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ canSign: !member.canSign }),
     })
     await loadMembers()
   }
@@ -199,6 +209,11 @@ export default function TeamPage() {
                         Inactivo
                       </span>
                     )}
+                    {member.role === 'ASSISTANT' && member.canSign && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center gap-0.5">
+                        <PenLine size={9} /> Firma autorizada
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{member.email}</p>
                 </div>
@@ -206,6 +221,17 @@ export default function TeamPage() {
                 {/* Actions (only for ASSISTANT) */}
                 {member.role === 'ASSISTANT' && (
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => toggleCanSign(member)}
+                      title={member.canSign ? 'Revocar permiso de firma' : 'Autorizar firma digital'}
+                      className={`p-2 rounded-lg transition-colors ${
+                        member.canSign
+                          ? 'text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20'
+                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <PenLine size={16} />
+                    </button>
                     <button
                       onClick={() => toggleActive(member)}
                       title={member.active ? 'Desactivar acceso' : 'Activar acceso'}
@@ -232,9 +258,10 @@ export default function TeamPage() {
         )}
       </div>
 
-      <p className="text-xs text-gray-400 dark:text-slate-500 mt-4 text-center">
-        Los asistentes pueden gestionar citas, pacientes y herramientas de marketing. No pueden ver datos de facturación ni configurar el perfil del médico.
-      </p>
+      <div className="mt-4 space-y-1 text-xs text-gray-400 dark:text-slate-500 text-center">
+        <p>Los asistentes pueden gestionar citas, pacientes, recetas, órdenes, certificados y marketing.</p>
+        <p>El ícono <span className="inline-flex items-center gap-0.5 text-violet-500"><PenLine size={11} /> pluma</span> autoriza a la asistente a aplicar la firma digital del médico en documentos.</p>
+      </div>
     </div>
   )
 }

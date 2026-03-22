@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift, UsersRound,
+  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -36,8 +36,13 @@ const adminItems = [
   { href: '/team',       icon: UsersRound,  label: 'Equipo' },
 ]
 
-// Mobile bottom tab bar: Reportes + primeros 4 clínicos
+// Item exclusivo para ASSISTANT — aparece primero en la navegación
+const receptionItem = { href: '/reception', icon: ClipboardList, label: 'Recepción' }
+
+// Mobile bottom tab bar: Reportes + primeros 4 clínicos (para OWNER)
+// Para ASSISTANT: Recepción + primeros 4 clínicos
 const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
+const assistantTabItems = [receptionItem, ...clinicalItems.slice(0, 4)]
 
 const gearItems = [
   { href: '/profile',   icon: User,     label: 'Mi Perfil' },
@@ -173,12 +178,25 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   // ── Shared nav content (used in both desktop sidebar and mobile drawer) ──────
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
     <nav className={`flex-1 overflow-y-auto ${mobile ? 'p-4' : 'p-4'}`}>
-      {/* Reportes — visión general, siempre primero */}
-      <div className="space-y-1 mb-1">
-        <NavLink {...topItem} />
-      </div>
+      {/* Recepción — solo visible para ASSISTANT, va primero */}
+      {role === 'ASSISTANT' && (
+        <>
+          <div className="space-y-1 mb-1">
+            <NavLink {...receptionItem} />
+          </div>
+          <hr className="border-gray-100 dark:border-gray-700 my-2" />
+        </>
+      )}
 
-      <hr className="border-gray-100 dark:border-gray-700 my-2" />
+      {/* Reportes — visión general (solo OWNER) */}
+      {role !== 'ASSISTANT' && (
+        <>
+          <div className="space-y-1 mb-1">
+            <NavLink {...topItem} />
+          </div>
+          <hr className="border-gray-100 dark:border-gray-700 my-2" />
+        </>
+      )}
 
       {/* Group 1 — Clinical */}
       <div className="space-y-1">
@@ -343,7 +361,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
       {/* ── MOBILE BOTTOM TAB BAR ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex shadow-lg">
-        {tabItems.map(({ href, icon: Icon, label }) => (
+        {(role === 'ASSISTANT' ? assistantTabItems : tabItems).map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}
             className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
               isActive(href)

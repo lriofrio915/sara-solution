@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getDoctorFromUser } from '@/lib/doctor-auth'
 
 export const dynamic = 'force-dynamic'
 
 async function getDoctor(user: { id: string; email?: string | null }) {
-  return prisma.doctor.findFirst({
-    where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true },
-  })
+  return getDoctorFromUser(user)
 }
 
 // GET /api/patients/[id]/controles

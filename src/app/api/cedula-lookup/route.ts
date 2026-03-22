@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getDoctorFromUser } from '@/lib/doctor-auth'
 import { validateCedula } from '@/lib/cedula-ec'
 
 export const dynamic = 'force-dynamic'

@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest) {
     const members = await prisma.doctorMember.findMany({
       where: { doctorId: doctor.id },
       orderBy: { createdAt: 'asc' },
-      select: { id: true, name: true, email: true, role: true, active: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, active: true, canSign: true, avatarUrl: true, createdAt: true },
     })
 
     return NextResponse.json({ members })

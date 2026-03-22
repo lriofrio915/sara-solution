@@ -855,6 +855,9 @@ model DoctorMember {
   name     String
   role     MemberRole @default(ASSISTANT)
   active   Boolean    @default(true)
+  canSign  Boolean    @default(false)  // El médico puede autorizar a la asistente a firmar documentos
+  avatarUrl String?                    // Foto de perfil propia de la asistente
+  phone    String?                     // Teléfono de contacto de la asistente
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
