@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift,
+  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift, UsersRound,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -33,6 +33,7 @@ const adminItems = [
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
   { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
   { href: '/referidos',  icon: Gift,        label: 'Referidos' },
+  { href: '/team',       icon: UsersRound,  label: 'Equipo' },
 ]
 
 // Mobile bottom tab bar: Reportes + primeros 4 clínicos
@@ -54,9 +55,10 @@ interface Props {
   isSuperAdmin?: boolean
   plan?: EffectivePlan
   trialDaysLeft?: number
+  role?: 'OWNER' | 'ASSISTANT'
 }
 
-export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin, plan, trialDaysLeft }: Props) {
+export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin, plan, trialDaysLeft, role = 'OWNER' }: Props) {
   const [open, setOpen] = useState(false)
   const [gearOpen, setGearOpen] = useState(false)
   const pathname = usePathname()
@@ -261,7 +263,14 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
               <AvatarEl size={9} />
             </Link>
             <Link href="/profile" className="flex-1 min-w-0 group">
-              <p className="font-semibold text-gray-900 dark:text-white text-sm truncate group-hover:text-primary transition-colors">{firstName}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm truncate group-hover:text-primary transition-colors">{firstName}</p>
+                {role === 'ASSISTANT' && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex-shrink-0">
+                    AST
+                  </span>
+                )}
+              </div>
               <p className="text-gray-400 dark:text-slate-400 text-xs truncate">{specialty}</p>
             </Link>
             <GearMenu />

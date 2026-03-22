@@ -1,42 +1,18 @@
 /**
  * GET /api/cron/appointment-reminders
  *
- * Sends WhatsApp reminders for appointments happening in the next ~24 hours.
- * Uses the Reminder model to track sent messages and avoid duplicates.
+ * Sends WhatsApp reminders for appointments:
+ *   - 24h before  (marker: wa:{id})
+ *   - 2h before   (marker: wa:2h:{id})
  *
- * Call this endpoint every hour via Vercel Cron or any external scheduler.
- * Protect with CRON_SECRET env var.
+ * Run this endpoint every hour via cron.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendWA } from '@/lib/whatsapp'
 
 export const dynamic = 'force-dynamic'
-
-// ─── WhatsApp sender (Evolution API) ─────────────────────────────────────────
-
-async function sendWA(to: string, text: string): Promise<boolean> {
-  const evolutionUrl = process.env.EVOLUTION_API_URL
-  const evolutionKey = process.env.EVOLUTION_API_KEY
-  const instanceName = process.env.EVOLUTION_INSTANCE_NAME
-  if (!evolutionUrl || !evolutionKey || !instanceName) return false
-
-  const phone = to.replace(/\D/g, '')
-  if (phone.length < 7) return false
-
-  try {
-    const res = await fetch(`${evolutionUrl}/message/sendText/${instanceName}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: evolutionKey },
-      body: JSON.stringify({ number: phone, text }),
-    })
-    return res.ok
-  } catch {
-    return false
-  }
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatEcDate(date: Date): string {
   return date.toLocaleDateString('es-EC', {
@@ -59,10 +35,7 @@ const TYPE_LABEL: Record<string, string> = {
   FOLLOW_UP:   'Seguimiento',
 }
 
-// ─── Handler ─────────────────────────────────────────────────────────────────
-
 export async function GET(req: NextRequest) {
-  // Auth — allow Vercel Cron (no secret) or external cron with Bearer token
   const cronSecret = process.env.CRON_SECRET
   if (cronSecret) {
     const auth = req.headers.get('authorization')
@@ -72,16 +45,24 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Window: appointments between 23h 50m and 24h 10m from now (20 min window)
-    // With an hourly cron, each appointment falls in this window exactly once.
     const now = new Date()
-    const windowStart = new Date(now.getTime() + 23 * 60 * 60 * 1000 + 50 * 60 * 1000)
-    const windowEnd   = new Date(now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000)
 
+    // ── Window 24h (±10 min) ──────────────────────────────────────────────────
+    const w24Start = new Date(now.getTime() + 23 * 60 * 60 * 1000 + 50 * 60 * 1000)
+    const w24End   = new Date(now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000)
+
+    // ── Window 2h (±10 min) ───────────────────────────────────────────────────
+    const w2hStart = new Date(now.getTime() + 1 * 60 * 60 * 1000 + 50 * 60 * 1000)
+    const w2hEnd   = new Date(now.getTime() + 2 * 60 * 60 * 1000 + 10 * 60 * 1000)
+
+    // Fetch all appointments in either window
     const appointments = await prisma.appointment.findMany({
       where: {
-        date: { gte: windowStart, lt: windowEnd },
         status: { in: ['SCHEDULED', 'CONFIRMED'] },
+        OR: [
+          { date: { gte: w24Start, lt: w24End } },
+          { date: { gte: w2hStart, lt: w2hEnd } },
+        ],
       },
       include: {
         patient: { select: { id: true, name: true, phone: true } },
@@ -93,12 +74,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: true, checked: 0, sent: 0 })
     }
 
-    // Load already-sent reminder markers for these appointments
-    const apptIds = appointments.map((a) => a.id)
+    // Load sent markers
+    const markerKeys24 = appointments.map((a) => `wa:${a.id}`)
+    const markerKeys2h = appointments.map((a) => `wa:2h:${a.id}`)
     const alreadySent = await prisma.reminder.findMany({
       where: {
         category: 'wa_appt_reminder',
-        title: { in: apptIds.map((id) => `wa:${id}`) },
+        title: { in: [...markerKeys24, ...markerKeys2h] },
       },
       select: { title: true },
     })
@@ -108,72 +90,79 @@ export async function GET(req: NextRequest) {
     let skipped = 0
 
     for (const appt of appointments) {
-      const markerKey = `wa:${appt.id}`
-
-      // Skip if already sent
-      if (sentSet.has(markerKey)) {
-        skipped++
-        continue
-      }
-
       const dateStr = formatEcDate(appt.date)
       const timeStr = formatEcTime(appt.date)
-      let anySent = false
+      const apptTime = appt.date.getTime()
+      const is24h = apptTime >= w24Start.getTime() && apptTime < w24End.getTime()
+      const is2h  = apptTime >= w2hStart.getTime() && apptTime < w2hEnd.getTime()
 
-      // ── Send to patient ──────────────────────────────────────────────────
-      if (appt.patient.phone) {
-        const msg =
-          `Hola *${appt.patient.name}* 👋\n\n` +
-          `Te recordamos que mañana tienes una *cita médica* 📅\n\n` +
-          `👨‍⚕️ *Médico:* Dr. ${appt.doctor.name}\n` +
-          `📅 *Fecha:* ${dateStr}\n` +
-          `🕐 *Hora:* ${timeStr}\n` +
-          `⏱ *Duración:* ${appt.duration} min\n` +
-          (appt.reason ? `📋 *Motivo:* ${appt.reason}\n` : '') +
-          `\nSi necesitas cancelar o reprogramar, comunícate con tu médico.\n\n` +
-          `_— Sara, Asistente Médico_`
+      // ── 24h reminder ─────────────────────────────────────────────────────────
+      if (is24h) {
+        const markerKey = `wa:${appt.id}`
+        if (sentSet.has(markerKey)) { skipped++; continue }
 
-        const ok = await sendWA(appt.patient.phone, msg)
-        if (ok) { sent++; anySent = true }
+        let anySent = false
+
+        if (appt.patient.phone) {
+          const msg =
+            `Hola *${appt.patient.name}* 👋\n\n` +
+            `Te recordamos que mañana tienes una *cita médica* 📅\n\n` +
+            `👨‍⚕️ *Médico:* ${appt.doctor.name}\n` +
+            `📅 *Fecha:* ${dateStr}\n` +
+            `🕐 *Hora:* ${timeStr}\n` +
+            `⏱ *Duración:* ${appt.duration} min\n` +
+            (appt.reason ? `📋 *Motivo:* ${appt.reason}\n` : '') +
+            `\nSi necesitas cancelar o reprogramar, comunícate con tu médico.\n\n` +
+            `_— Sara, Asistente Médico_`
+          const ok = await sendWA(appt.patient.phone, msg)
+          if (ok) { sent++; anySent = true }
+        }
+
+        const doctorPhone = appt.doctor.whatsapp || appt.doctor.phone
+        if (doctorPhone) {
+          const msg =
+            `📅 *Recordatorio — mañana*\n\n` +
+            `👤 *Paciente:* ${appt.patient.name}\n` +
+            `🕐 *Hora:* ${timeStr}\n` +
+            `📋 *Tipo:* ${TYPE_LABEL[appt.type] ?? appt.type}\n` +
+            (appt.reason ? `💬 *Motivo:* ${appt.reason}` : '')
+          const ok = await sendWA(doctorPhone, msg)
+          if (ok) { sent++; anySent = true }
+        }
+
+        if (anySent) {
+          await prisma.reminder.create({
+            data: { doctorId: appt.doctorId, title: markerKey, category: 'wa_appt_reminder', dueDate: appt.date, completed: true, completedAt: now, priority: 'LOW' },
+          })
+        }
       }
 
-      // ── Send to doctor ───────────────────────────────────────────────────
-      const doctorPhone = appt.doctor.whatsapp || appt.doctor.phone
-      if (doctorPhone) {
-        const msg =
-          `📅 *Recordatorio de cita — mañana*\n\n` +
-          `👤 *Paciente:* ${appt.patient.name}\n` +
-          `🕐 *Hora:* ${timeStr}\n` +
-          `📋 *Tipo:* ${TYPE_LABEL[appt.type] ?? appt.type}\n` +
-          (appt.reason ? `💬 *Motivo:* ${appt.reason}` : '')
+      // ── 2h reminder ──────────────────────────────────────────────────────────
+      if (is2h) {
+        const markerKey = `wa:2h:${appt.id}`
+        if (sentSet.has(markerKey)) { skipped++; continue }
 
-        const ok = await sendWA(doctorPhone, msg)
-        if (ok) { sent++; anySent = true }
-      }
+        let anySent = false
 
-      // ── Mark as sent to avoid duplicates ────────────────────────────────
-      if (anySent) {
-        await prisma.reminder.create({
-          data: {
-            doctorId:    appt.doctorId,
-            title:       markerKey,
-            category:    'wa_appt_reminder',
-            dueDate:     appt.date,
-            completed:   true,
-            completedAt: new Date(),
-            priority:    'LOW',
-          },
-        })
+        if (appt.patient.phone) {
+          const msg =
+            `⏰ *Recordatorio — en 2 horas*\n\n` +
+            `Hola *${appt.patient.name}*, tu cita con *${appt.doctor.name}* es hoy a las *${timeStr}*.\n\n` +
+            `Por favor, preséntate 5 minutos antes. ¡Te esperamos! 😊\n\n` +
+            `_— Sara, Asistente Médico_`
+          const ok = await sendWA(appt.patient.phone, msg)
+          if (ok) { sent++; anySent = true }
+        }
+
+        if (anySent) {
+          await prisma.reminder.create({
+            data: { doctorId: appt.doctorId, title: markerKey, category: 'wa_appt_reminder', dueDate: appt.date, completed: true, completedAt: now, priority: 'LOW' },
+          })
+        }
       }
     }
 
-    return NextResponse.json({
-      ok: true,
-      checked: appointments.length,
-      sent,
-      skipped,
-      window: { from: windowStart.toISOString(), to: windowEnd.toISOString() },
-    })
+    return NextResponse.json({ ok: true, checked: appointments.length, sent, skipped })
   } catch (err) {
     console.error('GET /api/cron/appointment-reminders:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

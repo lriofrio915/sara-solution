@@ -102,6 +102,23 @@ function AppointmentDrawer({
   const [rescheduleDate, setRescheduleDate] = useState('')
   const [rescheduleTime, setRescheduleTime] = useState('')
   const [saving, setSaving] = useState(false)
+  const [reminding, setReminding] = useState(false)
+  const [remindResult, setRemindResult] = useState<string | null>(null)
+
+  async function handleRemind() {
+    if (!appt.patient.phone) return
+    setReminding(true)
+    setRemindResult(null)
+    try {
+      const res = await fetch(`/api/appointments/${appt.id}/remind`, { method: 'POST' })
+      const data = await res.json()
+      setRemindResult(data.sent > 0 ? '✓ Recordatorio enviado' : '⚠ No se pudo enviar')
+    } catch {
+      setRemindResult('⚠ Error al enviar')
+    } finally {
+      setReminding(false)
+    }
+  }
 
   useEffect(() => {
     const d = new Date(appt.date)
@@ -219,6 +236,29 @@ function AppointmentDrawer({
                   <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40 rounded-xl p-3.5">{appt.notes}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* WhatsApp reminder */}
+          {appt.patient.phone && (appt.status === 'SCHEDULED' || appt.status === 'CONFIRMED') && (
+            <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-xl p-4">
+              <p className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide mb-2">WhatsApp</p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={handleRemind}
+                  disabled={reminding}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-green-500 hover:bg-green-600 text-white disabled:opacity-60 transition-colors flex items-center gap-2"
+                >
+                  {reminding ? (
+                    <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Enviando...</>
+                  ) : '📲 Enviar recordatorio ahora'}
+                </button>
+                {remindResult && (
+                  <span className={`text-xs font-medium ${remindResult.startsWith('✓') ? 'text-green-600' : 'text-orange-600'}`}>
+                    {remindResult}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 

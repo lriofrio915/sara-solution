@@ -81,6 +81,11 @@ enum SocialPlatform {
   BOTH
 }
 
+enum MemberRole {
+  OWNER
+  ASSISTANT
+}
+
 // ─── Doctor ─────────────────────────────────────────────────
 
 model Doctor {
@@ -170,6 +175,8 @@ model Doctor {
   patientLeads           PatientLead[]
   givenReferrals         Referral[]    @relation("GivenReferrals")
   receivedReferral       Referral?     @relation("ReceivedReferral")
+  doctorMembers          DoctorMember[]
+  satisfactionSurveys    SatisfactionSurvey[]
 
   @@index([slug])
   @@index([email])
@@ -226,6 +233,7 @@ model Patient {
   chart               PatientChart?
   attentions          Attention[]
   diagnoses           Diagnosis[]
+  satisfactionSurveys SatisfactionSurvey[]
 
   @@index([doctorId])
   @@index([email])
@@ -254,6 +262,7 @@ model Appointment {
   prescriptions       Prescription[]
   examOrders          ExamOrder[]
   medicalCertificates MedicalCertificate[]
+  satisfactionSurvey  SatisfactionSurvey?
 
   @@index([doctorId])
   @@index([patientId])
@@ -830,4 +839,49 @@ model CatalogoMedicamento {
 
   @@index([dci])
   @@index([codigoAtc])
+}
+
+// ─── DoctorMember (Multi-usuario: médico + asistente) ────────
+
+model DoctorMember {
+  id       String     @id @default(cuid())
+  doctorId String
+  authId   String     @unique  // Supabase Auth UID del miembro
+  email    String
+  name     String
+  role     MemberRole @default(ASSISTANT)
+  active   Boolean    @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([authId])
+}
+
+// ─── SatisfactionSurvey (Encuestas post-consulta) ────────────
+
+model SatisfactionSurvey {
+  id            String    @id @default(cuid())
+  doctorId      String
+  patientId     String?
+  appointmentId String?   @unique   // una encuesta por cita
+  token         String    @unique   // UUID para acceso público sin autenticación
+  sentAt        DateTime  @default(now())
+  answeredAt    DateTime?
+  score         Int?      // 1-5 estrellas
+  comment       String?   @db.Text
+  wouldRecommend Boolean?
+  source        String    @default("whatsapp") // whatsapp | email | manual
+
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient     Patient?     @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([doctorId])
+  @@index([token])
+  @@index([doctorId, answeredAt])
+  @@index([appointmentId])
 }

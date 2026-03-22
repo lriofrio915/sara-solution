@@ -256,6 +256,24 @@ const features = [
     color: 'bg-violet-50 text-violet-600',
   },
   {
+    icon: '🧠',
+    title: 'IA 360° Clínica',
+    desc: 'Antes de cada consulta, Sara analiza el historial completo del paciente y te entrega un resumen inteligente con alertas, tendencias y recomendaciones.',
+    color: 'bg-indigo-50 text-indigo-600',
+  },
+  {
+    icon: '🩺',
+    title: 'Controles médicos especiales',
+    desc: 'Calendario PAI Ecuador, gráficas de crecimiento infantil OMS y seguimiento de embarazo con edad gestacional y FPP calculados automáticamente.',
+    color: 'bg-rose-50 text-rose-600',
+  },
+  {
+    icon: '🎂',
+    title: 'Recordatorio de cumpleaños',
+    desc: 'Sara detecta el cumpleaños de tus pacientes y te avisa por WhatsApp para que nunca se te pase — un gesto que fideliza.',
+    color: 'bg-amber-50 text-amber-600',
+  },
+  {
     icon: '📱',
     title: 'Contenido para RRSS',
     desc: 'Sara redacta posts educativos e imágenes con IA para Instagram, Facebook y TikTok — sin que tú escribas una sola línea.',
@@ -263,15 +281,33 @@ const features = [
   },
   {
     icon: '🔔',
-    title: 'Recordatorios automáticos',
-    desc: 'Nunca olvides un seguimiento. Sara manda recordatorios de citas, controles y medicamentos a ti y a tus pacientes.',
+    title: 'Recordatorios por WhatsApp',
+    desc: 'Recordatorios automáticos 24h y 2h antes de cada cita. También puedes enviarlos manualmente con un clic directamente desde la agenda.',
     color: 'bg-orange-50 text-orange-600',
   },
   {
     icon: '⭐',
-    title: 'Calificación del servicio',
-    desc: 'Recopila feedback automático de tus pacientes tras cada consulta. Construye reputación y mejora tu práctica.',
+    title: 'Encuestas de satisfacción',
+    desc: 'Sara envía automáticamente una encuesta tras cada consulta. Recopila calificaciones y comentarios para mejorar tu práctica y construir reputación.',
     color: 'bg-yellow-50 text-yellow-600',
+  },
+  {
+    icon: '👤',
+    title: 'Multi-usuario',
+    desc: 'Invita a tu asistente para que gestione la agenda y el marketing mientras tú te concentras en la atención médica. Cada uno con su propia clave.',
+    color: 'bg-cyan-50 text-cyan-600',
+  },
+  {
+    icon: '🌐',
+    title: 'Web médica profesional',
+    desc: 'Tu página personalizada lista para compartir con pacientes. Incluye perfil, especialidad y agenda en línea desde el primer día.',
+    color: 'bg-emerald-50 text-emerald-600',
+  },
+  {
+    icon: '📊',
+    title: 'Análisis e informes',
+    desc: 'Dashboard con métricas clave: citas por período, tasa de retención, ingresos, campañas de marketing y rendimiento del consultorio.',
+    color: 'bg-sky-50 text-sky-600',
   },
 ]
 
@@ -292,7 +328,7 @@ function Features() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {features.map((f) => (
             <div
               key={f.title}
@@ -534,6 +570,11 @@ const plans = [
       { icon: '✔', text: 'Agenda, fichas, recetas digitales y CIE-10.' },
       { icon: '✔', text: 'Atención y agendamiento automático 24/7.' },
       { icon: '✔', text: 'Marketing Suite con IA para redes sociales.' },
+      { icon: '🧠', text: 'IA 360°: análisis clínico antes de cada consulta.' },
+      { icon: '🩺', text: 'Controles PAI, crecimiento y embarazo.' },
+      { icon: '⭐', text: 'Encuestas de satisfacción automáticas.' },
+      { icon: '🔔', text: 'Recordatorios WA + recordatorio de cumpleaños.' },
+      { icon: '👤', text: '2 usuarios: médico + asistente incluido.' },
       { icon: '✔', text: 'Web Médica Profesional incluida.' },
       { icon: '✔', text: 'Soporte Prioritario.' },
     ],
@@ -555,8 +596,8 @@ const plans = [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
       { icon: '💰', text: 'Equivale a $54.08/mes — ahorra $299 al año.' },
       { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor).' },
-      { icon: '✔', text: 'Soporte VIP prioritario todo el año.' },
       { icon: '✔', text: 'Acceso anticipado a nuevas funcionalidades.' },
+      { icon: '✔', text: 'Soporte VIP prioritario todo el año.' },
     ],
     cta: 'Elegir Plan Anual',
     ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
@@ -574,8 +615,9 @@ const plans = [
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan PRO incluido.' },
-      { icon: '✔', text: 'Gestión Multi-sede y Multi-médico (Hasta 5).' },
-      { icon: '✔', text: 'White Label: Marca y dominio personalizado.' },
+      { icon: '✔', text: 'Multi-sede y Multi-médico (hasta 5 médicos).' },
+      { icon: '👥', text: 'Usuarios ilimitados por médico (asistentes).' },
+      { icon: '✔', text: 'White Label: marca y dominio personalizado.' },
       { icon: '✔', text: 'Onboarding y configuración asistida.' },
       { icon: '✔', text: 'Soporte VIP (Respuesta < 2 horas).' },
     ],
