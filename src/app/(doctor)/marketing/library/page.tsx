@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 
 function AIImage({ prompt }: { prompt: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
@@ -43,7 +42,7 @@ function AIImage({ prompt }: { prompt: string }) {
           rel="noopener noreferrer"
           className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
         >
-          ⬇ Descargar
+          Descargar
         </a>
       </div>
     </div>
@@ -67,19 +66,36 @@ interface SocialPost {
 }
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'Todos' },
+  { value: '', label: 'Todos los estados' },
   { value: 'DRAFT', label: 'Borrador' },
   { value: 'APPROVED', label: 'Aprobados' },
   { value: 'PUBLISHED', label: 'Publicados' },
 ]
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'Todos' },
+  { value: '', label: 'Todos los formatos' },
   { value: 'POST', label: 'Post' },
   { value: 'CAROUSEL', label: 'Carrusel' },
-  { value: 'REEL', label: 'Reel' },
+  { value: 'REEL', label: 'Reel / Video' },
   { value: 'STORY', label: 'Story' },
 ]
+
+const PLATFORM_OPTIONS = [
+  { value: '', label: 'Todas las redes' },
+  { value: 'INSTAGRAM', label: 'Instagram' },
+  { value: 'FACEBOOK', label: 'Facebook' },
+  { value: 'TIKTOK', label: 'TikTok' },
+  { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'BOTH', label: 'Varias' },
+]
+
+const PLATFORM_ICONS: Record<string, string> = {
+  INSTAGRAM: '📸',
+  FACEBOOK: '👥',
+  TIKTOK: '🎵',
+  LINKEDIN: '💼',
+  BOTH: '🌐',
+}
 
 const TYPE_ICONS: Record<string, string> = {
   POST: '📝', CAROUSEL: '🎠', REEL: '🎬', STORY: '⭕',
@@ -93,12 +109,21 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Borrador',
+  APPROVED: 'Aprobado',
+  PUBLISHED: 'Publicado',
+  SCHEDULED: 'Programado',
+  REJECTED: 'Rechazado',
+}
+
 export default function LibraryPage() {
   const [posts, setPosts] = useState<SocialPost[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
+  const [platformFilter, setPlatformFilter] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [approvingId, setApprovingId] = useState<string | null>(null)
@@ -109,6 +134,7 @@ export default function LibraryPage() {
       const params = new URLSearchParams({ limit: '50' })
       if (statusFilter) params.set('status', statusFilter)
       if (typeFilter) params.set('contentType', typeFilter)
+      if (platformFilter) params.set('targetPlatform', platformFilter)
       const res = await fetch(`/api/marketing/posts?${params}`)
       const data = await res.json()
       setPosts(data.posts ?? [])
@@ -116,7 +142,7 @@ export default function LibraryPage() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, typeFilter])
+  }, [statusFilter, typeFilter, platformFilter])
 
   useEffect(() => { fetchPosts() }, [fetchPosts])
 
@@ -158,14 +184,16 @@ export default function LibraryPage() {
 
   return (
     <div className="p-6 md:p-8">
-      {/* Header + filters */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <p className="text-gray-500 dark:text-slate-300 text-sm">
-            {total > 0 ? `${total} publicación${total !== 1 ? 'es' : ''}` : 'Sin publicaciones aún'}
-          </p>
-        </div>
+        <p className="text-gray-500 dark:text-slate-300 text-sm">
+          {total > 0 ? `${total} publicación${total !== 1 ? 'es' : ''}` : 'Sin publicaciones aún'}
+        </p>
         <div className="flex gap-2 flex-wrap">
+          <select value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}
+            className="input py-1.5 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            {PLATFORM_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
             className="input py-1.5 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -174,7 +202,6 @@ export default function LibraryPage() {
             className="input py-1.5 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <Link href="/marketing/generator" className="btn-primary py-1.5 text-sm">+ Crear</Link>
         </div>
       </div>
 
@@ -188,8 +215,11 @@ export default function LibraryPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">📚</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin publicaciones</h3>
-          <p className="text-gray-500 dark:text-slate-300 mb-6 text-sm">Genera contenido con IA para verlo aquí.</p>
-          <Link href="/marketing/generator" className="btn-primary">Ir al Generador</Link>
+          <p className="text-gray-500 dark:text-slate-300 mb-6 text-sm">
+            {platformFilter || statusFilter || typeFilter
+              ? 'No hay publicaciones con los filtros seleccionados.'
+              : 'Genera contenido con IA en cualquiera de las redes para verlo aquí.'}
+          </p>
         </div>
       )}
 
@@ -197,24 +227,26 @@ export default function LibraryPage() {
         <div className="space-y-3">
           {posts.map(post => (
             <div key={post.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-              {/* Row */}
               <div
                 className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/10"
                 onClick={() => setExpandedId(prev => prev === post.id ? null : post.id)}>
-                <span className="text-2xl flex-shrink-0">{TYPE_ICONS[post.contentType] ?? '📝'}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xl">{PLATFORM_ICONS[post.targetPlatform] ?? '📱'}</span>
+                  <span className="text-lg">{TYPE_ICONS[post.contentType] ?? '📝'}</span>
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {post.topic ?? post.content.slice(0, 80)}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-400">
-                    {post.contentType} · {post.targetPlatform} ·{' '}
+                    {post.targetPlatform} · {post.contentType} ·{' '}
                     {new Date(post.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                     {post.aiGenerated && ' · ✨ IA'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[post.status] ?? STATUS_COLORS.DRAFT}`}>
-                    {post.status === 'DRAFT' ? 'Borrador' : post.status === 'APPROVED' ? 'Aprobado' : post.status === 'PUBLISHED' ? 'Publicado' : post.status}
+                    {STATUS_LABELS[post.status] ?? post.status}
                   </span>
                   {post.status === 'DRAFT' && (
                     <button onClick={() => handleApprove(post.id)} disabled={approvingId === post.id}
@@ -233,7 +265,6 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              {/* Expanded */}
               {expandedId === post.id && (
                 <div className="border-t border-gray-100 dark:border-gray-700 px-5 py-4 space-y-3 bg-gray-50/50 dark:bg-gray-700/10">
                   <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">{post.content}</p>
@@ -254,7 +285,7 @@ export default function LibraryPage() {
 
                   {post.suggestedTime && (
                     <p className="text-xs text-gray-500 dark:text-slate-300">
-                      🕐 Hora sugerida: <strong>{post.suggestedTime}</strong>
+                      Hora sugerida: <strong>{post.suggestedTime}</strong>
                     </p>
                   )}
                 </div>

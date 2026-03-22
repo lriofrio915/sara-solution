@@ -19,6 +19,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
   const contentType = searchParams.get('contentType')
+  const targetPlatform = searchParams.get('targetPlatform')
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100)
   const offset = parseInt(searchParams.get('offset') ?? '0')
 
@@ -26,6 +27,7 @@ export async function GET(req: Request) {
     doctorId: doctor.id,
     ...(status ? { status: status as never } : {}),
     ...(contentType ? { contentType: contentType as never } : {}),
+    ...(targetPlatform ? { targetPlatform: targetPlatform as never } : {}),
   }
 
   const [posts, total] = await Promise.all([

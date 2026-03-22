@@ -40,8 +40,8 @@ const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
 
 function LinkedInIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
     </svg>
   )
 }
@@ -94,16 +94,20 @@ function LinkedInImagePreview({ prompt }: { prompt: string }) {
 }
 
 export default function LinkedInTrendingPage() {
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [roleLoaded, setRoleLoaded] = useState(false)
+
   const [topics, setTopics] = useState<TrendingTopic[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [refreshSuccess, setRefreshSuccess] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null)
 
   // Generacion
   const [generating, setGenerating] = useState<string | null>(null)
-  const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2B')
+  const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2C')
   const [generatedPost, setGeneratedPost] = useState<GeneratedPost | null>(null)
   const [savedPost, setSavedPost] = useState<SavedPost | null>(null)
   const [activeTopic, setActiveTopic] = useState<TrendingTopic | null>(null)
@@ -116,11 +120,24 @@ export default function LinkedInTrendingPage() {
   const [saving, setSaving] = useState(false)
   const [markingPublished, setMarkingPublished] = useState(false)
 
-  // Topic manual
+  // Tema manual
   const [showAddTopic, setShowAddTopic] = useState(false)
   const [newTopicTitle, setNewTopicTitle] = useState('')
   const [newTopicCategory, setNewTopicCategory] = useState('medicina_general')
   const [addingTopic, setAddingTopic] = useState(false)
+
+  // Load role
+  useEffect(() => {
+    fetch('/api/auth/role')
+      .then(r => r.json())
+      .then(d => {
+        setIsAdmin(!!d.isAdmin)
+        // Non-admins always use B2C (patient-focused)
+        if (!d.isAdmin) setStrategy('B2C')
+      })
+      .catch(() => {})
+      .finally(() => setRoleLoaded(true))
+  }, [])
 
   const fetchTopics = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true)
@@ -152,6 +169,22 @@ export default function LinkedInTrendingPage() {
   }, [])
 
   useEffect(() => { fetchTopics() }, [fetchTopics])
+
+  const handleDeleteTopic = async (id: string) => {
+    if (!window.confirm('¿Eliminar este tema?')) return
+    setDeletingTopicId(id)
+    try {
+      await fetch(`/api/marketing/linkedin/trending?id=${id}`, { method: 'DELETE' })
+      setTopics(prev => prev.filter(t => t.id !== id))
+      if (activeTopic?.id === id) {
+        setActiveTopic(null)
+        setGeneratedPost(null)
+        setSavedPost(null)
+      }
+    } finally {
+      setDeletingTopicId(null)
+    }
+  }
 
   const handleGenerate = async (topic: TrendingTopic) => {
     setGenerating(topic.id)
@@ -269,7 +302,7 @@ export default function LinkedInTrendingPage() {
             Temas del Momento
           </h2>
           <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
-            Genera posts LinkedIn desde tendencias actuales en salud y tecnología
+            Genera posts para LinkedIn desde tendencias actuales
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -293,14 +326,12 @@ export default function LinkedInTrendingPage() {
         </div>
       </div>
 
-      {/* Error de fetch */}
       {fetchError && (
         <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm">
           {fetchError}
         </div>
       )}
 
-      {/* Éxito de refresh */}
       {refreshSuccess && (
         <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 text-sm font-medium">
           {refreshSuccess}
@@ -315,7 +346,7 @@ export default function LinkedInTrendingPage() {
             <input
               value={newTopicTitle}
               onChange={(e) => setNewTopicTitle(e.target.value)}
-              placeholder="Ej: Beneficios de la telemedicina en consultorios pequeños"
+              placeholder="Ej: Beneficios de la telemedicina en consultorios"
               className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
             <select
@@ -338,40 +369,51 @@ export default function LinkedInTrendingPage() {
         </div>
       )}
 
-      {/* Estrategia selector */}
-      <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">
-          Estrategia de contenido
-        </p>
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={() => setStrategy('B2B')}
-            className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-              strategy === 'B2B'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
-            }`}
-          >
-            <p className="font-semibold text-sm text-gray-900 dark:text-white">B2B — Admin Sara Medical</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
-            </p>
-          </button>
-          <button
-            onClick={() => setStrategy('B2C')}
-            className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-              strategy === 'B2C'
-                ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30'
-                : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
-            }`}
-          >
-            <p className="font-semibold text-sm text-gray-900 dark:text-white">B2C — Médico buscando pacientes</p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Posicionar al médico como experto. Tono: educativo, empático, confianza.
-            </p>
-          </button>
+      {/* Estrategia — solo admin ve B2B */}
+      {roleLoaded && (
+        <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+            Enfoque del post
+          </p>
+          {isAdmin ? (
+            <div className="flex gap-3 flex-wrap">
+              <button
+                onClick={() => setStrategy('B2B')}
+                className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
+                  strategy === 'B2B'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
+                }`}
+              >
+                <p className="font-semibold text-sm text-gray-900 dark:text-white">Captar médicos</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
+                </p>
+              </button>
+              <button
+                onClick={() => setStrategy('B2C')}
+                className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
+                  strategy === 'B2C'
+                    ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
+                }`}
+              >
+                <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  Posicionarte como experto en tu área. Tono: educativo, empático, confianza.
+                </p>
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-900/30">
+              <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                Los posts se crean para posicionarte como experto y generar confianza con tus pacientes.
+              </p>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Filtro por categoría */}
       {topics.length > 0 && (
@@ -435,6 +477,11 @@ export default function LinkedInTrendingPage() {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat?.color ?? 'bg-gray-100 text-gray-600'}`}>
                             {cat?.label ?? topic.category}
                           </span>
+                          {topic.source === 'manual' && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              Propio
+                            </span>
+                          )}
                           <span className="text-xs text-gray-400">
                             {Math.round(topic.relevance * 100)}% relevancia
                           </span>
@@ -458,21 +505,37 @@ export default function LinkedInTrendingPage() {
                           </a>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleGenerate(topic)}
-                        disabled={!!generating}
-                        className={`flex-shrink-0 px-3 py-2 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                          isActive
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200'
-                        }`}
-                      >
-                        {isGenerating ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          'Generar'
-                        )}
-                      </button>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={() => handleGenerate(topic)}
+                          disabled={!!generating}
+                          className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                            isActive
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200'
+                          }`}
+                        >
+                          {isGenerating ? (
+                            <div className="w-4 h-4 border-2 border-white dark:border-gray-900 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            'Generar'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTopic(topic.id)}
+                          disabled={deletingTopicId === topic.id}
+                          title="Eliminar tema"
+                          className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                        >
+                          {deletingTopicId === topic.id ? (
+                            <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )
@@ -481,13 +544,13 @@ export default function LinkedInTrendingPage() {
           )}
         </div>
 
-        {/* Panel de resultado generado */}
+        {/* Panel de resultado */}
         <div>
           {!generatedPost && !generating && (
             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-center p-8">
               <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
               <p className="text-gray-500 dark:text-slate-400 text-sm">
-                Selecciona un tema y haz clic en <strong>Generar</strong> para crear tu post LinkedIn con IA
+                Selecciona un tema y haz clic en <strong>Generar</strong> para crear tu post
               </p>
             </div>
           )}
@@ -516,13 +579,13 @@ export default function LinkedInTrendingPage() {
                 )}
               </div>
 
-              {/* Hook preview */}
+              {/* Hook */}
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Primera línea (hook)</p>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Primera línea (gancho)</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{generatedPost.hook}</p>
               </div>
 
-              {/* Editor de contenido */}
+              {/* Editor */}
               <div>
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
                   Contenido del post
@@ -536,10 +599,10 @@ export default function LinkedInTrendingPage() {
                 <p className="text-xs text-gray-400 mt-1 text-right">{editContent.length} caracteres</p>
               </div>
 
-              {/* Hashtags editor */}
+              {/* Hashtags */}
               <div>
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
-                  Hashtags (separados por espacio)
+                  Hashtags
                 </label>
                 <input
                   value={editHashtags}
@@ -548,12 +611,10 @@ export default function LinkedInTrendingPage() {
                 />
               </div>
 
-              {/* Imagen */}
               {generatedPost.imagePrompt && (
                 <LinkedInImagePreview prompt={generatedPost.imagePrompt} />
               )}
 
-              {/* Metadata */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-400 uppercase tracking-wide">Mejor hora</p>
@@ -565,7 +626,6 @@ export default function LinkedInTrendingPage() {
                 </div>
               </div>
 
-              {/* Acciones */}
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={handleSaveEdits}
@@ -577,9 +637,7 @@ export default function LinkedInTrendingPage() {
                 <button
                   onClick={handleCopyAll}
                   className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
-                    copied
-                      ? 'bg-green-600 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    copied ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
                   {copied ? 'Copiado!' : 'Copiar texto + hashtags'}
