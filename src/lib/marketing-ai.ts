@@ -19,7 +19,7 @@ export interface BrandContext {
 export interface GeneratePostOptions {
   topic: string
   contentType: 'POST' | 'CAROUSEL' | 'REEL' | 'STORY'
-  targetPlatform: 'INSTAGRAM' | 'FACEBOOK' | 'BOTH'
+  targetPlatform: 'INSTAGRAM' | 'FACEBOOK' | 'TIKTOK' | 'BOTH'
   brand: BrandContext
   extraInstructions?: string
 }
@@ -72,6 +72,21 @@ REGLAS:
 }
 
 function buildUserPrompt(opts: GeneratePostOptions): string {
+  // TikTok tiene su propio formato de guión de video
+  if (opts.targetPlatform === 'TIKTOK') {
+    return `Crea un guión de video de TikTok para un médico sobre: "${opts.topic}"
+${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+
+El video debe durar entre 30-60 segundos. Responde con este JSON:
+{
+  "content": "guión completo del video con indicaciones de cada segmento (separa secciones con saltos de línea)",
+  "reelScript": "🎬 GANCHO (0-3 seg): [texto en pantalla]\n\n📱 DESARROLLO (3-45 seg): [contenido principal paso a paso]\n\n✅ CTA (últimos 5 seg): [llamada a la acción]",
+  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"],
+  "imagePrompt": "descripción del thumbnail ideal para el video de TikTok, formato vertical 9:16, llamativo",
+  "suggestedTime": "Ej: Martes 7pm o Viernes 9pm"
+}`
+  }
+
   const platformNote = opts.targetPlatform === 'BOTH'
     ? 'para Instagram y Facebook'
     : `para ${opts.targetPlatform}`

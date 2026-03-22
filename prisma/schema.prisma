@@ -79,6 +79,7 @@ enum SocialPlatform {
   INSTAGRAM
   FACEBOOK
   LINKEDIN
+  TIKTOK
   BOTH
 }
 

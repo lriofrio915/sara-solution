@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { fetchAndStoreTrendingTopics, deleteExpiredTrendingTopics } from '@/lib/trending-fetcher'
+import { fetchAndStoreTrendingTopics } from '@/lib/trending-fetcher'
 
 async function isAuthenticated() {
   const supabase = await createClient()
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
   try {
     if (refresh) {
-      // En refresh manual: borrar TODOS los temas para traer contenido fresco
+      // Borrar todos los temas no-manuales para traer contenido fresco
       await prisma.trendingTopic.deleteMany({ where: { source: { not: 'manual' } } })
       await fetchAndStoreTrendingTopics()
     }
@@ -37,8 +37,9 @@ export async function GET(req: Request) {
       take: 20,
     })
 
-    // Si no hay topics vigentes, fetch automático
-    if (topics.length === 0) {
+    // Auto-fetch si hay menos de 3 temas no-manuales vigentes
+    const nonManualCount = topics.filter(t => t.source !== 'manual').length
+    if (nonManualCount < 3 && !refresh) {
       await fetchAndStoreTrendingTopics()
       topics = await prisma.trendingTopic.findMany({
         where: { expiresAt: { gt: new Date() } },
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
   }
 }
 
-// POST /api/marketing/linkedin/trending — agregar topic manual
+// POST — agregar tema manual
 export async function POST(req: Request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
@@ -75,4 +76,18 @@ export async function POST(req: Request) {
   })
 
   return NextResponse.json({ topic })
+}
+
+// DELETE — eliminar un tema por id
+export async function DELETE(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id requerido' }, { status: 400 })
+
+  await prisma.trendingTopic.delete({ where: { id } }).catch(() => null)
+  return NextResponse.json({ ok: true })
 }
