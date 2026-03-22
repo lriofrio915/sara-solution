@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import DoctorContactForm from '@/components/DoctorContactForm'
 import PublicPageActions from '@/components/PublicPageActions'
 import DoctorChatWidget from '@/components/DoctorChatWidget'
+import PublicDoctorHeader from '@/components/PublicDoctorHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -147,25 +148,17 @@ export default async function DoctorPublicPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
 
-      {/* ── STICKY HEADER ───────────────────────────────────── */}
-      <header className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AvatarSm />
-            <div>
-              <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{displayName}</p>
-              <p className="text-blue-600 text-xs font-medium">{doctor.specialty}</p>
-            </div>
-          </div>
-          <Link href={`/${params.slug}/chat`}
-            className="flex items-center gap-1.5 text-white font-semibold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow-md hover:opacity-90 transition-all hover:-translate-y-0.5 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
-            <span>📅</span>
-            <span className="hidden sm:inline">Reservar cita</span>
-            <span className="sm:hidden">Cita</span>
-          </Link>
-        </div>
-      </header>
+      {/* ── FIXED HEADER (scroll-aware) ──────────────────────── */}
+      <PublicDoctorHeader
+        slug={params.slug}
+        displayName={displayName}
+        specialty={doctor.specialty}
+        avatarUrl={doctor.avatarUrl}
+        initials={initials}
+      />
+
+      {/* Spacer para compensar el header fixed */}
+      <div className="h-16" />
 
       <main className="max-w-5xl mx-auto px-4">
 
