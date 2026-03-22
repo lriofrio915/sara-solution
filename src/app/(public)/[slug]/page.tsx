@@ -258,18 +258,18 @@ export default async function DoctorPublicPage({ params }: Props) {
 
               {/* Horario */}
               {activeDays.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center gap-3">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center text-center">
+                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center justify-center gap-3">
                     <span className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-xl flex-shrink-0">🕐</span>
                     Horario de atención
                   </h2>
-                  <div className="space-y-3">
+                  <div className="space-y-3 w-full">
                     {activeDays.map((weekday) => {
                       const slots = scheduleByDay.get(weekday) ?? []
                       return (
-                        <div key={weekday} className="flex items-start gap-3">
-                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-700 dark:text-gray-300">{DAYS[weekday]}</span>
-                          <div className="flex flex-col gap-1">
+                        <div key={weekday} className="flex items-start justify-center gap-3">
+                          <span className="w-24 flex-shrink-0 text-sm font-semibold text-gray-700 dark:text-gray-300 text-right">{DAYS[weekday]}</span>
+                          <div className="flex flex-col gap-1 items-start">
                             {slots.map((slot, i) => (
                               <div key={i} className="flex items-center gap-2">
                                 <span className="text-sm text-gray-600 dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-lg">
@@ -290,14 +290,14 @@ export default async function DoctorPublicPage({ params }: Props) {
 
               {/* Ubicación */}
               {(doctor.address || parsedBranches.length > 0) && (
-                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center gap-3">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col items-center text-center">
+                  <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-5 flex items-center justify-center gap-3">
                     <span className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-xl flex-shrink-0">📍</span>
                     {parsedBranches.length > 0 ? 'Centros de atención' : 'Ubicación'}
                   </h2>
 
                   {doctor.address && (
-                    <div className={`${parsedBranches.length > 0 ? 'mb-4' : ''}`}>
+                    <div className={`w-full ${parsedBranches.length > 0 ? 'mb-4' : ''}`}>
                       {parsedBranches.length > 0 && (
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Consultorio principal</p>
                       )}
@@ -309,7 +309,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                   )}
 
                   {parsedBranches.filter(b => b.address).map((branch, i) => (
-                    <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-3 border border-gray-100 dark:border-gray-600 mb-2">
+                    <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-3 border border-gray-100 dark:border-gray-600 mb-2 w-full">
                       {branch.name && <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-0.5">{branch.name}</p>}
                       <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{branch.address}</p>
                     </div>
