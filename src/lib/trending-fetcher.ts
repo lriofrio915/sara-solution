@@ -68,8 +68,10 @@ const RSS_SOURCES = [
 
 async function fetchRSS(url: string): Promise<{ title: string; description: string; link: string }[]> {
   try {
+    // cache: 'no-store' evita que Next.js cachee las respuestas RSS entre requests
     const res = await fetch(url, {
       headers: { 'User-Agent': 'MedSara/1.0 (+https://consultorio.site)' },
+      cache: 'no-store',
       signal: AbortSignal.timeout(7000),
     })
     if (!res.ok) return []

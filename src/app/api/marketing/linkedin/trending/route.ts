@@ -21,7 +21,8 @@ export async function GET(req: Request) {
 
   try {
     if (refresh) {
-      await deleteExpiredTrendingTopics()
+      // En refresh manual: borrar TODOS los temas para traer contenido fresco
+      await prisma.trendingTopic.deleteMany({ where: { source: { not: 'manual' } } })
       await fetchAndStoreTrendingTopics()
     }
 

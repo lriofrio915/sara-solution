@@ -98,6 +98,7 @@ export default function LinkedInTrendingPage() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [refreshSuccess, setRefreshSuccess] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
 
   // Generacion
@@ -125,6 +126,7 @@ export default function LinkedInTrendingPage() {
     if (refresh) setRefreshing(true)
     else setLoading(true)
     setFetchError(null)
+    setRefreshSuccess(null)
     try {
       const url = '/api/marketing/linkedin/trending' + (refresh ? '?refresh=1' : '')
       const res = await fetch(url)
@@ -133,7 +135,14 @@ export default function LinkedInTrendingPage() {
         setFetchError(data.error ?? 'Error al cargar tendencias')
         return
       }
-      setTopics(data.topics ?? [])
+      const newTopics: TrendingTopic[] = data.topics ?? []
+      setTopics(newTopics)
+      if (refresh) {
+        setRefreshSuccess(newTopics.length > 0
+          ? `${newTopics.length} tendencias actualizadas`
+          : 'No se encontraron tendencias nuevas. Intenta de nuevo.')
+        setTimeout(() => setRefreshSuccess(null), 4000)
+      }
     } catch {
       setFetchError('No se pudo conectar con el servidor')
     } finally {
@@ -288,6 +297,13 @@ export default function LinkedInTrendingPage() {
       {fetchError && (
         <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm">
           {fetchError}
+        </div>
+      )}
+
+      {/* Éxito de refresh */}
+      {refreshSuccess && (
+        <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 text-sm font-medium">
+          {refreshSuccess}
         </div>
       )}
 
