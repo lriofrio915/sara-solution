@@ -45,9 +45,9 @@ const assistantTabItems = [receptionItem, ...clinicalItems.slice(0, 4)]
 
 const gearItems = [
   { href: '/profile',   icon: User,       label: 'Mi Perfil' },
-  { href: '/knowledge', icon: BookOpen,   label: 'Base de Conocimiento' },
   { href: '/team',      icon: UsersRound, label: 'Equipo' },
   { href: '/referidos', icon: Gift,       label: 'Referidos' },
+  { href: '/knowledge', icon: BookOpen,   label: 'Base de Conocimiento' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────
