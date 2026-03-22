@@ -624,6 +624,11 @@ model PatientChart {
   dentalHabits          Json?
   stimulation           Json?
 
+  // Controles médicos especiales
+  vaccineRecords  Json?   // [{id, vaccine, scheduledAgeMonths, scheduledLabel, dose, appliedDate, lot, notes}]
+  growthRecords   Json?   // [{date, ageMonths, weight, height, headCirc}]
+  pregnancyData   Json?   // {fum, fpp, method, controls:[{date, week, weight, bp, fuAltura, notes}]}
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

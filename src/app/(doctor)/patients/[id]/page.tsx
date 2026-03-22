@@ -4,6 +4,137 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+// ─── AI Analysis Panel ────────────────────────────────────────────────────────
+
+function AiAnalysisPanel({ patientId }: { patientId: string }) {
+  const [analysis, setAnalysis] = useState<string | null>(null)
+  const [sources, setSources] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+
+  async function generate() {
+    setLoading(true)
+    setError(null)
+    setOpen(true)
+    try {
+      const res = await fetch(`/api/patients/${patientId}/ai-analysis`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error al generar análisis')
+      setAnalysis(data.analysis)
+      setSources(data.sources ?? [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al generar análisis')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Simple markdown renderer (bold, headers, bullets, horizontal rules)
+  function renderMarkdown(text: string) {
+    const lines = text.split('\n')
+    return lines.map((line, i) => {
+      if (line.startsWith('### ')) return <h4 key={i} className="text-sm font-bold text-gray-800 dark:text-white mt-3 mb-1">{line.slice(4)}</h4>
+      if (line.startsWith('## '))  return <h3 key={i} className="text-base font-bold text-gray-900 dark:text-white mt-4 mb-1">{line.slice(3)}</h3>
+      if (line.startsWith('# '))   return <h2 key={i} className="text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2">{line.slice(2)}</h2>
+      if (line.startsWith('---'))  return <hr key={i} className="border-gray-200 dark:border-gray-600 my-3" />
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        const content = line.slice(2)
+        return <li key={i} className="text-sm text-gray-700 dark:text-gray-300 ml-4 list-disc">{renderInline(content)}</li>
+      }
+      if (/^\d+\.\s/.test(line)) {
+        const content = line.replace(/^\d+\.\s/, '')
+        return <li key={i} className="text-sm text-gray-700 dark:text-gray-300 ml-4 list-decimal">{renderInline(content)}</li>
+      }
+      if (line.trim() === '') return <br key={i} />
+      return <p key={i} className="text-sm text-gray-700 dark:text-gray-300">{renderInline(line)}</p>
+    })
+  }
+
+  function renderInline(text: string): React.ReactNode {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g)
+    return parts.map((p, i) => {
+      if (p.startsWith('**') && p.endsWith('**')) {
+        return <strong key={i} className="font-semibold text-gray-900 dark:text-white">{p.slice(2, -2)}</strong>
+      }
+      return p
+    })
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div
+        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+        onClick={() => !loading && setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-lg flex-shrink-0">
+            ✨
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Análisis Clínico IA 360°</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-400">
+              {analysis ? 'Análisis generado — clic para ver/ocultar' : 'Visión completa del paciente antes de la consulta'}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); generate() }}
+          disabled={loading}
+          className="flex-shrink-0 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Analizando...
+            </span>
+          ) : analysis ? 'Regenerar' : 'Generar análisis'}
+        </button>
+      </div>
+
+      {open && (
+        <div className="border-t border-gray-100 dark:border-gray-700 p-5">
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-10 gap-3">
+              <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-gray-500 dark:text-slate-400">Sara está analizando el historial clínico completo...</p>
+            </div>
+          )}
+          {error && !loading && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          )}
+          {analysis && !loading && (
+            <>
+              <div className="space-y-1">
+                {renderMarkdown(analysis)}
+              </div>
+              {sources.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <p className="text-xs text-gray-400 mb-1.5">Fuentes consultadas:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {sources.map((s, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-xs rounded-full border border-purple-200 dark:border-purple-800">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          {!analysis && !loading && !error && (
+            <div className="py-6 text-center text-sm text-gray-400">
+              Haz clic en &ldquo;Generar análisis&rdquo; para obtener una visión 360° del paciente.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const BLOOD_LABELS: Record<string, string> = {
   UNKNOWN: '—', A_POS: 'A+', A_NEG: 'A−', B_POS: 'B+', B_NEG: 'B−',
   AB_POS: 'AB+', AB_NEG: 'AB−', O_POS: 'O+', O_NEG: 'O−',
@@ -184,6 +315,9 @@ export default function PatientDetailPage() {
       )}
 
       <div className="space-y-5">
+        {/* AI 360° Analysis */}
+        <AiAnalysisPanel patientId={patient.id} />
+
         {/* Info card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-4">Información personal</h2>
