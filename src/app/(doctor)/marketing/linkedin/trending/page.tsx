@@ -137,6 +137,12 @@ export default function LinkedInTrendingPage() {
   const [newTopicCategory, setNewTopicCategory] = useState('medicina_general')
   const [addingTopic, setAddingTopic] = useState(false)
 
+  // Specialty topics
+  const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
+  const [specialtyLabel, setSpecialtyLabel] = useState<string>('')
+  const [specialtyLoading, setSpecialtyLoading] = useState(true)
+  const [generatingSpecialty, setGeneratingSpecialty] = useState<string | null>(null)
+
   useEffect(() => {
     fetch('/api/auth/role')
       .then(r => r.json())
@@ -146,6 +152,19 @@ export default function LinkedInTrendingPage() {
       })
       .catch(() => {})
       .finally(() => setRoleLoaded(true))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/marketing/specialty-topics')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.topics?.length) {
+          setSpecialtyTopics(d.topics)
+          setSpecialtyLabel(d.specialty ?? '')
+        }
+      })
+      .catch(() => {})
+      .finally(() => setSpecialtyLoading(false))
   }, [])
 
   const fetchTopics = useCallback(async (refresh = false) => {
@@ -273,6 +292,22 @@ export default function LinkedInTrendingPage() {
     } finally {
       setMarkingPublished(false)
     }
+  }
+
+  const handleGenerateSpecialty = async (topicText: string) => {
+    const syntheticTopic: TrendingTopic = {
+      id: `specialty_${Date.now()}`,
+      title: topicText,
+      summary: null,
+      source: 'specialty',
+      category: 'medicina_general',
+      relevance: 8,
+      fetchedAt: new Date().toISOString(),
+      sourceUrl: null,
+    }
+    setGeneratingSpecialty(topicText)
+    await handleGenerate(syntheticTopic)
+    setGeneratingSpecialty(null)
   }
 
   const handleAddTopic = async () => {
@@ -436,7 +471,47 @@ export default function LinkedInTrendingPage() {
           </div>
         )}
 
-        {/* Filtro por categoría */}
+        {/* Sugerencias de temas por especialidad */}
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+              Sugerencias para{specialtyLabel ? ` ${specialtyLabel}` : ' tu especialidad'}
+            </p>
+            <span className="text-xs text-gray-400 dark:text-slate-500">— clic para generar post</span>
+          </div>
+          {specialtyLoading ? (
+            <div className="flex gap-2 flex-wrap">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-7 w-28 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse" />
+              ))}
+            </div>
+          ) : specialtyTopics.length > 0 ? (
+            <div className="flex gap-2 flex-wrap">
+              {specialtyTopics.map((topic) => {
+                const isGeneratingThis = generatingSpecialty === topic
+                return (
+                  <button
+                    key={topic}
+                    onClick={() => handleGenerateSpecialty(topic)}
+                    disabled={!!generating || !!generatingSpecialty}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border flex items-center gap-1.5 disabled:opacity-50 ${
+                      isGeneratingThis
+                        ? 'bg-teal-600 text-white border-teal-600'
+                        : 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/40'
+                    }`}
+                  >
+                    {isGeneratingThis && (
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
+                    {topic}
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
+
+        {/* Filtro por categoría (temas del momento) */}
         {topics.length > 0 && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {categories.map((cat) => (
