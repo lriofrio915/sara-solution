@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import AIImage from '../../_ai-image'
 
 interface TrendingTopic {
   id: string
@@ -99,72 +100,6 @@ function ConfirmModal({
   )
 }
 
-function LinkedInImagePreview({ prompt }: { prompt: string }) {
-  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
-  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 9999))
-
-  const encoded = encodeURIComponent(
-    `professional business linkedin post image, ${prompt}, no text overlay, clean modern style, high quality`
-  )
-  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1200&height=627&nologo=true&seed=${seed}`
-
-  function retry() {
-    setStatus('loading')
-    setSeed(Math.floor(Math.random() * 9999))
-  }
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Imagen LinkedIn (1200×627)</p>
-      <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700" style={{ aspectRatio: '1200/627' }}>
-        {status === 'loading' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-gray-400">Generando imagen...</p>
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
-            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-xs text-gray-400 text-center">No se pudo cargar la imagen</p>
-            <button onClick={retry} className="text-xs px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-              Reintentar
-            </button>
-          </div>
-        )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={prompt}
-          className={`w-full h-full object-cover transition-opacity ${status === 'ok' ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setStatus('ok')}
-          onError={() => setStatus('error')}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-gray-400 italic truncate flex-1">{prompt}</p>
-        <div className="flex gap-1.5 flex-shrink-0">
-          <button onClick={retry} className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            Nueva imagen
-          </button>
-          {status === 'ok' && (
-            <a
-              href={src}
-              download="linkedin-post.jpg"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Descargar
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function LinkedInTrendingPage() {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -695,7 +630,7 @@ export default function LinkedInTrendingPage() {
                 </div>
 
                 {generatedPost.imagePrompt && (
-                  <LinkedInImagePreview prompt={generatedPost.imagePrompt} />
+                  <AIImage prompt={generatedPost.imagePrompt} aspect="1200/627" accentColor="blue" downloadName="linkedin-post.jpg" />
                 )}
 
                 <div className="grid grid-cols-2 gap-3">
