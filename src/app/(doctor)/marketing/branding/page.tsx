@@ -15,6 +15,7 @@ interface BrandProfile {
   excludedTopics: string | null
   instagramUrl: string | null
   facebookUrl: string | null
+  linkedinUrl: string | null
   logoUrl: string | null
   images: BrandImage[]
 }
@@ -59,6 +60,7 @@ export default function BrandingPage() {
   const [excludedTopics, setExcludedTopics] = useState('')
   const [instagramUrl, setInstagramUrl] = useState('')
   const [facebookUrl, setFacebookUrl] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
   const [images, setImages] = useState<BrandImage[]>([])
   const [imageCategory, setImageCategory] = useState('general')
   const [imageDescription, setImageDescription] = useState('')
@@ -81,6 +83,7 @@ export default function BrandingPage() {
           setExcludedTopics(b.excludedTopics ?? '')
           setInstagramUrl(b.instagramUrl ?? '')
           setFacebookUrl(b.facebookUrl ?? '')
+          setLinkedinUrl(b.linkedinUrl ?? '')
           setImages(b.images ?? [])
         }
       })
@@ -109,6 +112,7 @@ export default function BrandingPage() {
           excludedTopics: excludedTopics || null,
           instagramUrl: instagramUrl || null,
           facebookUrl: facebookUrl || null,
+          linkedinUrl: linkedinUrl || null,
         }),
       })
       if (!res.ok) throw new Error('Error al guardar')
@@ -265,6 +269,11 @@ export default function BrandingPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Facebook URL</label>
               <input type="url" value={facebookUrl} onChange={e => setFacebookUrl(e.target.value)}
                 placeholder="https://facebook.com/tu_pagina" className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">LinkedIn URL</label>
+              <input type="url" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)}
+                placeholder="https://linkedin.com/in/tu_perfil" className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
           </div>
         </div>

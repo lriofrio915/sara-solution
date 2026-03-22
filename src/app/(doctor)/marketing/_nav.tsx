@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/marketing/branding',  label: 'Branding',   icon: '🎨' },
-  { href: '/marketing/generator', label: 'Generador',  icon: '✨' },
-  { href: '/marketing/autopilot', label: 'Autopilot',  icon: '🚀' },
-  { href: '/marketing/library',   label: 'Biblioteca', icon: '📚' },
+  { href: '/marketing/branding',          label: 'Branding',   icon: '🎨' },
+  { href: '/marketing/generator',         label: 'Generador',  icon: '✨' },
+  { href: '/marketing/autopilot',         label: 'Autopilot',  icon: '🚀' },
+  { href: '/marketing/library',           label: 'Biblioteca', icon: '📚' },
+  { href: '/marketing/linkedin/trending', label: 'LinkedIn',   icon: '💼' },
 ]
 
 export default function MarketingNav() {
@@ -18,7 +19,9 @@ export default function MarketingNav() {
       <p className="text-gray-500 dark:text-slate-300 text-sm mb-4">Gestiona tu presencia digital con IA</p>
       <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {tabs.map(tab => {
-          const active = pathname === tab.href || pathname.startsWith(tab.href + '/')
+          const active = pathname === tab.href
+            || pathname.startsWith(tab.href + '/')
+            || (tab.href.includes('/linkedin') && pathname.startsWith('/marketing/linkedin'))
           return (
             <Link
               key={tab.href}

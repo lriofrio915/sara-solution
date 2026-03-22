@@ -78,6 +78,7 @@ enum ContentType {
 enum SocialPlatform {
   INSTAGRAM
   FACEBOOK
+  LINKEDIN
   BOTH
 }
 
@@ -493,6 +494,7 @@ model SocialPost {
   imagePrompt    String?
   suggestedTime  String?
   aiGenerated    Boolean        @default(false)
+  linkedinStrategy String?     // 'B2B' (Sara admin buscando médicos) | 'B2C' (médico buscando pacientes)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -525,6 +527,7 @@ model BrandProfile {
   excludedTopics String?  @db.Text
   instagramUrl   String?
   facebookUrl    String?
+  linkedinUrl    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -884,4 +887,22 @@ model SatisfactionSurvey {
   @@index([token])
   @@index([doctorId, answeredAt])
   @@index([appointmentId])
+}
+
+// ─── TrendingTopic (temas de actualidad para LinkedIn) ────────
+
+model TrendingTopic {
+  id          String   @id @default(cuid())
+  title       String
+  summary     String?  @db.Text
+  source      String   // "google_news" | "pubmed" | "who" | "manual"
+  sourceUrl   String?
+  category    String   // "saas_medico" | "salud_digital" | "medicina_general" | "tecnologia"
+  relevance   Float    @default(0.5) // 0.0 - 1.0
+  fetchedAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([category])
+  @@index([expiresAt])
+  @@index([relevance])
 }

@@ -33,7 +33,7 @@ export async function PUT(req: Request) {
     clinicName, specialties, slogan,
     primaryColor, secondaryColor, accentColor,
     tones, targetAudience, excludedTopics,
-    instagramUrl, facebookUrl,
+    instagramUrl, facebookUrl, linkedinUrl,
   } = body
 
   const brand = await prisma.brandProfile.upsert({
@@ -51,6 +51,7 @@ export async function PUT(req: Request) {
       excludedTopics: excludedTopics ?? null,
       instagramUrl: instagramUrl ?? null,
       facebookUrl: facebookUrl ?? null,
+      linkedinUrl: linkedinUrl ?? null,
     },
     update: {
       clinicName: clinicName ?? null,
@@ -64,6 +65,7 @@ export async function PUT(req: Request) {
       excludedTopics: excludedTopics ?? null,
       instagramUrl: instagramUrl ?? null,
       facebookUrl: facebookUrl ?? null,
+      linkedinUrl: linkedinUrl ?? null,
     },
   })
 
