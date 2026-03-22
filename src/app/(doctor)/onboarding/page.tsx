@@ -188,7 +188,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  WhatsApp
+                  WhatsApp Business
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#25D366]">
@@ -204,7 +204,7 @@ export default function OnboardingPage() {
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
                   />
                 </div>
-                <p className="text-gray-400 text-xs mt-1">Los pacientes podrán contactarte directamente por WhatsApp.</p>
+                <p className="text-gray-400 text-xs mt-1">Número de <strong>WhatsApp Business</strong> vinculado a la API — se usa para enviar recordatorios, encuestas y notificaciones automáticas a tus pacientes.</p>
               </div>
 
               <div>
