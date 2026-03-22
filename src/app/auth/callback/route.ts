@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 // GET /auth/callback?code=xxx
 // Supabase email confirmation and password-reset links land here.
@@ -29,10 +30,25 @@ export async function GET(request: NextRequest) {
       },
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) {
-      // Session created — send to dashboard (or next param)
+    if (!error && data.user) {
+      // Check if this is a multi-doctor assistant
+      // (a direct doctor account always goes straight to next/dashboard)
+      const isDoctorAccount = await prisma.doctor.findFirst({
+        where: { OR: [{ authId: data.user.id }, { email: data.user.email! }] },
+        select: { id: true },
+      })
+
+      if (!isDoctorAccount) {
+        const memberCount = await prisma.doctorMember.count({
+          where: { authId: data.user.id, active: true },
+        })
+        if (memberCount > 1) {
+          return NextResponse.redirect(`${origin}/select-doctor`)
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

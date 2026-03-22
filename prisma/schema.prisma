@@ -850,7 +850,7 @@ model CatalogoMedicamento {
 model DoctorMember {
   id       String     @id @default(cuid())
   doctorId String
-  authId   String     @unique  // Supabase Auth UID del miembro
+  authId   String     // Supabase Auth UID del miembro — sin @unique para permitir N médicos
   email    String
   name     String
   role     MemberRole @default(ASSISTANT)
@@ -864,6 +864,7 @@ model DoctorMember {
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
+  @@unique([doctorId, authId])  // Una asistente no puede estar duplicada en el mismo médico
   @@index([doctorId])
   @@index([authId])
 }

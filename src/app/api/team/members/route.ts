@@ -58,27 +58,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Ya existe un miembro con ese email' }, { status: 409 })
     }
 
-    // Create Supabase auth user (sends invite email automatically)
     const admin = createAdminClient()
-    const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
-      email.trim().toLowerCase(),
-      {
-        data: { role: 'assistant', doctorName: doctor.name },
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/login`,
-      }
-    )
+    const cleanEmail = email.trim().toLowerCase()
 
-    if (inviteError || !inviteData.user) {
-      console.error('Supabase invite error:', inviteError)
-      return NextResponse.json({ error: inviteError?.message ?? 'Error al invitar usuario' }, { status: 500 })
+    // Check if this email already has a Supabase account (assistant in another practice)
+    const { data: existingUsers } = await admin.auth.admin.listUsers()
+    const existingAuthUser = existingUsers?.users?.find(u => u.email === cleanEmail)
+
+    let authUserId: string
+
+    if (existingAuthUser) {
+      // User already has a Supabase account — just link them to this doctor
+      authUserId = existingAuthUser.id
+    } else {
+      // New user — send invite email
+      const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+        cleanEmail,
+        {
+          data: { role: 'assistant', doctorName: doctor.name },
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/login`,
+        }
+      )
+
+      if (inviteError || !inviteData.user) {
+        console.error('Supabase invite error:', inviteError)
+        return NextResponse.json({ error: inviteError?.message ?? 'Error al invitar usuario' }, { status: 500 })
+      }
+
+      authUserId = inviteData.user.id
     }
 
-    // Store DoctorMember
+    // Store DoctorMember (@@unique([doctorId, authId]) prevents duplicates)
     const member = await prisma.doctorMember.create({
       data: {
         doctorId: doctor.id,
-        authId: inviteData.user.id,
-        email: email.trim().toLowerCase(),
+        authId: authUserId,
+        email: cleanEmail,
         name: name.trim(),
         role: 'ASSISTANT',
       },

@@ -8,11 +8,14 @@ import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
   User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
+  ChevronsUpDown,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import { createClient } from '@/lib/supabase/client'
+import { getInitials } from '@/lib/utils'
 import type { EffectivePlan } from '@/lib/plan'
+import type { AssistantDoctor } from '@/lib/doctor-auth'
 
 // ─── Nav groups ────────────────────────────────────────────────
 
@@ -61,17 +64,22 @@ interface Props {
   plan?: EffectivePlan
   trialDaysLeft?: number
   role?: 'OWNER' | 'ASSISTANT'
+  activeDoctorId?: string
+  assistantDoctors?: AssistantDoctor[] | null
 }
 
-export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin, plan, trialDaysLeft, role = 'OWNER' }: Props) {
+export default function DoctorSidebar({ firstName, specialty, initials, avatarUrl, isSuperAdmin, plan, trialDaysLeft, role = 'OWNER', activeDoctorId, assistantDoctors }: Props) {
   const [open, setOpen] = useState(false)
   const [gearOpen, setGearOpen] = useState(false)
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [switching, setSwitching] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const gearRef = useRef<HTMLDivElement>(null)
+  const switcherRef = useRef<HTMLDivElement>(null)
 
   // Close drawer on route change
-  useEffect(() => { setOpen(false); setGearOpen(false) }, [pathname])
+  useEffect(() => { setOpen(false); setGearOpen(false); setSwitcherOpen(false) }, [pathname])
 
   // Close gear menu on outside click
   useEffect(() => {
@@ -79,10 +87,29 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       if (gearRef.current && !gearRef.current.contains(e.target as Node)) {
         setGearOpen(false)
       }
+      if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
+        setSwitcherOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  async function handleSwitchDoctor(doctorId: string) {
+    if (doctorId === activeDoctorId || switching) return
+    setSwitching(true)
+    setSwitcherOpen(false)
+    try {
+      await fetch('/api/assistant/switch-doctor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ doctorId }),
+      })
+      router.refresh()
+    } finally {
+      setSwitching(false)
+    }
+  }
 
   // Prevent body scroll when drawer open
   useEffect(() => {
@@ -124,6 +151,71 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       {label}
     </Link>
   )
+
+  // ── Doctor Switcher (multi-doctor assistants only) ───────────
+  const DoctorSwitcher = () => {
+    if (!assistantDoctors || assistantDoctors.length < 2) return null
+    const activeDoc = assistantDoctors.find(d => d.doctorId === activeDoctorId)
+    return (
+      <div ref={switcherRef} className="relative mb-3">
+        <button
+          onClick={() => setSwitcherOpen(v => !v)}
+          disabled={switching}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors disabled:opacity-60"
+        >
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-violet-500 dark:text-violet-400">
+              Consultorio activo
+            </p>
+            <p className="text-xs font-semibold text-violet-700 dark:text-violet-300 truncate">
+              {switching ? 'Cambiando...' : (activeDoc?.doctorName ?? 'Seleccionar')}
+            </p>
+          </div>
+          <ChevronsUpDown size={14} className="flex-shrink-0 text-violet-400" />
+        </button>
+
+        {switcherOpen && (
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50 max-h-64 overflow-y-auto">
+            <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+              Cambiar consultorio
+            </p>
+            {assistantDoctors.map(doc => {
+              const isActive = doc.doctorId === activeDoctorId
+              const docInitials = getInitials(doc.doctorName)
+              return (
+                <button
+                  key={doc.doctorId}
+                  onClick={() => handleSwitchDoctor(doc.doctorId)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                    isActive
+                      ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
+                      : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {doc.avatarUrl ? (
+                    <Image src={doc.avatarUrl} alt={doc.doctorName} width={28} height={28} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/40 to-secondary/40 flex items-center justify-center text-primary text-[10px] font-bold flex-shrink-0">
+                      {docInitials}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{doc.doctorName}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 truncate">{doc.specialty}</p>
+                  </div>
+                  {isActive && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-violet-500">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // ── Gear menu ────────────────────────────────────────────────
   const GearMenu = () => (
@@ -258,8 +350,11 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
         <NavContent />
 
-        {/* Bottom: plan badge + avatar + gear */}
+        {/* Bottom: doctor switcher + plan badge + avatar + gear */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+          {/* Doctor switcher — multi-doctor assistants only */}
+          <DoctorSwitcher />
+
           {/* Plan badge */}
           {plan && plan !== 'PRO' && plan !== 'ENTERPRISE' && (
             <Link href="/upgrade" className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
@@ -338,6 +433,13 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         </div>
 
         <NavContent mobile />
+
+        {/* Doctor switcher — mobile drawer */}
+        {assistantDoctors && assistantDoctors.length > 1 && (
+          <div className="px-4 pb-2">
+            <DoctorSwitcher />
+          </div>
+        )}
 
         {/* User + logout */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700">

@@ -59,12 +59,18 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     })
     if (!member) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
 
-    // Delete Supabase auth user
-    const admin = createAdminClient()
-    await admin.auth.admin.deleteUser(member.authId)
-
-    // Delete DoctorMember record
+    // Delete DoctorMember record first
     await prisma.doctorMember.delete({ where: { id: params.id } })
+
+    // Only delete the Supabase auth user if this was their last membership
+    // (an assistant linked to multiple doctors should keep their account)
+    const remainingMemberships = await prisma.doctorMember.count({
+      where: { authId: member.authId },
+    })
+    if (remainingMemberships === 0) {
+      const admin = createAdminClient()
+      await admin.auth.admin.deleteUser(member.authId)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (err) {

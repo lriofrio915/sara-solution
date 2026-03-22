@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getDoctorFromUser } from '@/lib/doctor-auth'
+import { getDoctorFromUser, getAssistantDoctors } from '@/lib/doctor-auth'
 import DoctorSidebar from '@/components/DoctorSidebar'
 import SaraFAB from '@/components/SaraFAB'
 import PlanBanner from '@/components/PlanBanner'
@@ -16,8 +17,14 @@ export default async function DoctorLayout({ children }: { children: React.React
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) redirect('/login')
 
-    const doctorWithRole = await getDoctorFromUser(user)
-    if (!doctorWithRole) redirect('/login')
+    // Read the active doctor cookie (set by /api/assistant/switch-doctor)
+    const cookieStore = await cookies()
+    const activeDoctorId = cookieStore.get('sara-active-doctor-id')?.value ?? null
+
+    const doctorWithRole = await getDoctorFromUser(user, activeDoctorId)
+
+    // null means either: not a doctor/assistant, OR multi-doctor assistant without selection
+    if (!doctorWithRole) redirect('/select-doctor')
 
     // For display purposes fetch avatar + titlePrefix (only available on Doctor model)
     const doctorProfile = doctorWithRole.role === 'OWNER'
@@ -37,7 +44,6 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     let displayName: string
     if (doctorWithRole.role === 'ASSISTANT') {
-      // For assistants use their own name without title prefix
       displayName = nameParts.map(toTitle).slice(0, 2).join(' ')
     } else {
       const title = (doctorProfile as { titlePrefix?: string | null })?.titlePrefix || detectDoctorTitle(nameParts[0])
@@ -47,15 +53,26 @@ export default async function DoctorLayout({ children }: { children: React.React
     const effectivePlan = getEffectivePlan(doctorWithRole)
     const trialDaysLeft = getTrialDaysLeft(doctorWithRole.trialEndsAt)
 
-    // Assistant name for sidebar — if assistant, fetch their own name from DoctorMember
+    // Assistant sidebar: use own name + avatar, and load all accessible doctors for switcher
     let sidebarName = displayName
     let sidebarAvatarUrl: string | null = (doctorProfile as { avatarUrl?: string | null })?.avatarUrl ?? null
+    let assistantDoctors = null
+
     if (doctorWithRole.role === 'ASSISTANT') {
       const member = await prisma.doctorMember.findFirst({
-        where: { authId: user.id },
-        select: { name: true },
+        where: { authId: user.id, doctorId: doctorWithRole.id },
+        select: { name: true, avatarUrl: true },
       })
-      if (member) sidebarName = member.name.trim().split(/\s+/).map(toTitle).slice(0, 2).join(' ')
+      if (member) {
+        sidebarName = member.name.trim().split(/\s+/).map(toTitle).slice(0, 2).join(' ')
+        sidebarAvatarUrl = member.avatarUrl
+      }
+
+      // Load switcher doctors only if there are multiple
+      const allDoctors = await getAssistantDoctors(user.id)
+      if (allDoctors.length > 1) {
+        assistantDoctors = allDoctors
+      }
     }
 
     return (
@@ -69,6 +86,8 @@ export default async function DoctorLayout({ children }: { children: React.React
           plan={effectivePlan}
           trialDaysLeft={trialDaysLeft}
           role={doctorWithRole.role}
+          activeDoctorId={doctorWithRole.id}
+          assistantDoctors={assistantDoctors}
         />
 
         {/* Main content — en mobile: padding top (topbar) + bottom (tab bar) */}
