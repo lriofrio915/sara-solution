@@ -141,6 +141,7 @@ export default function LinkedInTrendingPage() {
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLabel, setSpecialtyLabel] = useState<string>('')
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
+  const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
   const [generatingSpecialty, setGeneratingSpecialty] = useState<string | null>(null)
 
   useEffect(() => {
@@ -291,6 +292,20 @@ export default function LinkedInTrendingPage() {
       setSavedPost((p) => p ? { ...p, status: 'PUBLISHED' } : p)
     } finally {
       setMarkingPublished(false)
+    }
+  }
+
+  const handleRefreshSpecialty = async () => {
+    setRefreshingSpecialty(true)
+    try {
+      const res = await fetch('/api/marketing/specialty-topics')
+      const d = res.ok ? await res.json() : null
+      if (d?.topics?.length) {
+        setSpecialtyTopics(d.topics)
+        setSpecialtyLabel(d.specialty ?? '')
+      }
+    } catch { /* ignore */ } finally {
+      setRefreshingSpecialty(false)
     }
   }
 
@@ -478,6 +493,19 @@ export default function LinkedInTrendingPage() {
               Sugerencias para{specialtyLabel ? ` ${specialtyLabel}` : ' tu especialidad'}
             </p>
             <span className="text-xs text-gray-400 dark:text-slate-500">— clic para generar post</span>
+            <button
+              onClick={handleRefreshSpecialty}
+              disabled={refreshingSpecialty || specialtyLoading || !!generatingSpecialty}
+              title="Refrescar sugerencias"
+              className="ml-1 p-1 rounded-md text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 disabled:opacity-40 transition-colors"
+            >
+              <svg
+                className={`w-3.5 h-3.5 ${refreshingSpecialty ? 'animate-spin' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </div>
           {specialtyLoading ? (
             <div className="flex gap-2 flex-wrap">
@@ -511,8 +539,8 @@ export default function LinkedInTrendingPage() {
           ) : null}
         </div>
 
-        {/* Filtro por categoría (temas del momento) */}
-        {topics.length > 0 && (
+        {/* Filtro por categoría (temas del momento) — solo admins */}
+        {isAdmin && topics.length > 0 && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {categories.map((cat) => (
               <button
@@ -531,9 +559,9 @@ export default function LinkedInTrendingPage() {
         )}
 
         {/* Grid de tendencias + panel de resultado */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Topics */}
-          <div>
+        <div className={`grid grid-cols-1 gap-6 ${isAdmin ? 'xl:grid-cols-2' : ''}`}>
+          {/* Topics — solo admins */}
+          {isAdmin && <div>
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -635,7 +663,7 @@ export default function LinkedInTrendingPage() {
                 })}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Panel de resultado */}
           <div>
