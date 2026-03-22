@@ -38,11 +38,12 @@ const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   tecnologia:       { label: 'Tecnología',         color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
 }
 
-const SOURCE_ICONS: Record<string, string> = {
-  google_news: 'G',
-  pubmed:      'P',
-  who:         'W',
-  manual:      '★',
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    </svg>
+  )
 }
 
 function LinkedInImagePreview({ prompt }: { prompt: string }) {
@@ -67,6 +68,7 @@ function LinkedInImagePreview({ prompt }: { prompt: string }) {
             <p className="text-xs text-gray-400 text-center px-4">No se pudo generar la imagen</p>
           </div>
         )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={prompt}
@@ -95,14 +97,16 @@ export default function LinkedInTrendingPage() {
   const [topics, setTopics] = useState<TrendingTopic[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
 
   // Generacion
-  const [generating, setGenerating] = useState<string | null>(null) // topicId
+  const [generating, setGenerating] = useState<string | null>(null)
   const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2B')
   const [generatedPost, setGeneratedPost] = useState<GeneratedPost | null>(null)
   const [savedPost, setSavedPost] = useState<SavedPost | null>(null)
   const [activeTopic, setActiveTopic] = useState<TrendingTopic | null>(null)
+  const [generateError, setGenerateError] = useState<string | null>(null)
 
   // Editor
   const [editContent, setEditContent] = useState('')
@@ -120,11 +124,18 @@ export default function LinkedInTrendingPage() {
   const fetchTopics = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true)
     else setLoading(true)
+    setFetchError(null)
     try {
       const url = '/api/marketing/linkedin/trending' + (refresh ? '?refresh=1' : '')
       const res = await fetch(url)
       const data = await res.json()
+      if (!res.ok) {
+        setFetchError(data.error ?? 'Error al cargar tendencias')
+        return
+      }
       setTopics(data.topics ?? [])
+    } catch {
+      setFetchError('No se pudo conectar con el servidor')
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -138,6 +149,7 @@ export default function LinkedInTrendingPage() {
     setGeneratedPost(null)
     setSavedPost(null)
     setActiveTopic(topic)
+    setGenerateError(null)
     try {
       const res = await fetch('/api/marketing/linkedin/generate', {
         method: 'POST',
@@ -150,12 +162,16 @@ export default function LinkedInTrendingPage() {
         }),
       })
       const data = await res.json()
-      if (data.generated) {
-        setGeneratedPost(data.generated)
-        setSavedPost(data.post)
-        setEditContent(data.generated.content)
-        setEditHashtags((data.generated.hashtags ?? []).join(' '))
+      if (!res.ok || !data.generated) {
+        setGenerateError(data.error ?? 'Error al generar el post')
+        return
       }
+      setGeneratedPost(data.generated)
+      setSavedPost(data.post)
+      setEditContent(data.generated.content)
+      setEditHashtags((data.generated.hashtags ?? []).join(' '))
+    } catch {
+      setGenerateError('Error de conexión al generar el post')
     } finally {
       setGenerating(null)
     }
@@ -174,11 +190,7 @@ export default function LinkedInTrendingPage() {
       await fetch('/api/marketing/linkedin/posts', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: savedPost.id,
-          content: editContent,
-          hashtags: hashtagsArr,
-        }),
+        body: JSON.stringify({ id: savedPost.id, content: editContent, hashtags: hashtagsArr }),
       })
     } finally {
       setSaving(false)
@@ -244,7 +256,7 @@ export default function LinkedInTrendingPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="text-2xl">in</span>
+            <LinkedInIcon className="w-6 h-6 text-blue-600" />
             Temas del Momento
           </h2>
           <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
@@ -264,13 +276,20 @@ export default function LinkedInTrendingPage() {
             className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60 flex items-center gap-2"
           >
             {refreshing ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Actualizando...</>
+              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Buscando...</>
             ) : (
               'Actualizar tendencias'
             )}
           </button>
         </div>
       </div>
+
+      {/* Error de fetch */}
+      {fetchError && (
+        <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm">
+          {fetchError}
+        </div>
+      )}
 
       {/* Agregar tema manual */}
       {showAddTopic && (
@@ -319,7 +338,7 @@ export default function LinkedInTrendingPage() {
           >
             <p className="font-semibold text-sm text-gray-900 dark:text-white">B2B — Admin Sara Medical</p>
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Atraer medicos interesados en el software. Tono: innovador, ROI, eficiencia.
+              Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
             </p>
           </button>
           <button
@@ -330,9 +349,9 @@ export default function LinkedInTrendingPage() {
                 : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
             }`}
           >
-            <p className="font-semibold text-sm text-gray-900 dark:text-white">B2C — Medico buscando pacientes</p>
+            <p className="font-semibold text-sm text-gray-900 dark:text-white">B2C — Médico buscando pacientes</p>
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Posicionar al medico como experto. Tono: educativo, empático, confianza.
+              Posicionar al médico como experto. Tono: educativo, empático, confianza.
             </p>
           </button>
         </div>
@@ -364,17 +383,19 @@ export default function LinkedInTrendingPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-gray-500">Cargando tendencias...</p>
+              <p className="text-sm text-gray-500">Buscando tendencias actuales...</p>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-3">📡</p>
-              <p className="text-gray-500 dark:text-slate-400">No hay tendencias disponibles</p>
+            <div className="text-center py-16 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+              <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-slate-400 font-medium">No hay tendencias disponibles</p>
+              <p className="text-sm text-gray-400 mt-1">Haz clic en &quot;Actualizar tendencias&quot; para buscar temas</p>
               <button
                 onClick={() => fetchTopics(true)}
-                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={refreshing}
+                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
               >
-                Buscar tendencias ahora
+                {refreshing ? 'Buscando...' : 'Buscar tendencias ahora'}
               </button>
             </div>
           ) : (
@@ -397,9 +418,6 @@ export default function LinkedInTrendingPage() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat?.color ?? 'bg-gray-100 text-gray-600'}`}>
                             {cat?.label ?? topic.category}
-                          </span>
-                          <span className="text-xs text-gray-400 dark:text-slate-500 font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
-                            {SOURCE_ICONS[topic.source] ?? topic.source}
                           </span>
                           <span className="text-xs text-gray-400">
                             {Math.round(topic.relevance * 100)}% relevancia
@@ -451,7 +469,7 @@ export default function LinkedInTrendingPage() {
         <div>
           {!generatedPost && !generating && (
             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-center p-8">
-              <p className="text-3xl mb-3">in</p>
+              <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
               <p className="text-gray-500 dark:text-slate-400 text-sm">
                 Selecciona un tema y haz clic en <strong>Generar</strong> para crear tu post LinkedIn con IA
               </p>
@@ -462,6 +480,12 @@ export default function LinkedInTrendingPage() {
             <div className="flex flex-col items-center justify-center h-64 border border-gray-200 dark:border-gray-700 rounded-xl">
               <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
               <p className="text-sm text-gray-500 dark:text-slate-400">Generando post con IA...</p>
+            </div>
+          )}
+
+          {generateError && (
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm mb-4">
+              {generateError}
             </div>
           )}
 
@@ -478,7 +502,7 @@ export default function LinkedInTrendingPage() {
 
               {/* Hook preview */}
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Hook (primera linea)</p>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Primera línea (hook)</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{generatedPost.hook}</p>
               </div>
 
@@ -493,7 +517,7 @@ export default function LinkedInTrendingPage() {
                   rows={10}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-gray-400 mt-1 text-right">{editContent.length} chars</p>
+                <p className="text-xs text-gray-400 mt-1 text-right">{editContent.length} caracteres</p>
               </div>
 
               {/* Hashtags editor */}
@@ -556,7 +580,7 @@ export default function LinkedInTrendingPage() {
               </div>
 
               <p className="text-xs text-gray-400 text-center">
-                Copia el texto, pega en LinkedIn y adjunta la imagen descargada
+                Copia el texto, pégalo en LinkedIn y adjunta la imagen descargada
               </p>
             </div>
           )}

@@ -1,6 +1,6 @@
 /**
  * Trending Topics Fetcher — fuentes RSS gratuitas
- * Fuentes: Google News RSS, PubMed RSS, WHO RSS
+ * Fuentes: Google News RSS (múltiples queries)
  * Categorías: saas_medico | salud_digital | medicina_general | tecnologia
  */
 
@@ -16,47 +16,53 @@ interface RawTopic {
 }
 
 const RSS_SOURCES = [
-  // Google News — Tecnología médica / SaaS salud
   {
-    url: 'https://news.google.com/rss/search?q=software+medico+salud+digital+saas&hl=es-419&gl=EC&ceid=EC:es-419',
+    url: 'https://news.google.com/rss/search?q=software+medico+saas+consultorio+digital&hl=es-419&gl=EC&ceid=EC:es-419',
+    source: 'google_news',
+    category: 'saas_medico',
+    relevance: 0.95,
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=digitalizacion+clinicas+tecnologia+medica&hl=es-419&gl=EC&ceid=EC:es-419',
     source: 'google_news',
     category: 'saas_medico',
     relevance: 0.9,
   },
-  // Google News — Salud digital LATAM
   {
     url: 'https://news.google.com/rss/search?q=salud+digital+telemedicina+latinoamerica&hl=es-419&gl=EC&ceid=EC:es-419',
     source: 'google_news',
     category: 'salud_digital',
     relevance: 0.85,
   },
-  // Google News — Medicina general Ecuador
   {
-    url: 'https://news.google.com/rss/search?q=medicina+salud+pacientes+Ecuador&hl=es-419&gl=EC&ceid=EC:es-419',
+    url: 'https://news.google.com/rss/search?q=historia+clinica+electronica+medico&hl=es-419&gl=EC&ceid=EC:es-419',
+    source: 'google_news',
+    category: 'saas_medico',
+    relevance: 0.88,
+  },
+  {
+    url: 'https://news.google.com/rss/search?q=medicina+salud+Ecuador+tendencias&hl=es-419&gl=EC&ceid=EC:es-419',
     source: 'google_news',
     category: 'medicina_general',
-    relevance: 0.75,
+    relevance: 0.8,
   },
-  // Google News — IA en medicina
   {
     url: 'https://news.google.com/rss/search?q=inteligencia+artificial+medicina+diagnostico&hl=es-419&gl=EC&ceid=EC:es-419',
     source: 'google_news',
     category: 'tecnologia',
-    relevance: 0.9,
+    relevance: 0.92,
   },
-  // PubMed — Últimas publicaciones médicas relevantes
   {
-    url: 'https://pubmed.ncbi.nlm.nih.gov/rss/search/0VBXGCGKHjKIbJkVCIa5RqpQpTwnwSTkXpnzY1BJXT8Hgf8TRJ/?limit=10&format=abstract',
-    source: 'pubmed',
+    url: 'https://news.google.com/rss/search?q=prevencion+enfermedades+salud+pacientes&hl=es-419&gl=EC&ceid=EC:es-419',
+    source: 'google_news',
     category: 'medicina_general',
-    relevance: 0.8,
+    relevance: 0.75,
   },
-  // WHO — Noticias OMS
   {
-    url: 'https://www.who.int/feeds/entity/mediacentre/news/en/rss.xml',
-    source: 'who',
-    category: 'salud_digital',
-    relevance: 0.7,
+    url: 'https://news.google.com/rss/search?q=startup+salud+healthtech+innovacion&hl=es-419&gl=EC&ceid=EC:es-419',
+    source: 'google_news',
+    category: 'tecnologia',
+    relevance: 0.85,
   },
 ]
 
@@ -64,13 +70,12 @@ async function fetchRSS(url: string): Promise<{ title: string; description: stri
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'MedSara/1.0 (+https://consultorio.site)' },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(7000),
     })
     if (!res.ok) return []
     const xml = await res.text()
     const items: { title: string; description: string; link: string }[] = []
 
-    // Parse <item> blocks from RSS XML
     const itemRegex = /<item>([\s\S]*?)<\/item>/gi
     let match: RegExpExecArray | null
     while ((match = itemRegex.exec(xml)) !== null) {
@@ -78,7 +83,7 @@ async function fetchRSS(url: string): Promise<{ title: string; description: stri
       const title = extractTag(block, 'title')
       const description = extractTag(block, 'description')
       const link = extractTag(block, 'link') || extractTag(block, 'guid')
-      if (title) items.push({ title, description, link })
+      if (title && title.length > 10) items.push({ title, description, link })
       if (items.length >= 5) break
     }
     return items
@@ -94,8 +99,7 @@ function extractTag(xml: string, tag: string): string {
 }
 
 function cleanTitle(title: string): string {
-  // Remove source suffix like " - El Comercio" or " | Reuters"
-  return title.replace(/\s[-|]\s[^-|]+$/, '').trim()
+  return title.replace(/\s[-|–]\s[^-|–]+$/, '').trim()
 }
 
 export async function fetchAndStoreTrendingTopics(): Promise<number> {
@@ -105,7 +109,7 @@ export async function fetchAndStoreTrendingTopics(): Promise<number> {
     RSS_SOURCES.map(async (src) => {
       const items = await fetchRSS(src.url)
       for (const item of items) {
-        if (!item.title || item.title.length < 10) continue
+        if (!item.title || item.title.length < 15) continue
         allTopics.push({
           title: cleanTitle(item.title),
           summary: item.description || '',
@@ -146,14 +150,6 @@ export async function fetchAndStoreTrendingTopics(): Promise<number> {
   })
 
   return unique.length
-}
-
-export async function getActiveTrendingTopics(limit = 20) {
-  return prisma.trendingTopic.findMany({
-    where: { expiresAt: { gt: new Date() } },
-    orderBy: [{ relevance: 'desc' }, { fetchedAt: 'desc' }],
-    take: limit,
-  })
 }
 
 export async function deleteExpiredTrendingTopics() {
