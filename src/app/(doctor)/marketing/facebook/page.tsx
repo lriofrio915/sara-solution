@@ -39,8 +39,14 @@ function FacebookIcon({ className }: { className?: string }) {
 
 function AIImage({ prompt, aspect }: { prompt: string; aspect: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 9999))
   const encoded = encodeURIComponent(`professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`)
-  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1200&height=630&nologo=true&seed=42`
+  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1200&height=630&nologo=true&seed=${seed}`
+
+  function retry() {
+    setStatus('loading')
+    setSeed(Math.floor(Math.random() * 9999))
+  }
 
   return (
     <div className="space-y-2">
@@ -48,15 +54,28 @@ function AIImage({ prompt, aspect }: { prompt: string; aspect: string }) {
       <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 w-full" style={{ aspectRatio: aspect }}>
         {status === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <button onClick={retry} className="text-xs px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Reintentar</button>
           </div>
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={prompt} className={`w-full h-full object-cover transition-opacity ${status === 'ok' ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setStatus('ok')} onError={() => setStatus('error')} />
       </div>
-      <a href={src} download="facebook-post.jpg" target="_blank" rel="noopener noreferrer"
-        className="text-xs text-blue-600 hover:underline">Descargar imagen</a>
+      <div className="flex gap-2">
+        <button onClick={retry} className="text-xs text-gray-400 hover:text-blue-600">Nueva imagen</button>
+        {status === 'ok' && (
+          <a href={src} download="facebook-post.jpg" target="_blank" rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline">Descargar</a>
+        )}
+      </div>
     </div>
   )
 }

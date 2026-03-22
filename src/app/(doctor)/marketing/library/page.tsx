@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 
 function AIImage({ prompt }: { prompt: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [seed] = useState(() => Math.floor(Math.random() * 9999))
   const encoded = encodeURIComponent(
     `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
   )
-  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
+  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=${seed}`
 
   return (
     <div className="space-y-2">

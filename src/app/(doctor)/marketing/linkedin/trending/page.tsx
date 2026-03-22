@@ -46,16 +46,76 @@ function LinkedInIcon({ className }: { className?: string }) {
   )
 }
 
+// Modal de confirmación estilizado
+function ConfirmModal({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+  loading?: boolean
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      {/* Modal */}
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{title}</h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{message}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end pt-1">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-4 py-2 text-sm rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium disabled:opacity-50 flex items-center gap-2 transition-colors"
+          >
+            {loading && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function LinkedInImagePreview({ prompt }: { prompt: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 9999))
+
   const encoded = encodeURIComponent(
     `professional business linkedin post image, ${prompt}, no text overlay, clean modern style, high quality`
   )
-  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1200&height=627&nologo=true&seed=99`
+  const src = `https://image.pollinations.ai/prompt/${encoded}?width=1200&height=627&nologo=true&seed=${seed}`
+
+  function retry() {
+    setStatus('loading')
+    setSeed(Math.floor(Math.random() * 9999))
+  }
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Imagen LinkedIn (1200x627)</p>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Imagen LinkedIn (1200×627)</p>
       <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700" style={{ aspectRatio: '1200/627' }}>
         {status === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
@@ -64,8 +124,14 @@ function LinkedInImagePreview({ prompt }: { prompt: string }) {
           </div>
         )}
         {status === 'error' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-xs text-gray-400 text-center px-4">No se pudo generar la imagen</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-xs text-gray-400 text-center">No se pudo cargar la imagen</p>
+            <button onClick={retry} className="text-xs px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+              Reintentar
+            </button>
           </div>
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -79,15 +145,22 @@ function LinkedInImagePreview({ prompt }: { prompt: string }) {
       </div>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-gray-400 italic truncate flex-1">{prompt}</p>
-        <a
-          href={src}
-          download="linkedin-post.jpg"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
-        >
-          Descargar
-        </a>
+        <div className="flex gap-1.5 flex-shrink-0">
+          <button onClick={retry} className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            Nueva imagen
+          </button>
+          {status === 'ok' && (
+            <a
+              href={src}
+              download="linkedin-post.jpg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              Descargar
+            </a>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -103,6 +176,9 @@ export default function LinkedInTrendingPage() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [refreshSuccess, setRefreshSuccess] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
+
+  // Modal de confirmación para eliminar
+  const [confirmDelete, setConfirmDelete] = useState<TrendingTopic | null>(null)
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null)
 
   // Generacion
@@ -126,13 +202,11 @@ export default function LinkedInTrendingPage() {
   const [newTopicCategory, setNewTopicCategory] = useState('medicina_general')
   const [addingTopic, setAddingTopic] = useState(false)
 
-  // Load role
   useEffect(() => {
     fetch('/api/auth/role')
       .then(r => r.json())
       .then(d => {
         setIsAdmin(!!d.isAdmin)
-        // Non-admins always use B2C (patient-focused)
         if (!d.isAdmin) setStrategy('B2C')
       })
       .catch(() => {})
@@ -156,8 +230,8 @@ export default function LinkedInTrendingPage() {
       setTopics(newTopics)
       if (refresh) {
         setRefreshSuccess(newTopics.length > 0
-          ? `${newTopics.length} tendencias actualizadas`
-          : 'No se encontraron tendencias nuevas. Intenta de nuevo.')
+          ? `${newTopics.length} tendencias cargadas`
+          : 'No se encontraron tendencias. Intenta de nuevo.')
         setTimeout(() => setRefreshSuccess(null), 4000)
       }
     } catch {
@@ -170,19 +244,20 @@ export default function LinkedInTrendingPage() {
 
   useEffect(() => { fetchTopics() }, [fetchTopics])
 
-  const handleDeleteTopic = async (id: string) => {
-    if (!window.confirm('¿Eliminar este tema?')) return
-    setDeletingTopicId(id)
+  const handleDeleteTopic = async () => {
+    if (!confirmDelete) return
+    setDeletingTopicId(confirmDelete.id)
     try {
-      await fetch(`/api/marketing/linkedin/trending?id=${id}`, { method: 'DELETE' })
-      setTopics(prev => prev.filter(t => t.id !== id))
-      if (activeTopic?.id === id) {
+      await fetch(`/api/marketing/linkedin/trending?id=${confirmDelete.id}`, { method: 'DELETE' })
+      setTopics(prev => prev.filter(t => t.id !== confirmDelete.id))
+      if (activeTopic?.id === confirmDelete.id) {
         setActiveTopic(null)
         setGeneratedPost(null)
         setSavedPost(null)
       }
     } finally {
       setDeletingTopicId(null)
+      setConfirmDelete(null)
     }
   }
 
@@ -228,7 +303,6 @@ export default function LinkedInTrendingPage() {
         .map((h) => h.trim().replace(/^#/, ''))
         .filter(Boolean)
         .map((h) => `#${h}`)
-
       await fetch('/api/marketing/linkedin/posts', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -293,373 +367,383 @@ export default function LinkedInTrendingPage() {
   const categories = ['all', ...Array.from(new Set(topics.map((t) => t.category)))]
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <LinkedInIcon className="w-6 h-6 text-blue-600" />
-            Temas del Momento
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
-            Genera posts para LinkedIn desde tendencias actuales
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setShowAddTopic(!showAddTopic)}
-            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            + Tema propio
-          </button>
-          <button
-            onClick={() => fetchTopics(true)}
-            disabled={refreshing}
-            className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60 flex items-center gap-2"
-          >
-            {refreshing ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Buscando...</>
-            ) : (
-              'Actualizar tendencias'
-            )}
-          </button>
-        </div>
-      </div>
-
-      {fetchError && (
-        <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm">
-          {fetchError}
-        </div>
+    <>
+      {/* Modal de confirmación de eliminación */}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Eliminar tema"
+          message={`¿Eliminar "${confirmDelete.title.slice(0, 60)}${confirmDelete.title.length > 60 ? '...' : ''}"? Esta acción no se puede deshacer.`}
+          onConfirm={handleDeleteTopic}
+          onCancel={() => setConfirmDelete(null)}
+          loading={!!deletingTopicId}
+        />
       )}
 
-      {refreshSuccess && (
-        <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 text-sm font-medium">
-          {refreshSuccess}
-        </div>
-      )}
-
-      {/* Agregar tema manual */}
-      {showAddTopic && (
-        <div className="mb-6 p-4 rounded-xl border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20">
-          <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">Agregar tema propio</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              value={newTopicTitle}
-              onChange={(e) => setNewTopicTitle(e.target.value)}
-              placeholder="Ej: Beneficios de la telemedicina en consultorios"
-              className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            />
-            <select
-              value={newTopicCategory}
-              onChange={(e) => setNewTopicCategory(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            >
-              {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
-              ))}
-            </select>
+      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <LinkedInIcon className="w-6 h-6 text-blue-600" />
+              Temas del Momento
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
+              Genera posts para LinkedIn desde tendencias actuales
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={handleAddTopic}
-              disabled={addingTopic || !newTopicTitle.trim()}
-              className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+              onClick={() => setShowAddTopic(!showAddTopic)}
+              className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              {addingTopic ? 'Agregando...' : 'Agregar'}
+              + Tema propio
+            </button>
+            <button
+              onClick={() => fetchTopics(true)}
+              disabled={refreshing}
+              className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60 flex items-center gap-2"
+            >
+              {refreshing ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Buscando...</>
+              ) : (
+                'Actualizar tendencias'
+              )}
             </button>
           </div>
         </div>
-      )}
 
-      {/* Estrategia — solo admin ve B2B */}
-      {roleLoaded && (
-        <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">
-            Enfoque del post
-          </p>
-          {isAdmin ? (
-            <div className="flex gap-3 flex-wrap">
-              <button
-                onClick={() => setStrategy('B2B')}
-                className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-                  strategy === 'B2B'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
-                }`}
+        {fetchError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm">
+            {fetchError}
+          </div>
+        )}
+
+        {refreshSuccess && (
+          <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 text-sm font-medium">
+            {refreshSuccess}
+          </div>
+        )}
+
+        {/* Agregar tema manual */}
+        {showAddTopic && (
+          <div className="mb-6 p-4 rounded-xl border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">Agregar tema propio</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={newTopicTitle}
+                onChange={(e) => setNewTopicTitle(e.target.value)}
+                placeholder="Ej: Beneficios de la telemedicina en consultorios"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              />
+              <select
+                value={newTopicCategory}
+                onChange={(e) => setNewTopicCategory(e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               >
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">Captar médicos</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                  Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
-                </p>
+                {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleAddTopic}
+                disabled={addingTopic || !newTopicTitle.trim()}
+                className="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+              >
+                {addingTopic ? 'Agregando...' : 'Agregar'}
               </button>
-              <button
-                onClick={() => setStrategy('B2C')}
-                className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-                  strategy === 'B2C'
-                    ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
-                }`}
-              >
+            </div>
+          </div>
+        )}
+
+        {/* Estrategia — solo admin ve B2B */}
+        {roleLoaded && (
+          <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+              Enfoque del post
+            </p>
+            {isAdmin ? (
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={() => setStrategy('B2B')}
+                  className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
+                    strategy === 'B2B'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
+                  }`}
+                >
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">Captar médicos</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
+                  </p>
+                </button>
+                <button
+                  onClick={() => setStrategy('B2C')}
+                  className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
+                    strategy === 'B2C'
+                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
+                  }`}
+                >
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    Posicionarte como experto en tu área. Tono: educativo, empático, confianza.
+                  </p>
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-900/30">
                 <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                  Posicionarte como experto en tu área. Tono: educativo, empático, confianza.
+                  Los posts se crean para posicionarte como experto y generar confianza con tus pacientes.
                 </p>
-              </button>
-            </div>
-          ) : (
-            <div className="p-3 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-900/30">
-              <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                Los posts se crean para posicionarte como experto y generar confianza con tus pacientes.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Filtro por categoría */}
-      {topics.length > 0 && (
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                filterCategory === cat
-                  ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              {cat === 'all' ? 'Todos' : CATEGORY_LABELS[cat]?.label ?? cat}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Grid de tendencias + panel de resultado */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Topics */}
-        <div>
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-gray-500">Buscando tendencias actuales...</p>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-              <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-slate-400 font-medium">No hay tendencias disponibles</p>
-              <p className="text-sm text-gray-400 mt-1">Haz clic en &quot;Actualizar tendencias&quot; para buscar temas</p>
+        {/* Filtro por categoría */}
+        {topics.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+            {categories.map((cat) => (
               <button
-                onClick={() => fetchTopics(true)}
-                disabled={refreshing}
-                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                key={cat}
+                onClick={() => setFilterCategory(cat)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  filterCategory === cat
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
               >
-                {refreshing ? 'Buscando...' : 'Buscar tendencias ahora'}
+                {cat === 'all' ? 'Todos' : CATEGORY_LABELS[cat]?.label ?? cat}
               </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filtered.map((topic) => {
-                const cat = CATEGORY_LABELS[topic.category]
-                const isGenerating = generating === topic.id
-                const isActive = activeTopic?.id === topic.id
-                return (
-                  <div
-                    key={topic.id}
-                    className={`p-4 rounded-xl border transition-all ${
-                      isActive
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat?.color ?? 'bg-gray-100 text-gray-600'}`}>
-                            {cat?.label ?? topic.category}
-                          </span>
-                          {topic.source === 'manual' && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                              Propio
+            ))}
+          </div>
+        )}
+
+        {/* Grid de tendencias + panel de resultado */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Topics */}
+          <div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-gray-500">Buscando tendencias actuales...</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-16 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-slate-400 font-medium">No hay tendencias disponibles</p>
+                <p className="text-sm text-gray-400 mt-1">Haz clic en &quot;Actualizar tendencias&quot; para buscar temas</p>
+                <button
+                  onClick={() => fetchTopics(true)}
+                  disabled={refreshing}
+                  className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {refreshing ? 'Buscando...' : 'Buscar tendencias ahora'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filtered.map((topic) => {
+                  const cat = CATEGORY_LABELS[topic.category]
+                  const isGenerating = generating === topic.id
+                  const isActive = activeTopic?.id === topic.id
+                  return (
+                    <div
+                      key={topic.id}
+                      className={`p-4 rounded-xl border transition-all ${
+                        isActive
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat?.color ?? 'bg-gray-100 text-gray-600'}`}>
+                              {cat?.label ?? topic.category}
                             </span>
-                          )}
-                          <span className="text-xs text-gray-400">
-                            {Math.round(topic.relevance * 100)}% relevancia
-                          </span>
-                        </div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm leading-snug">
-                          {topic.title}
-                        </p>
-                        {topic.summary && (
-                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 line-clamp-2">
-                            {topic.summary}
+                            {topic.source === 'manual' && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                Propio
+                              </span>
+                            )}
+                            {topic.source === 'curado' && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                Curado
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm leading-snug">
+                            {topic.title}
                           </p>
-                        )}
-                        {topic.sourceUrl && (
-                          <a
-                            href={topic.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-500 hover:underline mt-1 inline-block"
-                          >
-                            Ver fuente
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <button
-                          onClick={() => handleGenerate(topic)}
-                          disabled={!!generating}
-                          className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                            isActive
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200'
-                          }`}
-                        >
-                          {isGenerating ? (
-                            <div className="w-4 h-4 border-2 border-white dark:border-gray-900 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            'Generar'
+                          {topic.summary && (
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 line-clamp-2">
+                              {topic.summary}
+                            </p>
                           )}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTopic(topic.id)}
-                          disabled={deletingTopicId === topic.id}
-                          title="Eliminar tema"
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-                        >
-                          {deletingTopicId === topic.id ? (
-                            <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
+                          {topic.sourceUrl && (
+                            <a
+                              href={topic.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-500 hover:underline mt-1 inline-block"
+                            >
+                              Ver fuente
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button
+                            onClick={() => handleGenerate(topic)}
+                            disabled={!!generating}
+                            className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                              isActive
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200'
+                            }`}
+                          >
+                            {isGenerating ? (
+                              <div className="w-4 h-4 border-2 border-white dark:border-gray-900 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              'Generar'
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(topic)}
+                            title="Eliminar tema"
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                          )}
-                        </button>
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Panel de resultado */}
+          <div>
+            {!generatedPost && !generating && (
+              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-center p-8">
+                <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-gray-500 dark:text-slate-400 text-sm">
+                  Selecciona un tema y haz clic en <strong>Generar</strong> para crear tu post
+                </p>
+              </div>
+            )}
+
+            {generating && (
+              <div className="flex flex-col items-center justify-center h-64 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
+                <p className="text-sm text-gray-500 dark:text-slate-400">Generando post con IA...</p>
+              </div>
+            )}
+
+            {generateError && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm mb-4">
+                {generateError}
+              </div>
+            )}
+
+            {generatedPost && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">Post generado</p>
+                  {savedPost?.status === 'PUBLISHED' && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                      Publicado
+                    </span>
+                  )}
+                </div>
+
+                {/* Hook */}
+                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Primera línea (gancho)</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{generatedPost.hook}</p>
+                </div>
+
+                {/* Editor */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
+                    Contenido del post
+                  </label>
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    rows={10}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1 text-right">{editContent.length} caracteres</p>
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
+                    Hashtags
+                  </label>
+                  <input
+                    value={editHashtags}
+                    onChange={(e) => setEditHashtags(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {generatedPost.imagePrompt && (
+                  <LinkedInImagePreview prompt={generatedPost.imagePrompt} />
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Mejor hora</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{generatedPost.suggestedTime}</p>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Panel de resultado */}
-        <div>
-          {!generatedPost && !generating && (
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-center p-8">
-              <LinkedInIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
-              <p className="text-gray-500 dark:text-slate-400 text-sm">
-                Selecciona un tema y haz clic en <strong>Generar</strong> para crear tu post
-              </p>
-            </div>
-          )}
-
-          {generating && (
-            <div className="flex flex-col items-center justify-center h-64 border border-gray-200 dark:border-gray-700 rounded-xl">
-              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
-              <p className="text-sm text-gray-500 dark:text-slate-400">Generando post con IA...</p>
-            </div>
-          )}
-
-          {generateError && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 text-sm mb-4">
-              {generateError}
-            </div>
-          )}
-
-          {generatedPost && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">Post generado</p>
-                {savedPost?.status === 'PUBLISHED' && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
-                    Publicado
-                  </span>
-                )}
-              </div>
-
-              {/* Hook */}
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Primera línea (gancho)</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{generatedPost.hook}</p>
-              </div>
-
-              {/* Editor */}
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
-                  Contenido del post
-                </label>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={10}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-400 mt-1 text-right">{editContent.length} caracteres</p>
-              </div>
-
-              {/* Hashtags */}
-              <div>
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1">
-                  Hashtags
-                </label>
-                <input
-                  value={editHashtags}
-                  onChange={(e) => setEditHashtags(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {generatedPost.imagePrompt && (
-                <LinkedInImagePreview prompt={generatedPost.imagePrompt} />
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">Mejor hora</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{generatedPost.suggestedTime}</p>
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">CTA</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5 line-clamp-2">{generatedPost.cta}</p>
+                  </div>
                 </div>
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">CTA</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5 line-clamp-2">{generatedPost.cta}</p>
-                </div>
-              </div>
 
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={handleSaveEdits}
-                  disabled={saving}
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60"
-                >
-                  {saving ? 'Guardando...' : 'Guardar cambios'}
-                </button>
-                <button
-                  onClick={handleCopyAll}
-                  className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
-                    copied ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  {copied ? 'Copiado!' : 'Copiar texto + hashtags'}
-                </button>
-                {savedPost?.status !== 'PUBLISHED' && (
+                <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={handleMarkPublished}
-                    disabled={markingPublished}
-                    className="px-3 py-2 text-sm rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-60 font-medium"
+                    onClick={handleSaveEdits}
+                    disabled={saving}
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60"
                   >
-                    {markingPublished ? 'Marcando...' : 'Marcar publicado'}
+                    {saving ? 'Guardando...' : 'Guardar cambios'}
                   </button>
-                )}
-              </div>
+                  <button
+                    onClick={handleCopyAll}
+                    className={`flex-1 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+                      copied ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
+                  >
+                    {copied ? 'Copiado!' : 'Copiar texto + hashtags'}
+                  </button>
+                  {savedPost?.status !== 'PUBLISHED' && (
+                    <button
+                      onClick={handleMarkPublished}
+                      disabled={markingPublished}
+                      className="px-3 py-2 text-sm rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-60 font-medium"
+                    >
+                      {markingPublished ? 'Marcando...' : 'Marcar publicado'}
+                    </button>
+                  )}
+                </div>
 
-              <p className="text-xs text-gray-400 text-center">
-                Copia el texto, pégalo en LinkedIn y adjunta la imagen descargada
-              </p>
-            </div>
-          )}
+                <p className="text-xs text-gray-400 text-center">
+                  Copia el texto, pégalo en LinkedIn y adjunta la imagen descargada
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
