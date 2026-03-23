@@ -311,8 +311,14 @@ const features = [
   {
     icon: '🌐',
     title: 'Web médica profesional',
-    desc: 'Tu página personalizada lista para compartir con pacientes. Incluye perfil, especialidad y agenda en línea desde el primer día.',
+    desc: 'Tu página personalizada lista para compartir: perfil, especialidad, servicios, horarios y agenda en línea. Incluye chat con Sara IA para atender preguntas de pacientes potenciales.',
     color: 'bg-emerald-50 text-emerald-600',
+  },
+  {
+    icon: '📋',
+    title: 'Portal del Paciente',
+    desc: 'Cada paciente tiene su propio dashboard donde puede ver su historial de atenciones, citas, recetas, órdenes de examen y certificados — todo disponible desde su celular, en cualquier momento.',
+    color: 'bg-green-50 text-green-600',
   },
   {
     icon: '📊',
@@ -688,7 +694,8 @@ const plans = [
       { icon: '🩺', text: 'Controles PAI, crecimiento infantil y embarazo.' },
       { icon: '⭐', text: 'Encuestas de satisfacción automáticas post-consulta.' },
       { icon: '🔔', text: 'Recordatorios WhatsApp + cumpleaños de pacientes.' },
-      { icon: '👤', text: '2 usuarios: médico + asistente (multi-consultorio).' },
+      { icon: '👤', text: 'Médico + asistente + portal de pacientes incluido.' },
+      { icon: '📋', text: 'Portal del paciente: atenciones, citas, recetas y órdenes en su celular.' },
       { icon: '🌐', text: 'Web médica profesional + chat IA para pacientes.' },
     ],
     cta: 'Elegir Plan Mensual',
