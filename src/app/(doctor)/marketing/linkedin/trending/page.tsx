@@ -298,9 +298,9 @@ export default function LinkedInTrendingPage() {
   const handleRefreshSpecialty = async () => {
     setRefreshingSpecialty(true)
     try {
-      const res = await fetch('/api/marketing/specialty-topics')
+      const res = await fetch(`/api/marketing/specialty-topics?_t=${Date.now()}`, { cache: 'no-store' })
       const d = res.ok ? await res.json() : null
-      if (d?.topics?.length) {
+      if (d?.topics) {
         setSpecialtyTopics(d.topics)
         setSpecialtyLabel(d.specialty ?? '')
       }
@@ -515,11 +515,11 @@ export default function LinkedInTrendingPage() {
             </div>
           ) : specialtyTopics.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
-              {specialtyTopics.map((topic) => {
+              {specialtyTopics.map((topic, i) => {
                 const isGeneratingThis = generatingSpecialty === topic
                 return (
                   <button
-                    key={topic}
+                    key={i}
                     onClick={() => handleGenerateSpecialty(topic)}
                     disabled={!!generating || !!generatingSpecialty}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border flex items-center gap-1.5 disabled:opacity-50 ${
