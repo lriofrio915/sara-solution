@@ -44,8 +44,7 @@ function Hero() {
           </h1>
 
           <p className="text-lg sm:text-xl text-white/75 leading-relaxed mb-10 max-w-lg">
-            Gestiona tu consultorio, capta pacientes y haz crecer tu práctica médica con
-            inteligencia artificial.
+            Agenda inteligente, fichas médicas, recetas digitales, marketing con IA para 4 redes sociales y planificador de contenido — todo en una sola plataforma.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -275,9 +274,21 @@ const features = [
   },
   {
     icon: '📱',
-    title: 'Contenido para RRSS',
-    desc: 'Sara redacta posts educativos e imágenes con IA para Instagram, Facebook y TikTok — sin que tú escribas una sola línea.',
+    title: 'Marketing Suite con IA',
+    desc: 'Genera posts, carruseles, reels y guiones para Instagram, Facebook, TikTok y LinkedIn. Elige el enfoque (atraer pacientes, ganar credibilidad, viralizar) y la IA escribe el copy y los hashtags.',
     color: 'bg-pink-50 text-pink-600',
+  },
+  {
+    icon: '🗓️',
+    title: 'Planificador de contenido',
+    desc: 'Define frecuencia diaria, semanal o mensual, fecha de inicio y fin. Sara genera un calendario completo de publicaciones con imágenes IA incluidas — solo aprueba y publica.',
+    color: 'bg-fuchsia-50 text-fuchsia-600',
+  },
+  {
+    icon: '💼',
+    title: 'LinkedIn médico inteligente',
+    desc: 'Posts basados en tendencias reales de salud y medicina. Sara posiciona al médico como referente de su especialidad en LinkedIn para atraer pacientes y networking profesional.',
+    color: 'bg-sky-50 text-sky-700',
   },
   {
     icon: '🔔',
@@ -293,8 +304,8 @@ const features = [
   },
   {
     icon: '👤',
-    title: 'Multi-usuario',
-    desc: 'Invita a tu asistente para que gestione la agenda y el marketing mientras tú te concentras en la atención médica. Cada uno con su propia clave.',
+    title: 'Multi-usuario y Recepción',
+    desc: 'Invita a tu asistente con su propio acceso. Una asistente puede gestionar múltiples consultorios desde la misma cuenta. Recepción virtual con módulo dedicado para administrar la clínica.',
     color: 'bg-cyan-50 text-cyan-600',
   },
   {
@@ -324,7 +335,7 @@ function Features() {
             <span className="text-primary">hacer crecer tu práctica</span>
           </h2>
           <p className="mt-4 text-gray-500 max-w-xl mx-auto">
-            Sara no es solo un chatbot. Es tu asistente completa de gestión médica.
+            Sara no es solo un chatbot. Es la plataforma completa de gestión médica, marketing y crecimiento para tu práctica.
           </p>
         </div>
 
@@ -341,6 +352,108 @@ function Features() {
               <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Marketing Suite ───────────────────────────────────────────────────────────
+
+function MarketingSuite() {
+  return (
+    <section className="py-24 bg-white" id="marketing">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <span className="inline-block bg-pink-50 text-pink-600 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+            Marketing Suite IA
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 max-w-2xl mx-auto leading-snug">
+            Tu presencia digital en{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-600">
+              piloto automático
+            </span>
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-xl mx-auto leading-relaxed">
+            Sin contratar community manager. Sin pasar horas frente a la pantalla. Sara genera, planifica y gestiona tu contenido médico en todas las redes.
+          </p>
+        </div>
+
+        {/* Redes soportadas */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {[
+            { label: 'Instagram', color: 'bg-gradient-to-r from-pink-500 to-orange-400', icon: '📸' },
+            { label: 'Facebook', color: 'bg-blue-600', icon: '👍' },
+            { label: 'TikTok', color: 'bg-gray-900', icon: '🎵' },
+            { label: 'LinkedIn', color: 'bg-blue-700', icon: '💼' },
+          ].map(n => (
+            <div key={n.label} className={`flex items-center gap-2 ${n.color} text-white text-sm font-semibold px-5 py-2 rounded-full shadow-sm`}>
+              <span>{n.icon}</span>
+              {n.label}
+            </div>
+          ))}
+        </div>
+
+        {/* 3 pilares */}
+        <div className="grid sm:grid-cols-3 gap-6 mb-10">
+          {/* Pilar 1: Generador */}
+          <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-fuchsia-50 p-7 hover:-translate-y-1 transition-transform duration-200">
+            <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-2xl mb-5">✍️</div>
+            <h3 className="font-bold text-gray-900 text-lg mb-3">Generador de posts con IA</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              Escoge el formato — post, carrusel, reel, story o guión de video — y el enfoque: atraer pacientes, ganar credibilidad, viralizar contenido o fidelizar. La IA genera el copy, los hashtags y una imagen de referencia lista para publicar.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {['Post', 'Carrusel', 'Reel', 'Story', 'Video', 'Guión'].map(f => (
+                <span key={f} className="text-xs bg-white border border-pink-200 text-pink-700 px-2.5 py-1 rounded-full font-medium">{f}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Pilar 2: Planificador */}
+          <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-indigo-50 p-7 hover:-translate-y-1 transition-transform duration-200">
+            <div className="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center text-2xl mb-5">🗓️</div>
+            <h3 className="font-bold text-gray-900 text-lg mb-3">Planificador de contenido</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              Define la frecuencia (diaria, semanal, quincenal o mensual), número de posts por período y fecha de fin. Sara genera un calendario completo con contenido para cada red. Revisa, aprueba todo de un clic, o ajusta post a post.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Multi-plataforma'].map(f => (
+                <span key={f} className="text-xs bg-white border border-violet-200 text-violet-700 px-2.5 py-1 rounded-full font-medium">{f}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Pilar 3: LinkedIn */}
+          <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 p-7 hover:-translate-y-1 transition-transform duration-200">
+            <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl mb-5">💼</div>
+            <h3 className="font-bold text-gray-900 text-lg mb-3">LinkedIn con tendencias reales</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-4">
+              Sara monitorea las tendencias médicas y de salud digital en tiempo real. Genera posts de LinkedIn basados en esas noticias para posicionarte como referente en tu especialidad y aumentar tu red de pacientes y referidos.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {['Tendencias médicas', 'Posicionamiento', 'Networking', 'Referidos'].map(f => (
+                <span key={f} className="text-xs bg-white border border-blue-200 text-blue-700 px-2.5 py-1 rounded-full font-medium">{f}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Biblioteca */}
+        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-7 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">📚</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-900 text-lg mb-1">Biblioteca de publicaciones</h4>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Todos tus posts generados en un solo lugar — borradores y aprobados. Selecciona múltiples publicaciones a la vez para aprobarlas o eliminarlas en bloque. Tu historial de contenido siempre organizado y disponible.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 flex-shrink-0">
+            {['Selección múltiple', 'Aprobar en bloque', 'Borrador / Publicado'].map(t => (
+              <span key={t} className="text-xs bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full font-medium">{t}</span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -565,18 +678,18 @@ const plans = [
     badgeBg: 'bg-primary',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
     features: [
-      { icon: '✔', text: 'Pacientes ilimitados.' },
-      { icon: '🤖', text: 'Agente Sara IA en tu WhatsApp Business.' },
-      { icon: '✔', text: 'Agenda, fichas, recetas digitales y CIE-10.' },
-      { icon: '✔', text: 'Atención y agendamiento automático 24/7.' },
-      { icon: '✔', text: 'Marketing Suite con IA para redes sociales.' },
+      { icon: '✔', text: 'Pacientes, citas y fichas clínicas ilimitadas.' },
+      { icon: '🤖', text: 'Agente Sara IA en tu WhatsApp Business 24/7.' },
+      { icon: '✔', text: 'Agenda inteligente + recetas digitales + CIE-10.' },
       { icon: '🧠', text: 'IA 360°: análisis clínico antes de cada consulta.' },
-      { icon: '🩺', text: 'Controles PAI, crecimiento y embarazo.' },
-      { icon: '⭐', text: 'Encuestas de satisfacción automáticas.' },
-      { icon: '🔔', text: 'Recordatorios WA + recordatorio de cumpleaños.' },
-      { icon: '👤', text: '2 usuarios: médico + asistente incluido.' },
-      { icon: '✔', text: 'Web Médica Profesional incluida.' },
-      { icon: '✔', text: 'Soporte Prioritario.' },
+      { icon: '📱', text: 'Marketing Suite IA: Instagram, Facebook, TikTok y LinkedIn.' },
+      { icon: '🗓️', text: 'Planificador de contenido con calendario semanal.' },
+      { icon: '💼', text: 'LinkedIn con tendencias médicas en tiempo real.' },
+      { icon: '🩺', text: 'Controles PAI, crecimiento infantil y embarazo.' },
+      { icon: '⭐', text: 'Encuestas de satisfacción automáticas post-consulta.' },
+      { icon: '🔔', text: 'Recordatorios WhatsApp + cumpleaños de pacientes.' },
+      { icon: '👤', text: '2 usuarios: médico + asistente (multi-consultorio).' },
+      { icon: '🌐', text: 'Web médica profesional + chat IA para pacientes.' },
     ],
     cta: 'Elegir Plan Mensual',
     ctaStyle: 'border-2 border-primary text-primary hover:bg-primary hover:text-white',
@@ -594,10 +707,11 @@ const plans = [
     checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
-      { icon: '💰', text: 'Equivale a $54.08/mes — ahorra $299 al año.' },
-      { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor).' },
-      { icon: '✔', text: 'Acceso anticipado a nuevas funcionalidades.' },
-      { icon: '✔', text: 'Soporte VIP prioritario todo el año.' },
+      { icon: '💰', text: 'Solo $54.08/mes — ahorras $299 al año.' },
+      { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido ($150 de valor).' },
+      { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades IA.' },
+      { icon: '⚡', text: 'Soporte VIP con respuesta prioritaria todo el año.' },
+      { icon: '🔒', text: 'Precio bloqueado — sin aumentos mientras seas anual.' },
     ],
     cta: 'Elegir Plan Anual',
     ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
@@ -614,12 +728,12 @@ const plans = [
     badgeBg: '',
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
-      { icon: '✔', text: 'Todo lo del Plan PRO incluido.' },
-      { icon: '✔', text: 'Multi-sede y Multi-médico (hasta 5 médicos).' },
-      { icon: '👥', text: 'Usuarios ilimitados por médico (asistentes).' },
-      { icon: '✔', text: 'White Label: marca y dominio personalizado.' },
-      { icon: '✔', text: 'Onboarding y configuración asistida.' },
-      { icon: '✔', text: 'Soporte VIP (Respuesta < 2 horas).' },
+      { icon: '✔', text: 'Todo el Plan PRO para cada médico incluido.' },
+      { icon: '🏥', text: 'Hasta 5 médicos — más sedes al costo que acordemos.' },
+      { icon: '👥', text: 'Asistentes ilimitadas por médico.' },
+      { icon: '🎨', text: 'White Label: tu marca, tu dominio personalizado.' },
+      { icon: '🎁', text: 'Onboarding asistido para cada médico del equipo.' },
+      { icon: '⚡', text: 'Soporte VIP — respuesta en menos de 2 horas.' },
     ],
     cta: 'Elegir Plan Enterprise',
     ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
@@ -770,7 +884,7 @@ function CTAFinal() {
         </h2>
 
         <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-          14 días gratis, sin tarjeta de crédito. Configura tu perfil en minutos y empieza a ver
+          21 días gratis, sin tarjeta de crédito. Configura tu perfil en minutos y empieza a ver
           resultados desde el primer día.
         </p>
 
@@ -917,6 +1031,7 @@ export default function LandingPage() {
         <Hero />
         <Problems />
         <Features />
+        <MarketingSuite />
         <KnowledgeBase />
         <HowItWorks />
         <Pricing />
