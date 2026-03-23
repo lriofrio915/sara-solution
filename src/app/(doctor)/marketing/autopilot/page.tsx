@@ -351,13 +351,8 @@ export default function PlanificadorPage() {
             </div>
           </div>
 
-          {/* Fila 1: Posts por período + Frecuencia */}
+          {/* Fila 1: Frecuencia + Posts por período */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Posts por {FREQ_PERIOD[frequency] ?? 'período'}</label>
-              <input type="number" min="1" max="10" value={postsPerPeriod} onChange={e => setPostsPerPeriod(e.target.value)}
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Frecuencia</label>
               <select value={frequency} onChange={e => setFrequency(e.target.value)}
@@ -367,6 +362,11 @@ export default function PlanificadorPage() {
                 <option value="BIWEEKLY">Quincenal</option>
                 <option value="MONTHLY">Mensual</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Posts por {FREQ_PERIOD[frequency] ?? 'período'}</label>
+              <input type="number" min="1" max="10" value={postsPerPeriod} onChange={e => setPostsPerPeriod(e.target.value)}
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha de inicio</label>
