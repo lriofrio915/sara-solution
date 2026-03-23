@@ -22,10 +22,10 @@ const FORMATS: { value: ContentType; label: string; desc: string }[] = [
 ]
 
 const FOCUS_OPTIONS = [
-  { value: 'crear_comunidad',    label: 'Crear comunidad',     instruction: 'Fomenta la interacción, comentarios y participación activa de pacientes y seguidores.' },
-  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  instruction: 'Comparte casos educativos, estadísticas y avances médicos que posicionen tu expertise.' },
-  { value: 'fidelizar',          label: 'Fidelizar pacientes', instruction: 'Publica recordatorios de cuidado, seguimiento post-consulta y consejos de salud personalizados.' },
-  { value: 'aumentar_alcance',   label: 'Aumentar alcance',    instruction: 'Crea contenido emocional y compartible que llegue a amigos y familiares de tus pacientes.' },
+  { value: 'crear_comunidad',    label: 'Crear comunidad',     description: 'Publicaciones que invitan a comentar y participar activamente. Construyes una comunidad alrededor de tu consulta y generas pertenencia.',        instruction: 'Fomenta la interacción, comentarios y participación activa de pacientes y seguidores.' },
+  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  description: 'Posts con datos, estadísticas y evidencia médica. Refuerzan tu reputación como profesional serio y confiable en tu comunidad.',                  instruction: 'Comparte casos educativos, estadísticas y avances médicos que posicionen tu expertise.' },
+  { value: 'fidelizar',          label: 'Fidelizar pacientes', description: 'Mantén el vínculo con tus pacientes actuales: recordatorios de cuidado, seguimiento post-consulta y consejos de salud personalizados.',             instruction: 'Publica recordatorios de cuidado, seguimiento post-consulta y consejos de salud personalizados.' },
+  { value: 'aumentar_alcance',   label: 'Aumentar alcance',    description: 'Contenido emocional y compartible que llega a amigos y familiares de tus pacientes. Cada compartido es un nuevo paciente potencial.',             instruction: 'Crea contenido emocional y compartible que llegue a amigos y familiares de tus pacientes.' },
 ]
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -159,11 +159,18 @@ export default function FacebookPage() {
             {/* Enfoque */}
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del post</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {FOCUS_OPTIONS.map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-[#1877F2] text-white border-[#1877F2]' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-400'}`}>
-                    {f.label}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      focus === f.value
+                        ? 'border-[#1877F2] bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
+                    }`}>
+                    <p className={`font-semibold text-sm ${focus === f.value ? 'text-[#1877F2] dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                      {f.label}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{f.description}</p>
                   </button>
                 ))}
               </div>

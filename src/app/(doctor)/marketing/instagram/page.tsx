@@ -23,10 +23,10 @@ const FORMATS: { value: ContentType; label: string; desc: string }[] = [
 ]
 
 const FOCUS_OPTIONS = [
-  { value: 'crecer_audiencia',   label: 'Crecer audiencia',    instruction: 'Crea contenido viral y compartible para maximizar alcance y atraer nuevos seguidores.' },
-  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  instruction: 'Demuestra expertise médico con contenido educativo serio y basado en evidencia.' },
-  { value: 'atraer_pacientes',   label: 'Atraer pacientes',    instruction: 'Enfócate en síntomas comunes, soluciones prácticas e invita a agendar consulta.' },
-  { value: 'fidelizar',          label: 'Fidelizar pacientes', instruction: 'Crea contenido de seguimiento, consejos de cuidado y recordatorios de salud.' },
+  { value: 'crecer_audiencia',   label: 'Crecer audiencia',    description: 'Publicaciones visuales y virales para llegar a personas que aún no te siguen. Maximiza el alcance y convierte extraños en seguidores.', instruction: 'Crea contenido viral y compartible para maximizar alcance y atraer nuevos seguidores.' },
+  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  description: 'Contenido educativo que demuestra tu expertise médico. Te posiciona como referente de confianza ante pacientes y colegas.', instruction: 'Demuestra expertise médico con contenido educativo serio y basado en evidencia.' },
+  { value: 'atraer_pacientes',   label: 'Atraer pacientes',    description: 'Posts que muestran tus servicios y responden dudas frecuentes. Cada publicación es una invitación directa a agendar una consulta.', instruction: 'Enfócate en síntomas comunes, soluciones prácticas e invita a agendar consulta.' },
+  { value: 'fidelizar',          label: 'Fidelizar pacientes', description: 'Contenido de cuidado continuo para tus pacientes actuales: consejos de salud, recordatorios y acompañamiento en su proceso.', instruction: 'Crea contenido de seguimiento, consejos de cuidado y recordatorios de salud.' },
 ]
 
 
@@ -149,11 +149,18 @@ export default function InstagramPage() {
             {/* Enfoque */}
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del post</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {FOCUS_OPTIONS.map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-pink-500 text-white border-pink-500' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-pink-300'}`}>
-                    {f.label}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      focus === f.value
+                        ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-pink-300 dark:hover:border-pink-700'
+                    }`}>
+                    <p className={`font-semibold text-sm ${focus === f.value ? 'text-pink-700 dark:text-pink-400' : 'text-gray-900 dark:text-white'}`}>
+                      {f.label}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{f.description}</p>
                   </button>
                 ))}
               </div>

@@ -13,10 +13,10 @@ interface GeneratedScript {
 }
 
 const FOCUS_OPTIONS = [
-  { value: 'viralizar',        label: 'Viralizar contenido',   instruction: 'Usa datos impactantes, estadísticas sorprendentes o revelaciones médicas que generen reacciones y se compartan.' },
-  { value: 'educar_entretener', label: 'Educar y entretener',  instruction: 'Explica conceptos médicos complejos de forma simple, divertida y accesible para el público general.' },
-  { value: 'ganar_seguidores', label: 'Ganar seguidores',      instruction: 'Crea contenido en serie y consistente que invite a seguirte para aprender más sobre salud.' },
-  { value: 'desmentir_mitos',  label: 'Desmentir mitos',       instruction: 'Toma un mito médico popular muy extendido y destrúyelo con evidencia de forma dramática y memorable.' },
+  { value: 'viralizar',         label: 'Viralizar contenido', description: 'Videos con datos impactantes o revelaciones médicas sorprendentes. El objetivo es que se compartan masivamente y lleguen a miles de personas.',    instruction: 'Usa datos impactantes, estadísticas sorprendentes o revelaciones médicas que generen reacciones y se compartan.' },
+  { value: 'educar_entretener', label: 'Educar y entretener', description: 'Explica conceptos médicos de forma simple, dinámica y entretenida. Haces que la medicina sea accesible y atractiva para el público general.',       instruction: 'Explica conceptos médicos complejos de forma simple, divertida y accesible para el público general.' },
+  { value: 'ganar_seguidores',  label: 'Ganar seguidores',    description: 'Serie de videos consistentes que generan expectativa e invitan a seguirte. Construyes una audiencia fiel interesada en temas de salud.',            instruction: 'Crea contenido en serie y consistente que invite a seguirte para aprender más sobre salud.' },
+  { value: 'desmentir_mitos',   label: 'Desmentir mitos',     description: 'Tomas un mito médico popular y lo derrumbas con evidencia. Genera debate, reacciones fuertes y te posiciona como voz autorizada en tu especialidad.', instruction: 'Toma un mito médico popular muy extendido y destrúyelo con evidencia de forma dramática y memorable.' },
 ]
 
 function TikTokIcon({ className }: { className?: string }) {
@@ -151,11 +151,18 @@ export default function TikTokPage() {
             {/* Enfoque */}
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del video</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {FOCUS_OPTIONS.map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-black text-white border-black dark:bg-gray-200 dark:text-black dark:border-gray-200' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'}`}>
-                    {f.label}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      focus === f.value
+                        ? 'border-gray-900 bg-gray-100 dark:border-gray-200 dark:bg-gray-700'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400'
+                    }`}>
+                    <p className={`font-semibold text-sm ${focus === f.value ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}>
+                      {f.label}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{f.description}</p>
                   </button>
                 ))}
               </div>
