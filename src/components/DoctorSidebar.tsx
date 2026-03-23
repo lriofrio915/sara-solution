@@ -19,6 +19,17 @@ import type { AssistantDoctor } from '@/lib/doctor-auth'
 
 // ─── Nav groups ────────────────────────────────────────────────
 
+// Items bloqueados para plan FREE
+const FREE_LOCKED = new Set([
+  '/appointments',
+  '/leads',
+  '/marketing',
+  '/reminders',
+  '/billing',
+  '/team',
+  '/knowledge',
+])
+
 // Reportes va primero — visión general de la clínica
 const topItem = { href: '/dashboard', icon: BarChart2, label: 'Reportes' }
 
@@ -140,17 +151,28 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   // ── Shared nav link ──────────────────────────────────────────
   const NavLink = ({ href, icon: Icon, label, extraClass = '' }: {
     href: string; icon: React.ElementType; label: string; extraClass?: string
-  }) => (
-    <Link href={href}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${extraClass} ${
-        isActive(href)
-          ? 'bg-primary/10 text-primary dark:bg-primary/20'
-          : 'text-gray-600 dark:text-slate-300 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10'
-      }`}>
-      <Icon size={18} className="flex-shrink-0" />
-      {label}
-    </Link>
-  )
+  }) => {
+    const locked = plan === 'FREE' && FREE_LOCKED.has(href)
+    return (
+      <Link href={href}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${extraClass} ${
+          isActive(href)
+            ? 'bg-primary/10 text-primary dark:bg-primary/20'
+            : locked
+              ? 'text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10'
+        }`}>
+        <Icon size={18} className="flex-shrink-0" />
+        <span className="flex-1">{label}</span>
+        {locked && (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-gray-400 dark:text-slate-500">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        )}
+      </Link>
+    )
+  }
 
   // ── Doctor Switcher (multi-doctor assistants only) ───────────
   const DoctorSwitcher = () => {
@@ -237,7 +259,9 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
       {gearOpen && (
         <div className="absolute bottom-full left-0 mb-2 w-52 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50">
-          {gearItems.map(({ href, icon: Icon, label }) => (
+          {gearItems.map(({ href, icon: Icon, label }) => {
+            const locked = plan === 'FREE' && FREE_LOCKED.has(href)
+            return (
             <Link
               key={href}
               href={href}
@@ -245,13 +269,22 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
               className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
                 isActive(href)
                   ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : locked
+                    ? 'text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
-              <Icon size={16} />
-              {label}
+              <Icon size={16} className="flex-shrink-0" />
+              <span className="flex-1">{label}</span>
+              {locked && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-gray-400 dark:text-slate-500">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+              )}
             </Link>
-          ))}
+          )})}
+
           <hr className="border-gray-100 dark:border-gray-700 my-1" />
           <button
             onClick={handleLogout}
@@ -321,17 +354,28 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       {/* Extra gear items inline in mobile drawer */}
       {mobile && (
         <div className="pt-3 mt-3 border-t border-gray-100 dark:border-gray-700 space-y-1">
-          {gearItems.map(({ href, icon: Icon, label }) => (
-            <Link key={href} href={href}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-colors ${
-                isActive(href)
-                  ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-500 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}>
-              <Icon size={18} />
-              {label}
-            </Link>
-          ))}
+          {gearItems.map(({ href, icon: Icon, label }) => {
+            const locked = plan === 'FREE' && FREE_LOCKED.has(href)
+            return (
+              <Link key={href} href={href}
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-colors ${
+                  isActive(href)
+                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                    : locked
+                      ? 'text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      : 'text-gray-500 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}>
+                <Icon size={18} className="flex-shrink-0" />
+                <span className="flex-1">{label}</span>
+                {locked && (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-gray-400 dark:text-slate-500">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                )}
+              </Link>
+            )
+          })}
         </div>
       )}
     </nav>
@@ -463,17 +507,30 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
       {/* ── MOBILE BOTTOM TAB BAR ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex shadow-lg">
-        {(role === 'ASSISTANT' ? assistantTabItems : tabItems).map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href}
-            className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
-              isActive(href)
-                ? 'text-primary'
-                : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300'
-            }`}>
-            <Icon size={20} />
-            <span className="text-[10px] mt-0.5">{label}</span>
-          </Link>
-        ))}
+        {(role === 'ASSISTANT' ? assistantTabItems : tabItems).map(({ href, icon: Icon, label }) => {
+          const locked = plan === 'FREE' && FREE_LOCKED.has(href)
+          return (
+            <Link key={href} href={href}
+              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
+                isActive(href)
+                  ? 'text-primary'
+                  : locked
+                    ? 'text-gray-300 dark:text-slate-600'
+                    : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300'
+              }`}>
+              <div className="relative">
+                <Icon size={20} />
+                {locked && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="absolute -top-1 -right-1 text-gray-400 dark:text-slate-500 bg-white dark:bg-gray-800 rounded-full">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                )}
+              </div>
+              <span className="text-[10px] mt-0.5">{label}</span>
+            </Link>
+          )
+        })}
       </nav>
     </>
   )

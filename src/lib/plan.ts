@@ -24,6 +24,14 @@ export function isPro(plan: EffectivePlan): boolean {
 
 export const TRIAL_DAYS = 21
 
+/** Limits for FREE plan users */
+export const FREE_LIMITS = {
+  patients:      25,
+  prescriptions: 25,
+  examOrders:    25,
+  certificates:  25,
+} as const
+
 export const HOTMART = {
   monthly: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
   annual:  'https://pay.hotmart.com/H104994063B?checkoutMode=2',
