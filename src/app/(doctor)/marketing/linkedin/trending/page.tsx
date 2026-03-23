@@ -445,45 +445,30 @@ export default function LinkedInTrendingPage() {
 
         {/* Estrategia — solo admin ve B2B */}
         {roleLoaded && (
-          <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
               Enfoque del post
             </p>
             {isAdmin ? (
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setStrategy('B2B')}
-                  className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-                    strategy === 'B2B'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2B' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-300'}`}
                 >
-                  <p className="font-semibold text-sm text-gray-900 dark:text-white">Captar médicos</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                    Atraer médicos interesados en el software. Tono: innovador, ROI, eficiencia.
-                  </p>
+                  Captar médicos
                 </button>
                 <button
                   onClick={() => setStrategy('B2C')}
-                  className={`flex-1 min-w-[200px] p-3 rounded-xl border-2 text-left transition-all ${
-                    strategy === 'B2C'
-                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/30'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-teal-300'
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2C' ? 'bg-teal-600 text-white border-teal-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-teal-300'}`}
                 >
-                  <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                    Posicionarte como experto en tu área. Tono: educativo, empático, confianza.
-                  </p>
+                  Atraer pacientes
                 </button>
               </div>
             ) : (
-              <div className="p-3 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-900/30">
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">Atraer pacientes</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                  Los posts se crean para posicionarte como experto y generar confianza con tus pacientes.
-                </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-teal-600 text-white border border-teal-600">
+                  Atraer pacientes
+                </span>
               </div>
             )}
           </div>

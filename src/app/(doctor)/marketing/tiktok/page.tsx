@@ -151,18 +151,11 @@ export default function TikTokPage() {
             {/* Enfoque */}
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del video</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {FOCUS_OPTIONS.map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
-                      focus === f.value
-                        ? 'border-gray-900 bg-gray-100 dark:border-gray-200 dark:bg-gray-700'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400'
-                    }`}>
-                    <p className={`font-semibold text-sm ${focus === f.value ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}>
-                      {f.label}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{f.description}</p>
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'}`}>
+                    {f.label}
                   </button>
                 ))}
               </div>
