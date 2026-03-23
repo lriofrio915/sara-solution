@@ -24,6 +24,17 @@ function getClient() {
   })
 }
 
+const FOCUS_ANGLES = [
+  'enfermedades frecuentes y su manejo',
+  'prevención y hábitos saludables',
+  'síntomas de alerta que no se deben ignorar',
+  'mitos y verdades sobre tratamientos',
+  'innovaciones y avances recientes',
+  'consejos prácticos para el día a día',
+  'cuándo consultar al especialista',
+  'impacto emocional y calidad de vida',
+]
+
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -41,15 +52,18 @@ export async function GET() {
     const specialty = doctor?.specialty?.trim() || 'Medicina General'
     const bio = doctor?.bio?.trim() || ''
 
+    // Pick a random focus angle and a nonce to bust OpenRouter prompt cache
+    const angle = FOCUS_ANGLES[Math.floor(Math.random() * FOCUS_ANGLES.length)]
+    const nonce = Math.random().toString(36).slice(2, 8)
+
     const client = getClient()
 
-    const prompt = `Eres un experto en marketing médico. Un médico con la especialidad "${specialty}" ${bio ? `que se describe así: "${bio.slice(0, 300)}"` : ''} quiere publicar contenido educativo en LinkedIn para atraer y fidelizar pacientes.
+    const prompt = `Eres un experto en marketing médico. Un médico con la especialidad "${specialty}" ${bio ? `que se describe así: "${bio.slice(0, 300)}"` : ''} quiere publicar contenido educativo en LinkedIn para atraer y fidelizar pacientes. [ref:${nonce}]
 
-Genera exactamente 8 temas concisos y relevantes para sus publicaciones. Cada tema debe:
+Genera exactamente 8 temas DISTINTOS enfocados en: ${angle}. Cada tema debe:
 - Ser específico a su especialidad médica
 - Ser educativo, preventivo o informativo para pacientes
 - Redactarse como título corto de post (máximo 6 palabras)
-- Cubrir: enfermedades frecuentes, tratamientos, prevención, síntomas, mitos, recomendaciones
 
 Responde ÚNICAMENTE con un JSON array de 8 strings, sin explicaciones. Ejemplo de formato:
 ["Prevención del infarto en mujeres","Hipertensión: síntomas silenciosos","Cuándo ver al cardiólogo","Diabetes tipo 2 y corazón","Arritmia: mitos y realidades","Colesterol bueno vs malo","Ejercicio y salud cardiovascular","Estrés y presión arterial"]`
@@ -57,7 +71,7 @@ Responde ÚNICAMENTE con un JSON array de 8 strings, sin explicaciones. Ejemplo 
     const completion = await client.chat.completions.create({
       model: 'anthropic/claude-haiku-4-5',
       max_tokens: 600,
-      temperature: 0.7,
+      temperature: 0.9,
       messages: [{ role: 'user', content: prompt }],
     })
 
