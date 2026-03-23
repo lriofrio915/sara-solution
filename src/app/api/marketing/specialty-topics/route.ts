@@ -56,7 +56,7 @@ Responde ÚNICAMENTE con un JSON array de 8 strings, sin explicaciones. Ejemplo 
 
     const completion = await client.chat.completions.create({
       model: 'anthropic/claude-haiku-4-5',
-      max_tokens: 400,
+      max_tokens: 600,
       temperature: 0.7,
       messages: [{ role: 'user', content: prompt }],
     })

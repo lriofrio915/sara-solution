@@ -297,15 +297,18 @@ export default function LinkedInTrendingPage() {
 
   const handleRefreshSpecialty = async () => {
     setRefreshingSpecialty(true)
+    setSpecialtyTopics([])
+    setSpecialtyLoading(true)
     try {
       const res = await fetch(`/api/marketing/specialty-topics?_t=${Date.now()}`, { cache: 'no-store' })
       const d = res.ok ? await res.json() : null
-      if (d?.topics) {
+      if (d?.topics?.length) {
         setSpecialtyTopics(d.topics)
         setSpecialtyLabel(d.specialty ?? '')
       }
     } catch { /* ignore */ } finally {
       setRefreshingSpecialty(false)
+      setSpecialtyLoading(false)
     }
   }
 
