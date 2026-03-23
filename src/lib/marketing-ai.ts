@@ -174,23 +174,22 @@ export async function generateMarketingContent(opts: GeneratePostOptions): Promi
 
 export interface AutopilotOptions {
   brand: BrandContext
-  frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
-  postsCount: number
-  startDate: string // YYYY-MM-DD
-  platforms?: string[] // e.g. ['INSTAGRAM', 'FACEBOOK']
+  frequency: 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
+  scheduledDates: string[] // pre-computed list of YYYY-MM-DD, one per post
+  platforms?: string[]
 }
 
 export interface AutopilotPost {
   topic: string
   contentType: 'POST' | 'CAROUSEL' | 'REEL' | 'STORY'
-  scheduledDate: string // YYYY-MM-DD
+  scheduledDate: string // YYYY-MM-DD (AI hint; route overrides with scheduledDates[i])
   suggestedTime: string
   content: string
   hashtags: string[]
   imagePrompt?: string
   carouselSlides?: { title: string; body: string }[]
   reelScript?: string
-  platform?: string // assigned platform for this post
+  platform?: string
 }
 
 export async function generateAutopilotCalendar(opts: AutopilotOptions): Promise<AutopilotPost[]> {
@@ -201,28 +200,30 @@ export async function generateAutopilotCalendar(opts: AutopilotOptions): Promise
 
   const platforms = opts.platforms?.length ? opts.platforms : ['INSTAGRAM']
   const platformsStr = platforms.join(', ')
+  const total = opts.scheduledDates.length
+  const datesStr = opts.scheduledDates.join(', ')
 
   const planPrompt = `Eres un experto en marketing médico. Crea un plan de contenido para redes sociales para: ${name} (${specs}).
 
-Genera exactamente ${opts.postsCount} publicaciones con fechas a partir de ${opts.startDate} con frecuencia ${opts.frequency}.
+Genera EXACTAMENTE ${total} publicaciones. Usa estas fechas en orden exacto (una fecha por post): ${datesStr}
 
-Plataformas a usar: ${platformsStr}. Distribuye los posts entre estas plataformas de forma equilibrada. Asigna a cada post el campo "platform" con uno de estos valores: ${platformsStr}.
+Plataformas a usar: ${platformsStr}. Distribuye los posts equilibradamente entre ellas. Asigna a cada post el campo "platform" con uno de: ${platformsStr}.
 
-Para cada post incluye: topic, contentType (POST/CAROUSEL/REEL/STORY), scheduledDate (YYYY-MM-DD), suggestedTime, content (texto completo), hashtags (array), imagePrompt, platform.
+Para cada post incluye: topic, contentType (POST/CAROUSEL/REEL/STORY), scheduledDate (usa la fecha que corresponde según el orden), suggestedTime (hora recomendada), content (texto completo del post), hashtags (array), imagePrompt (descripción en inglés de la imagen ideal), platform.
 
 Reglas:
 - Variedad de tipos (mix de POST, CAROUSEL, REEL, STORY)
-- Temas relevantes para ${specs}
-- Contenido educativo y atractivo para cada plataforma
+- Si hay varios posts el mismo día, que sean de temas y tipos diferentes
+- Temas relevantes para ${specs}, educativos y atractivos
 - Todo en español de Ecuador
 
-Responde SOLO con un array JSON:
+Responde SOLO con un array JSON de exactamente ${total} elementos:
 [
   {
     "topic": "...",
     "contentType": "POST",
     "scheduledDate": "YYYY-MM-DD",
-    "suggestedTime": "...",
+    "suggestedTime": "9:00 AM",
     "content": "...",
     "hashtags": [],
     "imagePrompt": "...",

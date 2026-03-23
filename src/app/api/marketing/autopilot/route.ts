@@ -14,14 +14,67 @@ async function getDoctor() {
   })
 }
 
+/** Computes the list of scheduled dates based on frequency and date range.
+ *  postsPerPeriod = posts per day/week/biweek/month.
+ *  Returns up to 60 YYYY-MM-DD strings. */
+function computeSchedule(
+  startDate: string,
+  endDate: string,
+  frequency: string,
+  postsPerPeriod: number,
+): string[] {
+  const start = new Date(startDate + 'T12:00:00')
+  const end   = new Date(endDate   + 'T12:00:00')
+  const dates: string[] = []
+  const MAX = 60
+
+  if (frequency === 'DAILY') {
+    const cur = new Date(start)
+    while (cur <= end && dates.length < MAX) {
+      for (let i = 0; i < postsPerPeriod && dates.length < MAX; i++) {
+        dates.push(cur.toISOString().slice(0, 10))
+      }
+      cur.setDate(cur.getDate() + 1)
+    }
+    return dates
+  }
+
+  const periodDays = frequency === 'WEEKLY' ? 7 : frequency === 'BIWEEKLY' ? 14 : 30
+  const cur = new Date(start)
+
+  while (cur <= end && dates.length < MAX) {
+    for (let i = 0; i < postsPerPeriod && dates.length < MAX; i++) {
+      const d = new Date(cur)
+      // Spread evenly across period, avoiding day 0 overlap when >1 post
+      const offset = postsPerPeriod > 1 ? Math.floor(i * (periodDays - 1) / (postsPerPeriod - 1)) : 0
+      d.setDate(d.getDate() + offset)
+      if (d <= end) dates.push(d.toISOString().slice(0, 10))
+    }
+    if (frequency === 'MONTHLY') {
+      cur.setMonth(cur.getMonth() + 1)
+    } else {
+      cur.setDate(cur.getDate() + periodDays)
+    }
+  }
+
+  return dates
+}
+
 export async function POST(req: Request) {
   const doctor = await getDoctor()
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { frequency = 'MONTHLY', postsCount = 12, startDate, title, platforms } = body
+  const { frequency = 'MONTHLY', postsPerPeriod = 4, startDate, endDate, title, platforms } = body
 
   if (!startDate) return NextResponse.json({ error: 'startDate requerido' }, { status: 400 })
+  if (!endDate)   return NextResponse.json({ error: 'endDate requerido' },   { status: 400 })
+
+  const scheduledDates = computeSchedule(startDate, endDate, frequency, Math.min(Number(postsPerPeriod), 10))
+
+  if (!scheduledDates.length) {
+    return NextResponse.json({ error: 'El rango de fechas no genera ningún post' }, { status: 400 })
+  }
 
   const brand = await prisma.brandProfile.findUnique({ where: { doctorId: doctor.id } })
   const brandContext = {
@@ -41,19 +94,14 @@ export async function POST(req: Request) {
 
     const autopilotPosts = await generateAutopilotCalendar({
       brand: brandContext,
-      frequency,
-      postsCount: Math.min(postsCount, 30),
-      startDate,
+      frequency: frequency as 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY',
+      scheduledDates,
       platforms: selectedPlatforms,
     })
 
     if (!autopilotPosts.length) {
       return NextResponse.json({ error: 'No se pudo generar el calendario' }, { status: 500 })
     }
-
-    // Calculate end date from last post
-    const sortedDates = autopilotPosts.map(p => p.scheduledDate).sort()
-    const endDate = sortedDates[sortedDates.length - 1] ?? startDate
 
     // Create calendar + posts + items in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -70,6 +118,8 @@ export async function POST(req: Request) {
       const createdPosts = []
       for (let i = 0; i < autopilotPosts.length; i++) {
         const ap = autopilotPosts[i]
+        // Use pre-computed date — override whatever AI returned
+        const postDate = scheduledDates[i] ?? scheduledDates[scheduledDates.length - 1]
         const postPlatform = ((ap.platform && selectedPlatforms.includes(ap.platform))
           ? ap.platform
           : selectedPlatforms[i % selectedPlatforms.length]) as SocialPlatform
@@ -88,7 +138,7 @@ export async function POST(req: Request) {
             suggestedTime: ap.suggestedTime ?? null,
             carouselSlides: ap.carouselSlides ? ap.carouselSlides : undefined,
             reelScript: ap.reelScript ?? null,
-            scheduledAt: new Date(ap.scheduledDate),
+            scheduledAt: new Date(postDate),
             aiGenerated: true,
           },
         })
@@ -97,7 +147,7 @@ export async function POST(req: Request) {
           data: {
             calendarId: calendar.id,
             socialPostId: post.id,
-            scheduledDate: new Date(ap.scheduledDate),
+            scheduledDate: new Date(postDate),
             order: i,
           },
         })
@@ -130,7 +180,7 @@ export async function GET() {
             select: {
               id: true, content: true, status: true,
               contentType: true, topic: true, scheduledAt: true,
-              hashtags: true, suggestedTime: true, targetPlatform: true,
+              hashtags: true, suggestedTime: true, targetPlatform: true, imagePrompt: true,
             },
           },
         },

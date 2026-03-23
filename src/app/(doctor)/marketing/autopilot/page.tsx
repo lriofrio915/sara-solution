@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import AIImage from '../_ai-image'
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -47,6 +48,7 @@ interface CalendarItem {
     hashtags: string[]
     suggestedTime: string | null
     targetPlatform: string
+    imagePrompt: string | null
   }
 }
 
@@ -84,7 +86,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   PUBLISHED: { label: 'Publicado', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' },
 }
 
-const FREQ_LABELS: Record<string, string> = { WEEKLY: 'Semanal', BIWEEKLY: 'Quincenal', MONTHLY: 'Mensual' }
+const FREQ_LABELS: Record<string, string> = { DAILY: 'Diario', WEEKLY: 'Semanal', BIWEEKLY: 'Quincenal', MONTHLY: 'Mensual' }
+const FREQ_PERIOD: Record<string, string> = { DAILY: 'día', WEEKLY: 'semana', BIWEEKLY: 'quincena', MONTHLY: 'mes' }
 const DAYS_ES   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
@@ -148,10 +151,27 @@ export default function PlanificadorPage() {
   const [approvingAllCalId, setApprovingAllCalId] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
-  const [frequency, setFrequency] = useState('MONTHLY')
-  const [postsCount, setPostsCount] = useState('12')
+  const [frequency, setFrequency] = useState('WEEKLY')
+  const [postsPerPeriod, setPostsPerPeriod] = useState('3')
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().slice(0, 10)
+  })
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['INSTAGRAM'])
+
+  // Compute estimated total posts
+  const estimatedTotal = useMemo(() => {
+    const s = new Date(startDate + 'T12:00:00')
+    const e = new Date(endDate   + 'T12:00:00')
+    if (e < s) return 0
+    const days = Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+    const ppp = Math.min(parseInt(postsPerPeriod) || 1, 10)
+    const periods = frequency === 'DAILY'    ? days
+                  : frequency === 'WEEKLY'   ? Math.ceil(days / 7)
+                  : frequency === 'BIWEEKLY' ? Math.ceil(days / 14)
+                  : Math.ceil(days / 30) // MONTHLY
+    return Math.min(periods * ppp, 60)
+  }, [frequency, postsPerPeriod, startDate, endDate])
 
   const fetchCalendars = useCallback(async () => {
     setLoading(true)
@@ -183,7 +203,7 @@ export default function PlanificadorPage() {
       const res = await fetch('/api/marketing/autopilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title || null, frequency, postsCount: parseInt(postsCount), startDate, platforms: selectedPlatforms }),
+        body: JSON.stringify({ title: title || null, frequency, postsPerPeriod: parseInt(postsPerPeriod), startDate, endDate, platforms: selectedPlatforms }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al generar')
@@ -331,32 +351,54 @@ export default function PlanificadorPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Fila 1: Posts por período + Frecuencia */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Título</label>
-              <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-                placeholder="Ej: Plan Enero 2025"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Posts por {FREQ_PERIOD[frequency] ?? 'período'}</label>
+              <input type="number" min="1" max="10" value={postsPerPeriod} onChange={e => setPostsPerPeriod(e.target.value)}
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Frecuencia</label>
               <select value={frequency} onChange={e => setFrequency(e.target.value)}
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <option value="DAILY">Diario</option>
                 <option value="WEEKLY">Semanal</option>
                 <option value="BIWEEKLY">Quincenal</option>
                 <option value="MONTHLY">Mensual</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">N° de posts</label>
-              <input type="number" min="4" max="30" value={postsCount} onChange={e => setPostsCount(e.target.value)}
-                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-            </div>
-            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha de inicio</label>
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required
                 className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha de fin</label>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required min={startDate}
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+          </div>
+
+          {/* Título + total calculado */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Título del calendario (opcional)</label>
+              <input type="text" value={title} onChange={e => setTitle(e.target.value)}
+                placeholder="Ej: Plan Instagram Enero"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+            {estimatedTotal > 0 && (
+              <div className="flex-shrink-0 pb-0.5">
+                <p className="text-sm text-gray-500 dark:text-slate-400">
+                  Total estimado: <span className="font-semibold text-gray-900 dark:text-white">{estimatedTotal} posts</span>
+                  <span className="text-xs ml-1">({postsPerPeriod} por {FREQ_PERIOD[frequency] ?? 'período'})</span>
+                </p>
+                {estimatedTotal >= 60 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Máximo 60 posts por calendario</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -560,6 +602,14 @@ export default function PlanificadorPage() {
                                     </span>
                                   ))}
                                 </div>
+                              )}
+                              {post.imagePrompt && (
+                                <AIImage
+                                  prompt={post.imagePrompt}
+                                  aspect="1/1"
+                                  accentColor={post.targetPlatform === 'INSTAGRAM' ? 'pink' : 'blue'}
+                                  downloadName={`imagen-${post.id}.jpg`}
+                                />
                               )}
                             </div>
                           )}
