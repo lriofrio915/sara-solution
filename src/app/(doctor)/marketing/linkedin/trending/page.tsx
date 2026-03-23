@@ -32,6 +32,13 @@ interface SavedPost {
   status: string
 }
 
+const FOCUS_OPTIONS = [
+  { value: 'posicionarme_experto', label: 'Posicionarme como experto',  instruction: 'Escribe desde la autoridad médica del doctor, demuestra expertise y posiciónalo como referente de confianza en su especialidad.' },
+  { value: 'atraer_pacientes',     label: 'Atraer pacientes',           instruction: 'El post debe generar confianza y motivar al lector a agendar una consulta con el médico. Incluye un CTA claro al final.' },
+  { value: 'ganar_visibilidad',    label: 'Ganar visibilidad',          instruction: 'Crea contenido educativo valioso y compartible para maximizar el alcance orgánico y atraer nuevos seguidores.' },
+  { value: 'networking',           label: 'Networking profesional',     instruction: 'Tono de colega a colega, orientado a generar conexiones con otros profesionales de salud y referidos médicos.' },
+]
+
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   saas_medico:      { label: 'SaaS Médico',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
   salud_digital:    { label: 'Salud Digital',      color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300' },
@@ -119,6 +126,7 @@ export default function LinkedInTrendingPage() {
   // Generacion
   const [generating, setGenerating] = useState<string | null>(null)
   const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2C')
+  const [focus, setFocus] = useState('')
   const [generatedPost, setGeneratedPost] = useState<GeneratedPost | null>(null)
   const [savedPost, setSavedPost] = useState<SavedPost | null>(null)
   const [activeTopic, setActiveTopic] = useState<TrendingTopic | null>(null)
@@ -231,6 +239,7 @@ export default function LinkedInTrendingPage() {
           strategy,
           trendContext: topic.summary ?? undefined,
           trendingTopicId: topic.id,
+          extraInstructions: FOCUS_OPTIONS.find(f => f.value === focus)?.instruction ?? undefined,
         }),
       })
       const data = await res.json()
@@ -443,32 +452,46 @@ export default function LinkedInTrendingPage() {
           </div>
         )}
 
-        {/* Estrategia — solo admin ve B2B */}
+        {/* Estrategia + Enfoque */}
         {roleLoaded && (
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-              Enfoque del post
-            </p>
-            {isAdmin ? (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setStrategy('B2B')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2B' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-300'}`}
-                >
-                  Captar médicos
-                </button>
-                <button
-                  onClick={() => setStrategy('B2C')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2C' ? 'bg-teal-600 text-white border-teal-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-teal-300'}`}
-                >
-                  Atraer pacientes
-                </button>
+          <div className="mb-6 space-y-3">
+            {/* Admin: selector B2B / B2C */}
+            {isAdmin && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                  Audiencia objetivo
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setStrategy('B2B')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2B' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-300'}`}
+                  >
+                    Captar médicos
+                  </button>
+                  <button
+                    onClick={() => setStrategy('B2C')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${strategy === 'B2C' ? 'bg-teal-600 text-white border-teal-600' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-teal-300'}`}
+                  >
+                    Atraer pacientes
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-teal-600 text-white border border-teal-600">
-                  Atraer pacientes
-                </span>
+            )}
+
+            {/* Enfoque del post — visible para todos (en B2C) */}
+            {(!isAdmin || strategy === 'B2C') && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                  Enfoque del post
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {FOCUS_OPTIONS.map(f => (
+                    <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-blue-700 text-white border-blue-700' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-400'}`}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
