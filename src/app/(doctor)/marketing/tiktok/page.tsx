@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AIImage from '../_ai-image'
 
 interface GeneratedScript {
@@ -12,13 +12,11 @@ interface GeneratedScript {
   reelScript?: string
 }
 
-const SUGGESTIONS = [
-  'Un dato de salud que la mayoria no conoce',
-  '3 senales de que necesitas ver a un medico ya',
-  'Lo que pasa en tu cuerpo cuando no duermes bien',
-  'Mito o verdad: los antibioticos curan el resfriado',
-  'Como leer tus examenes de laboratorio',
-  'Por que el estres afecta tu sistema inmune',
+const FOCUS_OPTIONS = [
+  { value: 'viralizar',        label: 'Viralizar contenido',   instruction: 'Usa datos impactantes, estadísticas sorprendentes o revelaciones médicas que generen reacciones y se compartan.' },
+  { value: 'educar_entretener', label: 'Educar y entretener',  instruction: 'Explica conceptos médicos complejos de forma simple, divertida y accesible para el público general.' },
+  { value: 'ganar_seguidores', label: 'Ganar seguidores',      instruction: 'Crea contenido en serie y consistente que invite a seguirte para aprender más sobre salud.' },
+  { value: 'desmentir_mitos',  label: 'Desmentir mitos',       instruction: 'Toma un mito médico popular muy extendido y destrúyelo con evidencia de forma dramática y memorable.' },
 ]
 
 function TikTokIcon({ className }: { className?: string }) {
@@ -40,6 +38,32 @@ export default function TikTokPage() {
   const [editHashtags, setEditHashtags] = useState('')
   const [copied, setCopied] = useState(false)
   const [marked, setMarked] = useState(false)
+  const [focus, setFocus] = useState('')
+  const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
+  const [specialtyLoading, setSpecialtyLoading] = useState(true)
+  const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/marketing/specialty-topics?platform=tiktok')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.topics?.length) setSpecialtyTopics(d.topics) })
+      .catch(() => {})
+      .finally(() => setSpecialtyLoading(false))
+  }, [])
+
+  async function handleRefreshSpecialty() {
+    setRefreshingSpecialty(true)
+    setSpecialtyTopics([])
+    setSpecialtyLoading(true)
+    try {
+      const res = await fetch(`/api/marketing/specialty-topics?platform=tiktok&_t=${Date.now()}`, { cache: 'no-store' })
+      const d = res.ok ? await res.json() : null
+      if (d?.topics?.length) setSpecialtyTopics(d.topics)
+    } catch { /* ignore */ } finally {
+      setRefreshingSpecialty(false)
+      setSpecialtyLoading(false)
+    }
+  }
 
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault()
@@ -55,7 +79,7 @@ export default function TikTokPage() {
           topic: topic.trim(),
           contentType: 'REEL',
           targetPlatform: 'TIKTOK',
-          extraInstructions: extra || undefined,
+          extraInstructions: [FOCUS_OPTIONS.find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
         }),
       })
       const data = await res.json()
@@ -124,6 +148,19 @@ export default function TikTokPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Crear guion de video</h3>
 
+            {/* Enfoque */}
+            <div>
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del video</label>
+              <div className="flex flex-wrap gap-2">
+                {FOCUS_OPTIONS.map(f => (
+                  <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-black text-white border-black dark:bg-gray-200 dark:text-black dark:border-gray-200' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'}`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <form onSubmit={handleGenerate} className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Tema del video</label>
@@ -132,14 +169,29 @@ export default function TikTokPage() {
                   className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-teal-400" />
               </div>
 
-              {/* Sugerencias */}
-              <div className="flex flex-wrap gap-1.5">
-                {SUGGESTIONS.slice(0, 4).map(s => (
-                  <button key={s} type="button" onClick={() => setTopic(s)}
-                    className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-teal-100 dark:hover:bg-teal-900/30 hover:text-teal-700 dark:hover:text-teal-400">
-                    {s.slice(0, 35)}...
+              {/* Sugerencias por especialidad */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Sugerencias para tu especialidad</span>
+                  <button type="button" onClick={handleRefreshSpecialty} disabled={refreshingSpecialty || specialtyLoading}
+                    title="Nuevas sugerencias"
+                    className="p-0.5 rounded text-gray-400 hover:text-teal-500 disabled:opacity-40 transition-colors">
+                    <svg className={`w-3 h-3 ${refreshingSpecialty ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {specialtyLoading
+                    ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-6 w-24 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+                    : specialtyTopics.map((s, i) => (
+                        <button key={i} type="button" onClick={() => setTopic(s)}
+                          className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-teal-100 dark:hover:bg-teal-900/30 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">
+                          {s.length > 35 ? s.slice(0, 35) + '…' : s}
+                        </button>
+                      ))
+                  }
+                </div>
               </div>
 
               <div>

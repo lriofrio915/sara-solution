@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AIImage from '../_ai-image'
 
 type ContentType = 'POST' | 'CAROUSEL' | 'VIDEO'
@@ -21,13 +21,11 @@ const FORMATS: { value: ContentType; label: string; desc: string }[] = [
   { value: 'VIDEO',    label: 'Video',       desc: 'Guión' },
 ]
 
-const SUGGESTIONS = [
-  'Beneficios de una alimentación saludable para el corazón',
-  'Cuándo debes hacer un chequeo de presión arterial',
-  'Señales de alerta del colesterol alto',
-  'Importancia de la vacunación en adultos mayores',
-  'Cómo prevenir la diabetes tipo 2',
-  'Consejos para dormir mejor y mejorar tu salud',
+const FOCUS_OPTIONS = [
+  { value: 'crear_comunidad',    label: 'Crear comunidad',     instruction: 'Fomenta la interacción, comentarios y participación activa de pacientes y seguidores.' },
+  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  instruction: 'Comparte casos educativos, estadísticas y avances médicos que posicionen tu expertise.' },
+  { value: 'fidelizar',          label: 'Fidelizar pacientes', instruction: 'Publica recordatorios de cuidado, seguimiento post-consulta y consejos de salud personalizados.' },
+  { value: 'aumentar_alcance',   label: 'Aumentar alcance',    instruction: 'Crea contenido emocional y compartible que llegue a amigos y familiares de tus pacientes.' },
 ]
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -50,6 +48,32 @@ export default function FacebookPage() {
   const [editHashtags, setEditHashtags] = useState('')
   const [copied, setCopied] = useState(false)
   const [marked, setMarked] = useState(false)
+  const [focus, setFocus] = useState('')
+  const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
+  const [specialtyLoading, setSpecialtyLoading] = useState(true)
+  const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/marketing/specialty-topics?platform=facebook')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.topics?.length) setSpecialtyTopics(d.topics) })
+      .catch(() => {})
+      .finally(() => setSpecialtyLoading(false))
+  }, [])
+
+  async function handleRefreshSpecialty() {
+    setRefreshingSpecialty(true)
+    setSpecialtyTopics([])
+    setSpecialtyLoading(true)
+    try {
+      const res = await fetch(`/api/marketing/specialty-topics?platform=facebook&_t=${Date.now()}`, { cache: 'no-store' })
+      const d = res.ok ? await res.json() : null
+      if (d?.topics?.length) setSpecialtyTopics(d.topics)
+    } catch { /* ignore */ } finally {
+      setRefreshingSpecialty(false)
+      setSpecialtyLoading(false)
+    }
+  }
 
   const apiContentType = format === 'VIDEO' ? 'REEL' : format
 
@@ -67,7 +91,7 @@ export default function FacebookPage() {
           topic: topic.trim(),
           contentType: apiContentType,
           targetPlatform: 'FACEBOOK',
-          extraInstructions: extra || undefined,
+          extraInstructions: [FOCUS_OPTIONS.find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
         }),
       })
       const data = await res.json()
@@ -132,6 +156,19 @@ export default function FacebookPage() {
               </div>
             </div>
 
+            {/* Enfoque */}
+            <div>
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del post</label>
+              <div className="flex flex-wrap gap-2">
+                {FOCUS_OPTIONS.map(f => (
+                  <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-[#1877F2] text-white border-[#1877F2]' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-400'}`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Tema */}
             <form onSubmit={handleGenerate} className="space-y-3">
               <div>
@@ -141,14 +178,29 @@ export default function FacebookPage() {
                   className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
 
-              {/* Sugerencias */}
-              <div className="flex flex-wrap gap-1.5">
-                {SUGGESTIONS.slice(0, 4).map(s => (
-                  <button key={s} type="button" onClick={() => setTopic(s)}
-                    className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-400">
-                    {s.slice(0, 35)}...
+              {/* Sugerencias por especialidad */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Sugerencias para tu especialidad</span>
+                  <button type="button" onClick={handleRefreshSpecialty} disabled={refreshingSpecialty || specialtyLoading}
+                    title="Nuevas sugerencias"
+                    className="p-0.5 rounded text-gray-400 hover:text-blue-500 disabled:opacity-40 transition-colors">
+                    <svg className={`w-3 h-3 ${refreshingSpecialty ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {specialtyLoading
+                    ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-6 w-24 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+                    : specialtyTopics.map((s, i) => (
+                        <button key={i} type="button" onClick={() => setTopic(s)}
+                          className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-400 transition-colors">
+                          {s.length > 35 ? s.slice(0, 35) + '…' : s}
+                        </button>
+                      ))
+                  }
+                </div>
               </div>
 
               <div>
