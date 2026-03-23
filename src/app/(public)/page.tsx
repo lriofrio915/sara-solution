@@ -708,10 +708,10 @@ const plans = [
     features: [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
       { icon: '💰', text: 'Solo $54.08/mes — ahorras $299 al año.' },
-      { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido ($150 de valor).' },
+      { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido.' },
       { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades IA.' },
       { icon: '⚡', text: 'Soporte VIP con respuesta prioritaria todo el año.' },
-      { icon: '🔒', text: 'Precio bloqueado — sin aumentos mientras seas anual.' },
+      { icon: '👨‍💻', text: 'Desarrollador asignado para ti: resuelve dudas técnicas, escucha tus necesidades y las convierte en mejoras reales del software.' },
     ],
     cta: 'Elegir Plan Anual',
     ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
