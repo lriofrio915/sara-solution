@@ -88,6 +88,13 @@ const FREQ_LABELS: Record<string, string> = { WEEKLY: 'Semanal', BIWEEKLY: 'Quin
 const DAYS_ES   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
+// Prisma returns full ISO strings (e.g. "2025-01-06T00:00:00.000Z").
+// Adding 'T12:00:00' to those breaks parsing, so we detect and handle both formats.
+function toLocalDate(dateStr: string): Date {
+  if (dateStr.length > 10) return new Date(dateStr)
+  return new Date(dateStr + 'T12:00:00')
+}
+
 function getMonday(d: Date): Date {
   const day = d.getDay()
   const diff = day === 0 ? -6 : 1 - day
@@ -100,7 +107,7 @@ function getMonday(d: Date): Date {
 function groupByWeek(items: CalendarItem[]) {
   const map = new Map<string, CalendarItem[]>()
   for (const item of items) {
-    const date = new Date(item.scheduledDate + 'T12:00:00')
+    const date = toLocalDate(item.scheduledDate)
     const key = getMonday(date).toISOString().slice(0, 10)
     if (!map.has(key)) map.set(key, [])
     map.get(key)!.push(item)
@@ -114,7 +121,7 @@ function groupByWeek(items: CalendarItem[]) {
 }
 
 function formatWeekRange(weekStart: string) {
-  const mon = new Date(weekStart + 'T12:00:00')
+  const mon = toLocalDate(weekStart)
   const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
   const m1 = MONTHS_ES[mon.getMonth()], m2 = MONTHS_ES[sun.getMonth()]
   return m1 === m2
@@ -123,7 +130,7 @@ function formatWeekRange(weekStart: string) {
 }
 
 function formatDayLabel(dateStr: string) {
-  const d = new Date(dateStr + 'T12:00:00')
+  const d = toLocalDate(dateStr)
   return `${DAYS_ES[d.getDay()]} ${d.getDate()} ${MONTHS_ES[d.getMonth()]}`
 }
 
