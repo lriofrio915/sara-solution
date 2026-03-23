@@ -177,6 +177,7 @@ export interface AutopilotOptions {
   frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
   postsCount: number
   startDate: string // YYYY-MM-DD
+  platforms?: string[] // e.g. ['INSTAGRAM', 'FACEBOOK']
 }
 
 export interface AutopilotPost {
@@ -189,6 +190,7 @@ export interface AutopilotPost {
   imagePrompt?: string
   carouselSlides?: { title: string; body: string }[]
   reelScript?: string
+  platform?: string // assigned platform for this post
 }
 
 export async function generateAutopilotCalendar(opts: AutopilotOptions): Promise<AutopilotPost[]> {
@@ -197,16 +199,21 @@ export async function generateAutopilotCalendar(opts: AutopilotOptions): Promise
   const name = opts.brand.clinicName ?? opts.brand.doctorName
   const specs = opts.brand.specialties.join(', ') || 'medicina general'
 
+  const platforms = opts.platforms?.length ? opts.platforms : ['INSTAGRAM']
+  const platformsStr = platforms.join(', ')
+
   const planPrompt = `Eres un experto en marketing médico. Crea un plan de contenido para redes sociales para: ${name} (${specs}).
 
 Genera exactamente ${opts.postsCount} publicaciones con fechas a partir de ${opts.startDate} con frecuencia ${opts.frequency}.
 
-Para cada post incluye: topic (tema), contentType (POST/CAROUSEL/REEL/STORY), scheduledDate (YYYY-MM-DD), suggestedTime, content (texto completo del post), hashtags (array), imagePrompt.
+Plataformas a usar: ${platformsStr}. Distribuye los posts entre estas plataformas de forma equilibrada. Asigna a cada post el campo "platform" con uno de estos valores: ${platformsStr}.
+
+Para cada post incluye: topic, contentType (POST/CAROUSEL/REEL/STORY), scheduledDate (YYYY-MM-DD), suggestedTime, content (texto completo), hashtags (array), imagePrompt, platform.
 
 Reglas:
 - Variedad de tipos (mix de POST, CAROUSEL, REEL, STORY)
 - Temas relevantes para ${specs}
-- Contenido educativo y atractivo
+- Contenido educativo y atractivo para cada plataforma
 - Todo en español de Ecuador
 
 Responde SOLO con un array JSON:
@@ -218,7 +225,8 @@ Responde SOLO con un array JSON:
     "suggestedTime": "...",
     "content": "...",
     "hashtags": [],
-    "imagePrompt": "..."
+    "imagePrompt": "...",
+    "platform": "${platforms[0]}"
   }
 ]`
 

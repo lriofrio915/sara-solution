@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { generateAutopilotCalendar } from '@/lib/marketing-ai'
+import type { SocialPlatform } from '@prisma/client'
 
 async function getDoctor() {
   const supabase = await createClient()
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { frequency = 'MONTHLY', postsCount = 12, startDate, title } = body
+  const { frequency = 'MONTHLY', postsCount = 12, startDate, title, platforms } = body
 
   if (!startDate) return NextResponse.json({ error: 'startDate requerido' }, { status: 400 })
 
@@ -34,11 +35,16 @@ export async function POST(req: Request) {
   }
 
   try {
+    const selectedPlatforms: string[] = Array.isArray(platforms) && platforms.length > 0
+      ? platforms
+      : ['INSTAGRAM']
+
     const autopilotPosts = await generateAutopilotCalendar({
       brand: brandContext,
       frequency,
       postsCount: Math.min(postsCount, 30),
       startDate,
+      platforms: selectedPlatforms,
     })
 
     if (!autopilotPosts.length) {
@@ -64,15 +70,19 @@ export async function POST(req: Request) {
       const createdPosts = []
       for (let i = 0; i < autopilotPosts.length; i++) {
         const ap = autopilotPosts[i]
+        const postPlatform = ((ap.platform && selectedPlatforms.includes(ap.platform))
+          ? ap.platform
+          : selectedPlatforms[i % selectedPlatforms.length]) as SocialPlatform
+
         const post = await tx.socialPost.create({
           data: {
             doctorId: doctor.id,
             content: ap.content,
-            platforms: ['INSTAGRAM'],
+            platforms: [postPlatform] as SocialPlatform[],
             hashtags: ap.hashtags ?? [],
             status: 'DRAFT',
             contentType: ap.contentType ?? 'POST',
-            targetPlatform: 'INSTAGRAM',
+            targetPlatform: postPlatform,
             topic: ap.topic,
             imagePrompt: ap.imagePrompt ?? null,
             suggestedTime: ap.suggestedTime ?? null,
@@ -120,6 +130,7 @@ export async function GET() {
             select: {
               id: true, content: true, status: true,
               contentType: true, topic: true, scheduledAt: true,
+              hashtags: true, suggestedTime: true, targetPlatform: true,
             },
           },
         },
@@ -128,4 +139,44 @@ export async function GET() {
   })
 
   return NextResponse.json({ calendars })
+}
+
+export async function DELETE(req: Request) {
+  const doctor = await getDoctor()
+  if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const calendarId = searchParams.get('calendarId')
+  const postId = searchParams.get('postId')
+
+  // Delete individual post from calendar
+  if (postId) {
+    const post = await prisma.socialPost.findFirst({
+      where: { id: postId, doctorId: doctor.id },
+    })
+    if (!post) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    await prisma.$transaction([
+      prisma.calendarItem.deleteMany({ where: { socialPostId: postId } }),
+      prisma.socialPost.delete({ where: { id: postId } }),
+    ])
+    return NextResponse.json({ ok: true })
+  }
+
+  // Delete entire calendar
+  if (calendarId) {
+    const calendar = await prisma.contentCalendar.findFirst({
+      where: { id: calendarId, doctorId: doctor.id },
+      include: { items: { select: { socialPostId: true } } },
+    })
+    if (!calendar) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    const postIds = calendar.items.map(i => i.socialPostId)
+    await prisma.$transaction([
+      prisma.calendarItem.deleteMany({ where: { calendarId } }),
+      prisma.contentCalendar.delete({ where: { id: calendarId } }),
+      prisma.socialPost.deleteMany({ where: { id: { in: postIds } } }),
+    ])
+    return NextResponse.json({ ok: true })
+  }
+
+  return NextResponse.json({ error: 'Parámetro requerido' }, { status: 400 })
 }

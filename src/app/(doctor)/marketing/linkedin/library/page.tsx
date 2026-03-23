@@ -41,6 +41,7 @@ export default function LinkedInLibraryPage() {
   const [copied, setCopied] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -62,8 +63,14 @@ export default function LinkedInLibraryPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Eliminar este post?')) return
+  const handleDelete = (id: string) => {
+    setConfirmDeleteId(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return
+    const id = confirmDeleteId
+    setConfirmDeleteId(null)
     setDeletingId(id)
     try {
       await fetch(`/api/marketing/linkedin/posts?id=${id}`, { method: 'DELETE' })
@@ -95,6 +102,40 @@ export default function LinkedInLibraryPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto">
+
+      {/* Modal de confirmación de eliminación */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)} />
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mx-auto mb-4">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white text-center mb-1">
+              Eliminar publicación
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400 text-center mb-6">
+              ¿Estás seguro? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-sm font-medium text-white transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Biblioteca LinkedIn</h2>
         <p className="text-sm text-gray-500 dark:text-slate-300 mt-0.5">
