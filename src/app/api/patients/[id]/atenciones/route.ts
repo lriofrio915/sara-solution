@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
+import { auditAttention, getClientIp } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -112,6 +113,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         ...(images !== undefined && { images }),
         ...(billing !== undefined && { billing }),
       },
+    })
+
+    await auditAttention(doctor.id, params.id, 'CREATE', {
+      ip: getClientIp(req),
+      attentionId: attention.id,
+      service,
+      datetime,
     })
 
     return NextResponse.json({ attention }, { status: 201 })

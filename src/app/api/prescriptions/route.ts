@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
+import { auditPrescription, getClientIp } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,6 +63,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Al menos un medicamento es requerido' }, { status: 400 })
     }
 
+    // Validación ACESS-2023-0030: DCI (nombre genérico) obligatorio en cada medicamento
+    const medsSinDci = medications.filter(
+      (m: { dci?: string; name?: string }) => !m.dci?.trim()
+    )
+    if (medsSinDci.length > 0) {
+      const nombres = medsSinDci.map((m: { name?: string }) => m.name || '(sin nombre)').join(', ')
+      return NextResponse.json({
+        error: `DCI (nombre genérico) obligatorio en: ${nombres}. Requisito ACESS-2023-0030.`,
+      }, { status: 400 })
+    }
+
+    const ip = getClientIp(req)
+
     const prescription = await prisma.$transaction(async (tx) => {
       let rxNumber: string | undefined
       try {
@@ -88,6 +102,13 @@ export async function POST(req: NextRequest) {
         },
         include: { patient: { select: { id: true, name: true, documentId: true } } },
       })
+    })
+
+    await auditPrescription(doctor.id, patientId, 'CREATE', {
+      ip,
+      prescriptionId: prescription.id,
+      rxNumber: prescription.rxNumber,
+      medicationCount: medications.length,
     })
 
     return NextResponse.json({ prescription }, { status: 201 })

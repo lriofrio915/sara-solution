@@ -92,27 +92,37 @@ export async function GET(
     const owned = await verifyOwnership(type, params.id, doctor.id)
     if (!owned) return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 })
 
-    // 7. Generate PDF from print page
+    // 7. Determine signature availability
+    const canApplySignature = userRef.role === 'OWNER' || assistantCanSign
+    const hasSignatureConfigured = !!(
+      canApplySignature &&
+      doctor.signaturePath &&
+      doctor.signatureIv &&
+      doctor.signatureTag &&
+      doctor.signatureEncPass
+    )
+
+    // 8. Generate PDF — pass ?draft=1 when no signature configured (AM 0009-2017)
     const cookieHeader = req.headers.get('cookie') ?? ''
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
-    let pdfBytes = await generatePdfFromPrintPage(printPath, cookieHeader)
+    const pdfPath = hasSignatureConfigured ? printPath : `${printPath}?draft=1`
+    let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
 
-    // 8. Apply digital signature if doctor has FirmaEC configured
-    //    ASSISTANT can only sign if the doctor has granted canSign permission
-    const canApplySignature = userRef.role === 'OWNER' || assistantCanSign
+    // 9. Apply digital signature (required by AM 0009-2017 for legal validity)
     let signed = false
-    if (canApplySignature && doctor.signaturePath && doctor.signatureIv && doctor.signatureTag && doctor.signatureEncPass) {
+    let signWarning: string | undefined
+
+    if (hasSignatureConfigured) {
       try {
-        // Download .p12 from private Supabase Storage bucket
         const storage = createAdminClient().storage
         const { data, error: dlError } = await storage
           .from('firma-ec')
-          .download(doctor.signaturePath.replace(/^firma-ec\//, ''))
+          .download(doctor.signaturePath!.replace(/^firma-ec\//, ''))
 
         if (dlError) throw new Error(`Storage error: ${dlError.message}`)
 
         const p12Buffer = Buffer.from(await data.arrayBuffer())
-        const password = decryptPassword(doctor.signatureIv, doctor.signatureTag, doctor.signatureEncPass)
+        const password = decryptPassword(doctor.signatureIv!, doctor.signatureTag!, doctor.signatureEncPass!)
 
         pdfBytes = await signPdf(pdfBytes, p12Buffer, password, {
           reason: `${FILE_LABELS[type]} firmado digitalmente por ${doctor.name}`,
@@ -122,20 +132,29 @@ export async function GET(
         })
         signed = true
       } catch (signErr) {
-        // Sign failure is non-fatal — return unsigned PDF with warning header
-        console.error('FirmaEC signing failed, returning unsigned PDF:', signErr)
+        // Sign failure (ej: certificado expirado) — retornar error descriptivo
+        const msg = signErr instanceof Error ? signErr.message : String(signErr)
+        console.error('FirmaEC signing failed:', msg)
+        signWarning = msg
       }
+    } else {
+      signWarning = 'FirmaEC no configurada. Configure su certificado digital BCE en Perfil > Firma Digital.'
     }
 
-    // 7. Return PDF
-    const filename = `${FILE_LABELS[type]}-${params.id.slice(-6)}${signed ? '-firmado' : ''}.pdf`
-    return new NextResponse(new Uint8Array(pdfBytes), {
+    const filename = `${FILE_LABELS[type]}-${params.id.slice(-6)}${signed ? '-firmado' : '-sin-firma'}.pdf`
+    const response = new NextResponse(new Uint8Array(pdfBytes), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'X-Signed': signed ? 'true' : 'false',
       },
     })
+
+    if (signWarning) {
+      response.headers.set('X-Sign-Warning', signWarning.slice(0, 500))
+    }
+
+    return response
   } catch (err) {
     console.error('GET /api/documents/[type]/[id]/download:', err)
     return NextResponse.json({ error: 'Error generando PDF' }, { status: 500 })

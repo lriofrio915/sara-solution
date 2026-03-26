@@ -4,11 +4,29 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Cie10Search from '@/components/Cie10Search'
+import { checkHighAlert } from '@/lib/high-alert-medications'
 
 interface Patient { id: string; name: string; documentId: string | null }
-interface Medication { name: string; dose: string; frequency: string; duration: string; notes: string }
 
-const EMPTY_MED: Medication = { name: '', dose: '', frequency: '', duration: '', notes: '' }
+// ACESS-2023-0030: campos obligatorios de receta médica
+interface Medication {
+  dci: string           // DCI/nombre genérico — OBLIGATORIO (ACESS-2023-0030)
+  name: string          // Nombre comercial (opcional)
+  dose: string          // Concentración: "500 mg"
+  pharmaceuticalForm: string // Forma farmacéutica: tableta, jarabe, etc.
+  route: string         // Vía de administración: oral, IV, IM, SC, tópico
+  frequency: string     // Frecuencia: "cada 8 horas"
+  duration: string      // Duración: "7 días"
+  notes: string         // Notas adicionales
+}
+
+const EMPTY_MED: Medication = {
+  dci: '', name: '', dose: '', pharmaceuticalForm: '',
+  route: '', frequency: '', duration: '', notes: '',
+}
+
+const ROUTES = ['Oral', 'Intravenosa (IV)', 'Intramuscular (IM)', 'Subcutánea (SC)', 'Tópica', 'Inhalatoria', 'Sublingual', 'Rectal', 'Oftálmica', 'Ótica', 'Nasal', 'Transdérmica']
+const PHARMA_FORMS = ['Tableta', 'Cápsula', 'Jarabe', 'Suspensión', 'Solución oral', 'Inyectable', 'Crema', 'Ungüento', 'Gel', 'Colirio', 'Supositorio', 'Parche', 'Aerosol', 'Polvo', 'Ampolla']
 
 export default function NewPrescriptionPage() {
   const router = useRouter()
@@ -75,12 +93,20 @@ export default function NewPrescriptionPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedPatient) { setError('Selecciona un paciente'); return }
-    if (medications.every(m => !m.name.trim())) { setError('Agrega al menos un medicamento'); return }
+
+    const validMeds = medications.filter(m => m.dci.trim() || m.name.trim())
+    if (validMeds.length === 0) { setError('Agrega al menos un medicamento con DCI'); return }
+
+    // Validar DCI obligatorio (ACESS-2023-0030)
+    const sinDci = validMeds.filter(m => !m.dci.trim())
+    if (sinDci.length > 0) {
+      setError(`El nombre genérico (DCI) es obligatorio en todos los medicamentos. ACESS-2023-0030.`)
+      return
+    }
 
     setSaving(true)
     setError(null)
     try {
-      const validMeds = medications.filter(m => m.name.trim())
       const res = await fetch('/api/prescriptions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,51 +197,94 @@ export default function NewPrescriptionPage() {
         {/* PRESCRIPCIÓN */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Prescripción (medicamentos)</h2>
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Prescripción (medicamentos)</h2>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Requisito ACESS-2023-0030: DCI obligatorio en toda receta médica</p>
+            </div>
             <button type="button" onClick={addMed}
               className="text-xs font-semibold text-primary hover:underline">+ Agregar</button>
           </div>
 
-          {medications.map((med, i) => (
-            <div key={i} className="border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3 relative">
-              {medications.length > 1 && (
-                <button type="button" onClick={() => removeMed(i)}
-                  className="absolute top-3 right-3 text-gray-300 hover:text-red-400 text-sm">✕</button>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {medications.map((med, i) => {
+            const highAlert = med.dci.trim() ? checkHighAlert(med.dci) : null
+            return (
+              <div key={i} className={`border rounded-xl p-4 space-y-3 relative ${highAlert ? 'border-red-300 dark:border-red-700 bg-red-50/30 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-700'}`}>
+                {medications.length > 1 && (
+                  <button type="button" onClick={() => removeMed(i)}
+                    className="absolute top-3 right-3 text-gray-300 hover:text-red-400 text-sm">✕</button>
+                )}
+
+                {/* Alerta ISMP */}
+                {highAlert && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-xs text-red-700 dark:text-red-400">
+                    <span className="font-bold flex-shrink-0">ALTO RIESGO ({highAlert.category}):</span>
+                    <span>{highAlert.warning}</span>
+                  </div>
+                )}
+
+                {/* DCI — campo obligatorio */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Medicamento *</label>
-                  <input type="text" value={med.name} onChange={e => updateMed(i, 'name', e.target.value)}
-                    placeholder="Ej: Amoxicilina"
+                  <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+                    Nombre genérico (DCI) <span className="text-red-500">*</span>
+                    <span className="text-gray-400 font-normal ml-1">— obligatorio por ACESS</span>
+                  </label>
+                  <input type="text" value={med.dci} onChange={e => updateMed(i, 'dci', e.target.value)}
+                    required
+                    placeholder="Ej: amoxicilina, metformina, enalapril"
                     className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Dosis</label>
-                  <input type="text" value={med.dose} onChange={e => updateMed(i, 'dose', e.target.value)}
-                    placeholder="Ej: 500 mg"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Nombre comercial (opcional)</label>
+                    <input type="text" value={med.name} onChange={e => updateMed(i, 'name', e.target.value)}
+                      placeholder="Ej: Amoxil, Glucophage"
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Concentración / Dosis</label>
+                    <input type="text" value={med.dose} onChange={e => updateMed(i, 'dose', e.target.value)}
+                      placeholder="Ej: 500 mg"
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Forma farmacéutica</label>
+                    <select value={med.pharmaceuticalForm} onChange={e => updateMed(i, 'pharmaceuticalForm', e.target.value)}
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <option value="">Seleccionar...</option>
+                      {PHARMA_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Vía de administración</label>
+                    <select value={med.route} onChange={e => updateMed(i, 'route', e.target.value)}
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <option value="">Seleccionar...</option>
+                      {ROUTES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Frecuencia</label>
+                    <input type="text" value={med.frequency} onChange={e => updateMed(i, 'frequency', e.target.value)}
+                      placeholder="Ej: cada 8 horas"
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Duración del tratamiento</label>
+                    <input type="text" value={med.duration} onChange={e => updateMed(i, 'duration', e.target.value)}
+                      placeholder="Ej: 7 días"
+                      className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Frecuencia</label>
-                  <input type="text" value={med.frequency} onChange={e => updateMed(i, 'frequency', e.target.value)}
-                    placeholder="Ej: cada 8 horas"
-                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Duración</label>
-                  <input type="text" value={med.duration} onChange={e => updateMed(i, 'duration', e.target.value)}
-                    placeholder="Ej: 7 días"
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Notas adicionales</label>
+                  <input type="text" value={med.notes} onChange={e => updateMed(i, 'notes', e.target.value)}
+                    placeholder="Ej: Tomar con alimentos, evitar en embarazo"
                     className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-slate-300 mb-1">Notas adicionales</label>
-                <input type="text" value={med.notes} onChange={e => updateMed(i, 'notes', e.target.value)}
-                  placeholder="Ej: Tomar con alimentos"
-                  className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500" />
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* INDICACIONES */}

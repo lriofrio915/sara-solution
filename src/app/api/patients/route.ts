@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
+import { auditPatient, getClientIp } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
 
     const where = {
       doctorId: doctor.id,
+      deletedAt: null,  // Excluir pacientes con soft delete (LOPDP B6)
       ...(q
         ? {
             OR: [
@@ -116,7 +118,13 @@ export async function POST(req: NextRequest) {
         bloodType: bloodType || 'UNKNOWN',
         allergies: Array.isArray(allergies) ? allergies : [],
         notes: notes?.trim() || null,
+        // retainUntil se calcula al registrar la primera atención (15 años desde última)
       },
+    })
+
+    await auditPatient(doctor.id, patient.id, 'CREATE', {
+      ip: getClientIp(req),
+      patientName: patient.name,
     })
 
     return NextResponse.json({ patient }, { status: 201 })

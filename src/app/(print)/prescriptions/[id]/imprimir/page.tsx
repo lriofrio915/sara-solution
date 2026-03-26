@@ -6,8 +6,11 @@ import { getInitials } from '@/lib/utils'
 import Image from 'next/image'
 
 interface Medication {
-  name: string
-  dose?: string
+  dci?: string              // Nombre genérico (DCI) — ACESS-2023-0030
+  name?: string             // Nombre comercial
+  dose?: string             // Concentración
+  pharmaceuticalForm?: string // Forma farmacéutica
+  route?: string            // Vía de administración
   frequency?: string
   duration?: string
   notes?: string
@@ -20,6 +23,7 @@ interface PrescriptionData {
   medications: Medication[]
   instructions: string | null
   rxNumber?: string | null
+  expiresAt?: string | null
   patient: {
     name: string
     documentId: string | null
@@ -81,6 +85,11 @@ export default function PrescriptionPrintPage() {
   const [loading, setLoading] = useState(true)
   const [nextAppointment, setNextAppointment] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [signWarning, setSignWarning] = useState<string | null>(null)
+
+  // ?draft=1 indica que el PDF se genera sin firma (AM 0009-2017)
+  const isDraft = typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('draft') === '1'
 
   const loadData = useCallback(async () => {
     try {
@@ -101,6 +110,9 @@ export default function PrescriptionPrintPage() {
     try {
       const res = await fetch(`/api/documents/prescriptions/${id}/download`)
       if (!res.ok) throw new Error('Error al generar PDF')
+      // Mostrar advertencia de firma si el PDF no pudo firmarse
+      const warning = res.headers.get('X-Sign-Warning')
+      if (warning) setSignWarning(warning)
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const cd = res.headers.get('Content-Disposition') ?? ''
@@ -136,6 +148,9 @@ export default function PrescriptionPrintPage() {
   const initials = getInitials(doctor.name)
   const rxNumber = data.rxNumber ?? '—'
   const allergies = patient.allergies?.filter(Boolean).join(', ') || 'Sin alergias conocidas'
+  const expiresFormatted = data.expiresAt
+    ? new Date(data.expiresAt).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' })
+    : null
   const { main: mainInstructions, alarmSigns } = extractAlarmSigns(data.instructions)
   const website = doctor.slug ? `consultorio.site/${doctor.slug}` : null
 
@@ -161,6 +176,16 @@ export default function PrescriptionPrintPage() {
           .print-page { box-shadow: 0 4px 32px rgba(0,0,0,0.15); }
         }
       `}} />
+
+      {/* Advertencia firma — LOPDP / AM 0009-2017 */}
+      {(signWarning || isDraft) && (
+        <div className="no-print bg-amber-50 border-b border-amber-300 px-4 py-3 text-amber-800 text-sm flex items-start gap-2">
+          <span className="font-bold flex-shrink-0">Aviso AM 0009-2017:</span>
+          <span>
+            {signWarning ?? 'Documento generado sin firma digital. Configure su certificado FirmaEC en Perfil > Firma Digital para que este documento tenga validez legal.'}
+          </span>
+        </div>
+      )}
 
       {/* Controls — hidden when printing */}
       <div className="no-print bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 flex-wrap">
@@ -277,11 +302,22 @@ export default function PrescriptionPrintPage() {
                     {medications.map((med, i) => {
                       const qty = parseInt(med.duration ?? '') || undefined
                       const qtyStr = qty ? ` #${qty} (${numberToWords(qty)})` : ''
+                      const displayName = med.dci || med.name || '(sin nombre)'
+                      const commercialNote = med.dci && med.name ? ` (${med.name})` : ''
                       return (
                         <div key={i}>
+                          {/* DCI prominente — ACESS-2023-0030 */}
                           <p className="font-bold" style={{ color: '#1B3A6B', fontSize: '11px' }}>
-                            Rp. {med.name}{med.dose ? ` ${med.dose}` : ''}
+                            Rp. {displayName}{med.dose ? ` ${med.dose}` : ''}{commercialNote}
                           </p>
+                          {med.pharmaceuticalForm && (
+                            <p className="ml-3 text-gray-600" style={{ fontSize: '9px' }}>
+                              Forma: {med.pharmaceuticalForm}{med.route ? ` — Vía: ${med.route}` : ''}
+                            </p>
+                          )}
+                          {!med.pharmaceuticalForm && med.route && (
+                            <p className="ml-3 text-gray-600" style={{ fontSize: '9px' }}>Vía: {med.route}</p>
+                          )}
                           {med.frequency && (
                             <p className="ml-3 text-gray-700">
                               {med.frequency}{qtyStr}
@@ -319,12 +355,25 @@ export default function PrescriptionPrintPage() {
               </div>
 
               {/* Left signature area */}
+              {/* Vigencia de receta (ACESS-2023-0030) */}
+              {expiresFormatted && (
+                <div className="relative z-10 px-5 pb-1 text-right" style={{ fontSize: '8px', color: '#4a5568' }}>
+                  <span className="font-semibold">Válida hasta:</span> {expiresFormatted}
+                </div>
+              )}
+              {/* Marca de agua sin firma */}
+              {isDraft && (
+                <div className="relative z-10 px-5 pb-2 text-right" style={{ fontSize: '8px', color: '#b91c1c', fontWeight: 700 }}>
+                  SIN FIRMA DIGITAL — No válido para dispensación (AM 0009-2017)
+                </div>
+              )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
                   <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   <p className="font-bold text-gray-800">{doctor.name}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
+                  {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}
                 </div>
               </div>
             </div>
@@ -419,6 +468,8 @@ export default function PrescriptionPrintPage() {
                   <p className="font-bold text-gray-800">{doctor.name}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
+                  {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}
+                  {expiresFormatted && <p className="text-gray-400 mt-0.5">Válida hasta: {expiresFormatted}</p>}
                 </div>
               </div>
             </div>
