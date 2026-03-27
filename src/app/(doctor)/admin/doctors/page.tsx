@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
-import { Users, Search, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, Search, ExternalLink, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import type { AdminDoctor } from '@/types'
 
 const PAGE_SIZE = 10
@@ -14,6 +14,8 @@ const planBadge: Record<string, string> = {
   ENTERPRISE: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-600',
 }
 
+const PLANS = ['FREE', 'TRIAL', 'BASIC', 'PRO', 'ENTERPRISE']
+
 function getInitials(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()
 }
@@ -24,6 +26,9 @@ export default function AdminDoctorsPage() {
   const [search, setSearch] = useState('')
   const [planFilter, setPlanFilter] = useState('TODOS')
   const [page, setPage] = useState(1)
+  const [confirmDelete, setConfirmDelete] = useState<AdminDoctor | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [updatingPlanId, setUpdatingPlanId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/doctors')
@@ -61,6 +66,35 @@ export default function AdminDoctorsPage() {
     { label: 'Plan Pro', value: counts.pro, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
     { label: 'Plan Enterprise', value: counts.enterprise, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
   ]
+
+  async function handleDelete(doctor: AdminDoctor) {
+    setDeletingId(doctor.id)
+    try {
+      const res = await fetch(`/api/admin/doctors/${doctor.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setDoctors(prev => prev.filter(d => d.id !== doctor.id))
+        setConfirmDelete(null)
+      }
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  async function handlePlanChange(doctorId: string, newPlan: string) {
+    setUpdatingPlanId(doctorId)
+    try {
+      const res = await fetch(`/api/admin/doctors/${doctorId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: newPlan }),
+      })
+      if (res.ok) {
+        setDoctors(prev => prev.map(d => d.id === doctorId ? { ...d, plan: newPlan } : d))
+      }
+    } finally {
+      setUpdatingPlanId(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -136,6 +170,7 @@ export default function AdminDoctorsPage() {
                 paginated.map((doc, idx) => {
                   const rowNum = (page - 1) * PAGE_SIZE + idx + 1
                   const plan = doc.plan ?? 'FREE'
+                  const isUpdatingPlan = updatingPlanId === doc.id
                   return (
                     <tr key={doc.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                       <td className="px-4 py-3 text-gray-400 dark:text-slate-400">{rowNum}</td>
@@ -155,9 +190,16 @@ export default function AdminDoctorsPage() {
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">{doc.specialty}</td>
                       <td className="px-4 py-3 text-gray-500 dark:text-slate-300 hidden lg:table-cell text-xs">{doc.email}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${planBadge[plan] ?? planBadge.FREE}`}>
-                          {plan}
-                        </span>
+                        <select
+                          value={plan}
+                          disabled={isUpdatingPlan}
+                          onChange={e => handlePlanChange(doc.id, e.target.value)}
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60 disabled:cursor-wait ${planBadge[plan] ?? planBadge.FREE}`}
+                        >
+                          {PLANS.map(p => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium hidden sm:table-cell">
                         {doc._count.patients}
@@ -166,17 +208,26 @@ export default function AdminDoctorsPage() {
                         {new Date(doc.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="px-4 py-3">
-                        {doc.slug && (
-                          <a
-                            href={`/${doc.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors"
+                        <div className="flex items-center gap-2">
+                          {doc.slug && (
+                            <a
+                              href={`/${doc.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors"
+                            >
+                              <ExternalLink size={12} />
+                              Ver perfil
+                            </a>
+                          )}
+                          <button
+                            onClick={() => setConfirmDelete(doc)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                           >
-                            <ExternalLink size={12} />
-                            Ver perfil
-                          </a>
-                        )}
+                            <Trash2 size={12} />
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -214,6 +265,36 @@ export default function AdminDoctorsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirm delete modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mx-auto mb-4">
+              <Trash2 size={22} className="text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">Eliminar médico</h3>
+            <p className="mt-2 text-sm text-gray-500 dark:text-slate-300 text-center">
+              ¿Seguro que deseas eliminar a <span className="font-semibold text-gray-800 dark:text-white">{confirmDelete.name}</span>? Esta acción no se puede deshacer.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(confirmDelete)}
+                disabled={deletingId === confirmDelete.id}
+                className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-wait transition-colors"
+              >
+                {deletingId === confirmDelete.id ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

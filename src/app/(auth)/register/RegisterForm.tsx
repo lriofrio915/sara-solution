@@ -14,6 +14,8 @@ export default function RegisterForm({ referralCode }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
+  const [honeypot, setHoneypot] = useState('')
+  const [loadedAt] = useState(() => Date.now())
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -39,6 +41,12 @@ export default function RegisterForm({ referralCode }: Props) {
     }
     if (form.password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+
+    // Anti-bot: honeypot filled or form submitted in less than 4 seconds
+    if (honeypot || Date.now() - loadedAt < 4000) {
+      window.location.href = '/dashboard'
       return
     }
 
@@ -138,6 +146,17 @@ export default function RegisterForm({ referralCode }: Props) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Honeypot anti-bot — hidden from humans */}
+        <input
+          type="text"
+          name="website"
+          value={honeypot}
+          onChange={e => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
+        />
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="label">Nombre</label>
