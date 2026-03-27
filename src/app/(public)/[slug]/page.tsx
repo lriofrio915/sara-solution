@@ -30,6 +30,12 @@ function formatDoctorName(fullName: string, titlePrefix?: string | null): string
   return `${isFeminine ? 'Dra.' : 'Dr.'} ${shortName}`
 }
 
+function formatPrice(raw: string): string {
+  const num = parseFloat(raw.replace(/[^0-9.]/g, ''))
+  if (isNaN(num)) return raw
+  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+}
+
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
@@ -350,7 +356,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                       <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5 leading-relaxed line-clamp-2">{service.description}</p>
                     )}
                     {service.price && (
-                      <p className="text-blue-600 text-sm font-bold mt-1.5">{service.price}</p>
+                      <p className="text-blue-600 text-sm font-bold mt-1.5">{formatPrice(service.price)}</p>
                     )}
                   </div>
                 </div>
