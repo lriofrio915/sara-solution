@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
 import PhoneInput from '@/components/PhoneInput'
 import AssistantProfilePage from '@/components/AssistantProfilePage'
+import SuperAdminProfilePage from '@/components/SuperAdminProfilePage'
 
 interface DoctorProfile {
   id: string
@@ -2671,28 +2672,51 @@ function DoctorProfileContent() {
   )
 }
 
-// ─── Wrapper: detecta si es ASSISTANT y renderiza el perfil correcto ──────────
+// ─── Wrapper: detecta rol y renderiza el perfil correcto ──────────────────────
 
+const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 type AssistantMember = Parameters<typeof AssistantProfilePage>[0]['initialMember']
 
 export default function ProfilePage() {
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null)
   const [assistantData, setAssistantData] = useState<AssistantMember | null | 'loading'>('loading')
 
   useEffect(() => {
-    fetch('/api/assistant/profile')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => setAssistantData(d?.member ?? null))
-      .catch(() => setAssistantData(null))
+    // Check superadmin first (fastest — just reads cached Supabase session)
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.email === SUPERADMIN_EMAIL) {
+        setIsSuperAdmin(true)
+        setAssistantData(null) // skip assistant check
+      } else {
+        setIsSuperAdmin(false)
+        // Only fetch assistant profile for non-superadmin users
+        fetch('/api/assistant/profile')
+          .then(r => r.ok ? r.json() : null)
+          .then(d => setAssistantData(d?.member ?? null))
+          .catch(() => setAssistantData(null))
+      }
+    }).catch(() => {
+      setIsSuperAdmin(false)
+      fetch('/api/assistant/profile')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => setAssistantData(d?.member ?? null))
+        .catch(() => setAssistantData(null))
+    })
   }, [])
 
-  if (assistantData === 'loading') return (
+  if (isSuperAdmin === null || (isSuperAdmin === false && assistantData === 'loading')) return (
     <div className="flex items-center justify-center min-h-64">
       <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
     </div>
   )
 
+  if (isSuperAdmin) {
+    return <SuperAdminProfilePage />
+  }
+
   if (assistantData !== null) {
-    return <AssistantProfilePage initialMember={assistantData} />
+    return <AssistantProfilePage initialMember={assistantData as AssistantMember} />
   }
 
   return <DoctorProfileContent />
