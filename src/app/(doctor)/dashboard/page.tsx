@@ -13,9 +13,10 @@ import { formatTime } from '@/lib/utils'
 import BarChart from '@/components/charts/BarChart'
 import LineChart from '@/components/charts/LineChart'
 import DonutChart from '@/components/charts/DonutChart'
+import AnalyticsInsights from '@/components/AnalyticsInsights'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Reportes' }
+export const metadata: Metadata = { title: 'Resumen IA' }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -565,6 +566,9 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* ── Sara IA Insights (diagnósticos, medicamentos, Q&A) ───────────── */}
+        <AnalyticsInsights />
 
       </div>
     )

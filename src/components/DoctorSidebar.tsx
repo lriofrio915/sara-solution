@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, TrendingUp, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
+  User, Bell, BookOpen, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
   ChevronsUpDown,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
@@ -30,8 +30,8 @@ const FREE_LOCKED = new Set([
   '/knowledge',
 ])
 
-// Reportes va primero — visión general de la clínica
-const topItem = { href: '/dashboard', icon: BarChart2, label: 'Reportes' }
+// Resumen IA va primero — visión general + análisis de la clínica
+const topItem = { href: '/dashboard', icon: BarChart2, label: 'Resumen IA' }
 
 const clinicalItems = [
   { href: '/appointments',  icon: Calendar,     label: 'Citas' },
@@ -45,7 +45,6 @@ const adminItems = [
   { href: '/leads',      icon: UserPlus,    label: 'Leads' },
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
   { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
-  { href: '/analytics',  icon: TrendingUp,  label: 'Análisis IA' },
   { href: '/billing',    icon: Receipt,     label: 'Facturación' },
 ]
 
@@ -313,7 +312,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         </>
       )}
 
-      {/* Reportes — visión general (solo OWNER) */}
+      {/* Resumen IA — visión general (solo OWNER) */}
       {role !== 'ASSISTANT' && (
         <>
           <div className="space-y-1 mb-1">
