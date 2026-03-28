@@ -141,10 +141,17 @@ function DoctorProfileContent() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingAvail, setSavingAvail] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [availSuccess, setAvailSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // ── Toast fijo (siempre visible sin importar el scroll) ──
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>()
+  function showToast(msg: string, ok = true) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ msg, ok })
+    toastTimer.current = setTimeout(() => setToast(null), 3500)
+  }
   const [activeTab, setActiveTab] = useState<'perfil'|'consultorio'|'servicios'|'legal'|'sara'|'cuenta'>('perfil')
   const [showDeleteZone, setShowDeleteZone] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
@@ -189,7 +196,6 @@ function DoctorProfileContent() {
   const [loadingMemories, setLoadingMemories] = useState(false)
   const [memoriesLoaded, setMemoriesLoaded] = useState(false)
   const [savingSara, setSavingSara] = useState(false)
-  const [saraSaved, setSaraSaved] = useState(false)
 
   // Sara IA — preguntas sin respuesta (Fase 4)
   interface UnansweredEntry { id: string; question: string; source: string; createdAt: string }
@@ -606,7 +612,6 @@ function DoctorProfileContent() {
     e.preventDefault()
     setSaving(true)
     setError(null)
-    setSuccess(false)
 
     const paymentDataObj: PaymentDataObj = {
       methods: paymentMethods,
@@ -656,9 +661,9 @@ function DoctorProfileContent() {
       const updated: DoctorProfile = await res.json()
       setProfile(updated)
       setForm((prev) => ({ ...prev, slug: updated.slug }))
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      showToast('Perfil actualizado correctamente')
     } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Error al guardar perfil', false)
       setError(err instanceof Error ? err.message : 'Error al guardar perfil')
     } finally {
       setSaving(false)
@@ -668,7 +673,6 @@ function DoctorProfileContent() {
   async function handleSaveAvailability() {
     setSavingAvail(true)
     setError(null)
-    setAvailSuccess(false)
 
     try {
       const schedules: DaySchedule[] = []
@@ -693,8 +697,7 @@ function DoctorProfileContent() {
         throw new Error(body.error ?? 'Error al guardar horarios')
       }
 
-      setAvailSuccess(true)
-      setTimeout(() => setAvailSuccess(false), 3000)
+      showToast('Horarios guardados correctamente')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar horarios')
     } finally {
@@ -704,7 +707,6 @@ function DoctorProfileContent() {
 
   async function handleSaveSara() {
     setSavingSara(true)
-    setSaraSaved(false)
     setError(null)
     try {
       const res = await fetch('/api/profile', {
@@ -722,9 +724,9 @@ function DoctorProfileContent() {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error ?? 'Error al guardar')
       }
-      setSaraSaved(true)
-      setTimeout(() => setSaraSaved(false), 3000)
+      showToast('Instrucciones de Sara guardadas correctamente')
     } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Error al guardar', false)
       setError(err instanceof Error ? err.message : 'Error al guardar')
     } finally {
       setSavingSara(false)
@@ -783,17 +785,6 @@ function DoctorProfileContent() {
         ))}
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm flex items-center gap-2">
-          <span>✓</span> Perfil actualizado correctamente
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* ══════════════ TAB: PERFIL ══════════════════════ */}
@@ -1754,11 +1745,6 @@ function DoctorProfileContent() {
           </p>
         </div>
 
-        {availSuccess && (
-          <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm flex items-center gap-2">
-            <span>✓</span> Horarios guardados correctamente
-          </div>
-        )}
 
         {/* Duración de cita */}
         <div>
@@ -2288,11 +2274,6 @@ function DoctorProfileContent() {
       {/* ══════════════ TAB: SARA IA ════════════════════════ */}
       {activeTab === 'sara' && (
       <div className="space-y-6">
-        {saraSaved && (
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm flex items-center gap-2">
-            <span>✓</span> Instrucciones de Sara guardadas correctamente
-          </div>
-        )}
         {/* Instrucciones para la relación médico-Sara */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-start gap-3 mb-4">
@@ -2667,6 +2648,18 @@ function DoctorProfileContent() {
           </div>
         )}
       </div>
+      )}
+
+      {/* ── Toast fijo — visible sin importar el scroll ── */}
+      {toast && (
+        <div className={`fixed bottom-24 md:bottom-6 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl text-sm font-semibold transition-all animate-in slide-in-from-bottom-4 duration-300 ${
+          toast.ok
+            ? 'bg-green-600 text-white'
+            : 'bg-red-600 text-white'
+        }`}>
+          <span className="text-base leading-none">{toast.ok ? '✓' : '✕'}</span>
+          {toast.msg}
+        </div>
       )}
     </div>
   )
