@@ -45,6 +45,9 @@ export default async function DoctorLayout({ children }: { children: React.React
     let displayName: string
     if (doctorWithRole.role === 'ASSISTANT') {
       displayName = nameParts.map(toTitle).slice(0, 2).join(' ')
+    } else if (isSuperAdmin) {
+      // Superadmin: show plain name without medical title prefix
+      displayName = nameParts.map(toTitle).slice(0, 2).join(' ')
     } else {
       const title = (doctorProfile as { titlePrefix?: string | null })?.titlePrefix || detectDoctorTitle(nameParts[0])
       displayName = `${title} ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
