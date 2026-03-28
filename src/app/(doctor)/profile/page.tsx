@@ -248,6 +248,7 @@ function DoctorProfileContent() {
   const [sigDeleting, setSigDeleting] = useState(false)
   const [sigError, setSigError] = useState<string | null>(null)
   const [sigSuccess, setSigSuccess] = useState<string | null>(null)
+  const [sigDragging, setSigDragging] = useState(false)
   const sigFileRef = useRef<HTMLInputElement>(null)
 
   // Load credentials
@@ -1937,16 +1938,35 @@ function DoctorProfileContent() {
               </label>
               <div
                 onClick={() => sigFileRef.current?.click()}
-                className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                onDragOver={(e) => { e.preventDefault(); setSigDragging(true) }}
+                onDragLeave={() => setSigDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  setSigDragging(false)
+                  const f = e.dataTransfer.files?.[0]
+                  if (f && (f.name.toLowerCase().endsWith('.p12') || f.name.toLowerCase().endsWith('.pfx'))) {
+                    setSigFile(f)
+                    setSigError(null)
+                  } else if (f) {
+                    setSigError('Solo se aceptan archivos .p12 o .pfx')
+                  }
+                }}
+                className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                  sigDragging
+                    ? 'border-primary bg-primary/10 dark:bg-primary/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:bg-primary/5'
+                }`}
               >
                 <span className="text-2xl">🔐</span>
                 <div className="flex-1 min-w-0">
                   {sigFile ? (
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{sigFile.name}</p>
                   ) : (
-                    <p className="text-sm text-gray-400 dark:text-slate-400">Haz clic para seleccionar el archivo .p12 o .pfx</p>
+                    <p className="text-sm text-gray-400 dark:text-slate-400">
+                      {sigDragging ? 'Suelta el archivo aquí' : 'Arrastra y suelta o haz clic para seleccionar'}
+                    </p>
                   )}
-                  <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Máx. 2 MB</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Archivos .p12 o .pfx — Máx. 2 MB</p>
                 </div>
                 {sigFile && (
                   <button type="button" onClick={(e) => { e.stopPropagation(); setSigFile(null); if (sigFileRef.current) sigFileRef.current.value = '' }}

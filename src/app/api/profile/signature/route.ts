@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     if (uploadError) {
       console.error('Supabase storage upload error:', uploadError)
       return NextResponse.json(
-        { error: 'Failed to upload signature file' },
+        { error: `Error al guardar el archivo: ${uploadError.message}` },
         { status: 500 }
       )
     }
@@ -117,7 +117,8 @@ export async function POST(req: Request) {
     })
   } catch (err) {
     console.error('POST /api/profile/signature:', err)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : 'Error interno del servidor'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
