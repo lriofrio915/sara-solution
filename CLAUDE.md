@@ -35,4 +35,6 @@
 - FREE: acceso básico (post-trial)
 - TRIAL: 21 días, acceso PRO completo
 - PRO / ENTERPRISE: acceso completo
-- Para activar PRO a un doctor: `UPDATE "Doctor" SET plan = 'PRO', "trialEndsAt" = NULL WHERE email = '...'`
+- Planes disponibles: `FREE`, `TRIAL`, `PRO_MENSUAL`, `PRO_ANUAL`, `ENTERPRISE`
+- Para activar Pro Mensual: `UPDATE "Doctor" SET plan = 'PRO_MENSUAL', "trialEndsAt" = NULL WHERE email = '...'`
+- Para activar Pro Anual: `UPDATE "Doctor" SET plan = 'PRO_ANUAL', "trialEndsAt" = NULL WHERE email = '...'`

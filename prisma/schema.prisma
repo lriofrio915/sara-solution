@@ -17,8 +17,8 @@ datasource db {
 enum Plan {
   FREE
   TRIAL
-  BASIC
-  PRO
+  PRO_MENSUAL
+  PRO_ANUAL
   ENTERPRISE
 }
 

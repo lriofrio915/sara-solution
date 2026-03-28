@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function PlanBanner({ plan, trialEndsAt }: Props) {
-  if (plan === 'PRO' || plan === 'ENTERPRISE') return null
+  if (plan === 'PRO_MENSUAL' || plan === 'PRO_ANUAL' || plan === 'ENTERPRISE') return null
 
   const daysLeft = getTrialDaysLeft(trialEndsAt)
 

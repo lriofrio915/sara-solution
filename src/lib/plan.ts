@@ -1,4 +1,13 @@
-export type EffectivePlan = 'FREE' | 'TRIAL' | 'PRO' | 'ENTERPRISE'
+export type EffectivePlan = 'FREE' | 'TRIAL' | 'PRO_MENSUAL' | 'PRO_ANUAL' | 'ENTERPRISE'
+
+/** Display label for each plan */
+export const PLAN_LABELS: Record<EffectivePlan, string> = {
+  FREE:        'Free',
+  TRIAL:       'Trial',
+  PRO_MENSUAL: 'Pro Mensual',
+  PRO_ANUAL:   'Pro Anual',
+  ENTERPRISE:  'Enterprise',
+}
 
 /**
  * Returns the effective plan, downgrading TRIAL to FREE if the trial has expired.
@@ -19,7 +28,7 @@ export function getTrialDaysLeft(trialEndsAt: Date | null): number {
 
 /** TRUE for plans that have full access. */
 export function isPro(plan: EffectivePlan): boolean {
-  return plan === 'PRO' || plan === 'ENTERPRISE' || plan === 'TRIAL'
+  return plan === 'PRO_MENSUAL' || plan === 'PRO_ANUAL' || plan === 'ENTERPRISE' || plan === 'TRIAL'
 }
 
 export const TRIAL_DAYS = 21

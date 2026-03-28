@@ -1,6 +1,6 @@
 // ─── Domain Enums ─────────────────────────────────────────────────────────────
 
-export type Plan = 'FREE' | 'BASIC' | 'PRO' | 'ENTERPRISE'
+export type Plan = 'FREE' | 'TRIAL' | 'PRO_MENSUAL' | 'PRO_ANUAL' | 'ENTERPRISE'
 
 export type AppointmentStatus =
   | 'SCHEDULED'

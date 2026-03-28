@@ -81,7 +81,7 @@ export async function GET() {
   ])
 
   // Build plan breakdown map
-  const planMap: Record<string, number> = { FREE: 0, TRIAL: 0, BASIC: 0, PRO: 0, ENTERPRISE: 0 }
+  const planMap: Record<string, number> = { FREE: 0, TRIAL: 0, PRO_MENSUAL: 0, PRO_ANUAL: 0, ENTERPRISE: 0 }
   for (const row of planCounts) {
     const key = row.plan ?? 'FREE'
     planMap[key] = (planMap[key] ?? 0) + row._count.id

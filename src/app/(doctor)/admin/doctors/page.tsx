@@ -8,13 +8,22 @@ import type { AdminDoctor } from '@/types'
 const PAGE_SIZE = 10
 
 const planBadge: Record<string, string> = {
-  FREE: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-  BASIC: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  PRO: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
-  ENTERPRISE: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-600',
+  FREE:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  TRIAL:       'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  PRO_MENSUAL: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+  PRO_ANUAL:   'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  ENTERPRISE:  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-600',
 }
 
-const PLANS = ['FREE', 'TRIAL', 'BASIC', 'PRO', 'ENTERPRISE']
+const PLAN_LABELS: Record<string, string> = {
+  FREE:        'Free',
+  TRIAL:       'Trial',
+  PRO_MENSUAL: 'Pro Mensual',
+  PRO_ANUAL:   'Pro Anual',
+  ENTERPRISE:  'Enterprise',
+}
+
+const PLANS = ['FREE', 'TRIAL', 'PRO_MENSUAL', 'PRO_ANUAL', 'ENTERPRISE']
 
 function getInitials(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()
@@ -56,7 +65,7 @@ export default function AdminDoctorsPage() {
   const counts = useMemo(() => ({
     total: doctors.length,
     free: doctors.filter(d => !d.plan || d.plan === 'FREE').length,
-    pro: doctors.filter(d => d.plan === 'PRO').length,
+    pro: doctors.filter(d => d.plan === 'PRO_MENSUAL' || d.plan === 'PRO_ANUAL').length,
     enterprise: doctors.filter(d => d.plan === 'ENTERPRISE').length,
   }), [doctors])
 
@@ -126,8 +135,9 @@ export default function AdminDoctorsPage() {
         >
           <option value="TODOS">Todos los planes</option>
           <option value="FREE">Free</option>
-          <option value="BASIC">Basic</option>
-          <option value="PRO">Pro</option>
+          <option value="TRIAL">Trial</option>
+          <option value="PRO_MENSUAL">Pro Mensual</option>
+          <option value="PRO_ANUAL">Pro Anual</option>
           <option value="ENTERPRISE">Enterprise</option>
         </select>
       </div>
@@ -197,7 +207,7 @@ export default function AdminDoctorsPage() {
                           className={`text-xs font-semibold px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60 disabled:cursor-wait ${planBadge[plan] ?? planBadge.FREE}`}
                         >
                           {PLANS.map(p => (
-                            <option key={p} value={p}>{p}</option>
+                            <option key={p} value={p}>{PLAN_LABELS[p] ?? p}</option>
                           ))}
                         </select>
                       </td>

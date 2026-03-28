@@ -39,7 +39,7 @@ export default async function UpgradePage() {
   const plan = getEffectivePlan(doctor)
   const daysLeft = getTrialDaysLeft(doctor.trialEndsAt)
 
-  if (plan === 'PRO' || plan === 'ENTERPRISE') redirect('/dashboard')
+  if (plan === 'PRO_MENSUAL' || plan === 'PRO_ANUAL' || plan === 'ENTERPRISE') redirect('/dashboard')
 
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto">

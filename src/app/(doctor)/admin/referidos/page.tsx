@@ -13,10 +13,15 @@ interface ReferralRecord {
 }
 
 const planBadge: Record<string, string> = {
-  FREE:       'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-  TRIAL:      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  PRO:        'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-  ENTERPRISE: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500',
+  FREE:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  TRIAL:       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  PRO_MENSUAL: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+  PRO_ANUAL:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  ENTERPRISE:  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500',
+}
+
+const planLabel: Record<string, string> = {
+  FREE: 'Free', TRIAL: 'Trial', PRO_MENSUAL: 'Pro Mensual', PRO_ANUAL: 'Pro Anual', ENTERPRISE: 'Enterprise',
 }
 
 export default function AdminReferidosPage() {
@@ -131,7 +136,7 @@ export default function AdminReferidosPage() {
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${planBadge[r.referred.plan] ?? planBadge.FREE}`}>
-                        {r.referred.plan}
+                        {planLabel[r.referred.plan] ?? r.referred.plan}
                       </span>
                     </td>
                     <td className="px-4 py-3">

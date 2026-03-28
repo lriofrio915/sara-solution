@@ -13,8 +13,8 @@ import { getInitials } from '@/lib/utils'
 interface PlanBreakdown {
   FREE: number
   TRIAL: number
-  BASIC: number
-  PRO: number
+  PRO_MENSUAL: number
+  PRO_ANUAL: number
   ENTERPRISE: number
 }
 
@@ -50,11 +50,15 @@ interface Stats {
 }
 
 const planBadge: Record<string, string> = {
-  FREE: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-  TRIAL: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  BASIC: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  PRO: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
-  ENTERPRISE: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-600',
+  FREE:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  TRIAL:       'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  PRO_MENSUAL: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+  PRO_ANUAL:   'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  ENTERPRISE:  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-600',
+}
+
+const planLabel: Record<string, string> = {
+  FREE: 'Free', TRIAL: 'Trial', PRO_MENSUAL: 'Pro Mensual', PRO_ANUAL: 'Pro Anual', ENTERPRISE: 'Enterprise',
 }
 
 function daysUntil(dateStr: string | null) {
@@ -75,11 +79,11 @@ export default function SuperAdminProfilePage() {
   }, [])
 
   const planColors: Record<string, string> = {
-    FREE: 'bg-gray-400',
-    TRIAL: 'bg-amber-400',
-    BASIC: 'bg-blue-400',
-    PRO: 'bg-violet-500',
-    ENTERPRISE: 'bg-yellow-400',
+    FREE:        'bg-gray-400',
+    TRIAL:       'bg-amber-400',
+    PRO_MENSUAL: 'bg-violet-500',
+    PRO_ANUAL:   'bg-blue-500',
+    ENTERPRISE:  'bg-yellow-400',
   }
 
   const statCards = [
@@ -180,7 +184,7 @@ export default function SuperAdminProfilePage() {
         </h2>
         {loading ? (
           <div className="space-y-2">
-            {['FREE','TRIAL','PRO','ENTERPRISE'].map(p => (
+            {['FREE','TRIAL','PRO_MENSUAL','PRO_ANUAL','ENTERPRISE'].map(p => (
               <div key={p} className="h-8 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
             ))}
           </div>
@@ -193,8 +197,8 @@ export default function SuperAdminProfilePage() {
                 const pct = stats.totalDoctors > 0 ? Math.round((count / stats.totalDoctors) * 100) : 0
                 return (
                   <div key={plan} className="flex items-center gap-3">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold min-w-[72px] text-center ${planBadge[plan] ?? planBadge.FREE}`}>
-                      {plan}
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold min-w-[80px] text-center ${planBadge[plan] ?? planBadge.FREE}`}>
+                      {planLabel[plan] ?? plan}
                     </span>
                     <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                       <div
@@ -252,7 +256,7 @@ export default function SuperAdminProfilePage() {
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${planBadge[doc.plan ?? 'FREE'] ?? planBadge.FREE}`}>
-                        {doc.plan ?? 'FREE'}
+                        {planLabel[doc.plan ?? 'FREE'] ?? (doc.plan ?? 'FREE')}
                       </span>
                       <span className="text-xs text-gray-400 dark:text-slate-400">
                         {new Date(doc.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short' })}

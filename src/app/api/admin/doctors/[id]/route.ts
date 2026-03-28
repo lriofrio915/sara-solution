@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { Plan } from '@prisma/client'
 
 const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
-const VALID_PLANS: Plan[] = ['FREE', 'TRIAL', 'BASIC', 'PRO', 'ENTERPRISE']
+const VALID_PLANS: Plan[] = ['FREE', 'TRIAL', 'PRO_MENSUAL', 'PRO_ANUAL', 'ENTERPRISE']
 
 async function authorize() {
   const supabase = await createClient()

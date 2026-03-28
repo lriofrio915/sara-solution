@@ -400,7 +400,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
           <DoctorSwitcher />
 
           {/* Plan badge */}
-          {plan && plan !== 'PRO' && plan !== 'ENTERPRISE' && (
+          {plan && plan !== 'PRO_MENSUAL' && plan !== 'PRO_ANUAL' && plan !== 'ENTERPRISE' && (
             <Link href="/upgrade" className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
               <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
                 {plan === 'TRIAL'
@@ -410,9 +410,11 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
               <span className="text-xs font-bold text-primary">Upgrade →</span>
             </Link>
           )}
-          {(plan === 'PRO' || plan === 'ENTERPRISE') && (
+          {(plan === 'PRO_MENSUAL' || plan === 'PRO_ANUAL' || plan === 'ENTERPRISE') && (
             <div className="flex items-center px-3 py-2 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20">
-              <span className="text-xs font-semibold text-primary">⭐ Plan {plan === 'ENTERPRISE' ? 'Enterprise' : 'Pro'}</span>
+              <span className="text-xs font-semibold text-primary">
+                ⭐ {plan === 'ENTERPRISE' ? 'Plan Enterprise' : plan === 'PRO_ANUAL' ? 'Pro Anual' : 'Pro Mensual'}
+              </span>
             </div>
           )}
           <div className="flex items-center gap-3">

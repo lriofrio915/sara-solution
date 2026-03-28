@@ -333,7 +333,7 @@ export async function POST(req: Request) {
       where: {
         // Only doctors on active plans (TRIAL or PRO/ENTERPRISE)
         OR: [
-          { plan: { in: ['TRIAL', 'PRO', 'ENTERPRISE'] } },
+          { plan: { in: ['TRIAL', 'PRO_MENSUAL', 'PRO_ANUAL', 'ENTERPRISE'] } },
         ],
       },
       select: {
