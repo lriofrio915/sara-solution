@@ -306,7 +306,7 @@ export default function KnowledgePage() {
 
       {/* RAG explanation */}
       <div className="mt-6 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-5 space-y-2">
-        <p className="text-sm font-semibold text-primary">¿Cómo funciona el RAG?</p>
+        <p className="text-sm font-semibold text-primary">¿Cómo aprende Sara de tus documentos?</p>
         <p className="text-sm text-gray-600 dark:text-slate-300">
           Cuando preguntas algo a Sara, ella busca automáticamente en tus documentos los fragmentos más relevantes
           y los usa como contexto para responder. Esto le permite citar tus propios protocolos, guías y documentos.
