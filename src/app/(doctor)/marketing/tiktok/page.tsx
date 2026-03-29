@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AIImage from '../_ai-image'
+import SchedulePostModal from '@/components/marketing/SchedulePostModal'
 
 interface GeneratedScript {
   id: string
@@ -50,6 +51,8 @@ export default function TikTokPage() {
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
   const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [showSchedule, setShowSchedule] = useState(false)
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/marketing/specialty-topics?platform=tiktok')
@@ -304,16 +307,39 @@ export default function TikTokPage() {
                   <p className="text-xs text-gray-400">Mejor hora para publicar: <strong className="text-gray-700 dark:text-gray-300">{script.suggestedTime}</strong></p>
                 )}
 
-                <div className="flex gap-2">
+                {scheduledAt && !marked && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
+                    <svg className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <p className="text-xs text-purple-700 dark:text-purple-400 font-medium">
+                      Programado para {new Date(scheduledAt).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-2 flex-wrap">
                   <button onClick={handleCopy} className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${copied ? 'bg-green-600 text-white' : 'bg-black hover:bg-gray-900 text-white'}`}>
                     {copied ? 'Copiado!' : 'Copiar caption + hashtags'}
                   </button>
+                  {!marked && !scheduledAt && (
+                    <button onClick={() => setShowSchedule(true)}
+                      className="px-3 py-2 rounded-xl text-sm font-medium border border-purple-300 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      Programar
+                    </button>
+                  )}
                   {!marked && (
                     <button onClick={handleMarkPublished} className="px-3 py-2 rounded-xl text-sm font-medium border border-green-300 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
                       Marcar publicado
                     </button>
                   )}
                 </div>
+                {showSchedule && script && (
+                  <SchedulePostModal
+                    postId={script.id}
+                    accentColor="gray"
+                    onScheduled={(at) => { setScheduledAt(at); setShowSchedule(false) }}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                )}
               </div>
 
               {/* Guion completo */}

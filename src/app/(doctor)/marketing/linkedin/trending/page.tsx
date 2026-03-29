@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AIImage from '../../_ai-image'
+import SchedulePostModal from '@/components/marketing/SchedulePostModal'
 
 interface GeneratedPost {
   hook: string
@@ -56,6 +57,8 @@ export default function LinkedInTrendingPage() {
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
   const [markingPublished, setMarkingPublished] = useState(false)
+  const [showSchedule, setShowSchedule] = useState(false)
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null)
 
   const [isAdmin, setIsAdmin] = useState(false)
   const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2C')
@@ -357,6 +360,14 @@ export default function LinkedInTrendingPage() {
                   </div>
                 </div>
 
+                {scheduledAt && savedPost?.status !== 'PUBLISHED' && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
+                    <svg className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <p className="text-xs text-purple-700 dark:text-purple-400 font-medium">
+                      Programado para {new Date(scheduledAt).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                )}
                 {/* Botones */}
                 <div className="flex gap-2 flex-wrap">
                   <button onClick={handleSaveEdits} disabled={saving}
@@ -367,6 +378,13 @@ export default function LinkedInTrendingPage() {
                     className={`flex-1 px-3 py-2 text-sm rounded-xl font-semibold transition-colors ${copied ? 'bg-green-600 text-white' : 'bg-[#0A66C2] hover:bg-[#004182] text-white'}`}>
                     {copied ? 'Copiado!' : 'Copiar texto + hashtags'}
                   </button>
+                  {savedPost?.status !== 'PUBLISHED' && !scheduledAt && (
+                    <button onClick={() => setShowSchedule(true)}
+                      className="px-3 py-2 text-sm rounded-xl border border-purple-300 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-1.5 font-medium transition-colors">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      Programar
+                    </button>
+                  )}
                   {savedPost?.status !== 'PUBLISHED' && (
                     <button onClick={handleMarkPublished} disabled={markingPublished}
                       className="px-3 py-2 text-sm rounded-xl bg-green-600 hover:bg-green-700 text-white disabled:opacity-60 font-medium transition-colors">
@@ -374,6 +392,14 @@ export default function LinkedInTrendingPage() {
                     </button>
                   )}
                 </div>
+                {showSchedule && savedPost && (
+                  <SchedulePostModal
+                    postId={savedPost.id}
+                    accentColor="indigo"
+                    onScheduled={(at) => { setScheduledAt(at); setShowSchedule(false) }}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                )}
 
                 <p className="text-xs text-gray-400 text-center">
                   Copia el texto, pégalo en LinkedIn y adjunta la imagen descargada

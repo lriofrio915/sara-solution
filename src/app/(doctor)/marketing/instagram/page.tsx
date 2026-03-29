@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AIImage from '../_ai-image'
+import SchedulePostModal from '@/components/marketing/SchedulePostModal'
 
 type ContentType = 'POST' | 'CAROUSEL' | 'REEL' | 'STORY'
 
@@ -49,6 +50,8 @@ export default function InstagramPage() {
   const [copied, setCopied] = useState(false)
   const [marked, setMarked] = useState(false)
   const [focus, setFocus] = useState('')
+  const [showSchedule, setShowSchedule] = useState(false)
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null)
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
   const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
@@ -271,6 +274,11 @@ export default function InstagramPage() {
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">Contenido generado</p>
                   {marked && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Publicado</span>}
+                  {scheduledAt && !marked && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                      Programado {new Date(scheduledAt).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
                 </div>
 
                 <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={9}
@@ -308,16 +316,32 @@ export default function InstagramPage() {
                   <p className="text-xs text-gray-400">Mejor hora para publicar: <strong className="text-gray-700 dark:text-gray-300">{post.suggestedTime}</strong></p>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button onClick={handleCopy} className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${copied ? 'bg-green-600 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90'}`}>
                     {copied ? 'Copiado!' : 'Copiar texto + hashtags'}
                   </button>
+                  {!marked && !scheduledAt && (
+                    <button onClick={() => setShowSchedule(true)}
+                      className="px-3 py-2 rounded-xl text-sm font-medium border border-purple-300 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      Programar
+                    </button>
+                  )}
                   {!marked && (
                     <button onClick={handleMarkPublished} className="px-3 py-2 rounded-xl text-sm font-medium border border-green-300 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
                       Marcar publicado
                     </button>
                   )}
                 </div>
+
+                {showSchedule && post && (
+                  <SchedulePostModal
+                    postId={post.id}
+                    accentColor="pink"
+                    onScheduled={(at) => { setScheduledAt(at); setShowSchedule(false) }}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                )}
               </div>
 
               {/* Imagen */}
