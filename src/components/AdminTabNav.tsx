@@ -15,7 +15,7 @@ export default function AdminTabNav() {
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <nav className="flex gap-0.5 px-3 sm:px-6 overflow-x-auto scrollbar-none" aria-label="Admin tabs">
+      <nav className="flex justify-center gap-0.5 px-3 sm:px-6 overflow-x-auto scrollbar-none" aria-label="Admin tabs">
         {tabs.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (

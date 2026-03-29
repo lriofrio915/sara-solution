@@ -194,7 +194,7 @@ export default function AdminDoctorsPage() {
                               {getInitials(doc.name)}
                             </div>
                           )}
-                          <span className="font-medium text-gray-900 dark:text-white truncate max-w-[100px] sm:max-w-[160px]">{doc.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-white truncate max-w-[72px] sm:max-w-[140px]">{doc.name}</span>
                         </div>
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">{doc.specialty}</td>
