@@ -19,6 +19,13 @@ const FOCUS_OPTIONS = [
   { value: 'desmentir_mitos',   label: 'Desmentir mitos',     description: 'Tomas un mito médico popular y lo derrumbas con evidencia. Genera debate, reacciones fuertes y te posiciona como voz autorizada en tu especialidad.', instruction: 'Toma un mito médico popular muy extendido y destrúyelo con evidencia de forma dramática y memorable.' },
 ]
 
+const ADMIN_FOCUS_OPTIONS = [
+  { value: 'viralizar',         label: 'Viralizar',           description: 'Videos con datos impactantes sobre pérdida de tiempo en consultorios. Se comparten solos entre médicos y llegan a miles en segundos.',              instruction: 'Crea un video corto con un dato impactante sobre el tiempo perdido en tareas administrativas en consultorios médicos. Gancho en los primeros 3 segundos.' },
+  { value: 'demo_real',         label: 'Demo rápida',         description: 'Muestra en 30 segundos cómo Sara responde a pacientes, agenda citas o genera recetas. El antes y después en tiempo real.',                          instruction: 'Escribe el guión de un TikTok mostrando en tiempo real cómo Sara Medical automatiza una tarea que antes tomaba minutos.' },
+  { value: 'historia_exito',    label: 'Historia de éxito',   description: 'Cuenta la transformación de un médico: de caos administrativo a consultorio organizado. Conecta emocionalmente con médicos que viven lo mismo.',     instruction: 'Narra la historia de un médico que transformó su consultorio con Sara Medical. Estructura: problema → solución → resultado concreto.' },
+  { value: 'crear_comunidad',   label: 'Crear comunidad',     description: 'Videos que invitan a médicos a comentar sus problemas administrativos. Genera conversación y construye audiencia de médicos emprendedores.',          instruction: 'Haz una pregunta provocadora a médicos sobre su mayor frustración administrativa. Invita a comentar y compartir.' },
+]
+
 function TikTokIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -42,11 +49,15 @@ export default function TikTokPage() {
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
   const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     fetch('/api/marketing/specialty-topics?platform=tiktok')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.topics?.length) setSpecialtyTopics(d.topics) })
+      .then(d => {
+        if (d?.topics?.length) setSpecialtyTopics(d.topics)
+        if (d?.isAdmin) setIsAdmin(true)
+      })
       .catch(() => {})
       .finally(() => setSpecialtyLoading(false))
   }, [])
@@ -59,6 +70,7 @@ export default function TikTokPage() {
       const res = await fetch(`/api/marketing/specialty-topics?platform=tiktok&_t=${Date.now()}`, { cache: 'no-store' })
       const d = res.ok ? await res.json() : null
       if (d?.topics?.length) setSpecialtyTopics(d.topics)
+      if (d?.isAdmin) setIsAdmin(true)
     } catch { /* ignore */ } finally {
       setRefreshingSpecialty(false)
       setSpecialtyLoading(false)
@@ -79,7 +91,7 @@ export default function TikTokPage() {
           topic: topic.trim(),
           contentType: 'REEL',
           targetPlatform: 'TIKTOK',
-          extraInstructions: [FOCUS_OPTIONS.find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
+          extraInstructions: [(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
         }),
       })
       const data = await res.json()
@@ -152,7 +164,7 @@ export default function TikTokPage() {
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del video</label>
               <div className="flex flex-wrap gap-2">
-                {FOCUS_OPTIONS.map(f => (
+                {(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'}`}>
                     {f.label}

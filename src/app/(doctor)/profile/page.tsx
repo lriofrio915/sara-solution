@@ -95,6 +95,9 @@ interface PaymentDataObj {
   accountHolder: string
   accountType: string
   accountCedula: string
+  cryptoAddress?: string
+  cryptoNetwork?: string
+  cryptoCurrency?: string
 }
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -215,6 +218,9 @@ function DoctorProfileContent() {
   const [accountHolder, setAccountHolder] = useState('')
   const [accountType, setAccountType] = useState('SAVINGS')
   const [accountCedula, setAccountCedula] = useState('')
+  const [cryptoAddress, setCryptoAddress] = useState('')
+  const [cryptoNetwork, setCryptoNetwork] = useState('')
+  const [cryptoCurrency, setCryptoCurrency] = useState('USDT')
 
   // Vitrina profesional — credenciales
   interface Credential {
@@ -327,6 +333,9 @@ function DoctorProfileContent() {
             setAccountHolder(pd.accountHolder ?? '')
             setAccountType(pd.accountType ?? 'SAVINGS')
             setAccountCedula(pd.accountCedula ?? '')
+            setCryptoAddress(pd.cryptoAddress ?? '')
+            setCryptoNetwork(pd.cryptoNetwork ?? '')
+            setCryptoCurrency(pd.cryptoCurrency ?? 'USDT')
           }
         } catch {
           setPaymentMethods([])
@@ -621,6 +630,9 @@ function DoctorProfileContent() {
       accountHolder,
       accountType,
       accountCedula,
+      cryptoAddress: cryptoAddress || undefined,
+      cryptoNetwork: cryptoNetwork || undefined,
+      cryptoCurrency: cryptoCurrency || undefined,
     }
 
     try {
@@ -1542,7 +1554,7 @@ function DoctorProfileContent() {
                       {service.emoji || '🩺'}
                     </button>
                     {openEmojiPickerIndex === i && (
-                      <div className="absolute left-0 top-12 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg p-2 w-52">
+                      <div className="absolute left-0 top-12 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg p-2 w-52 overflow-y-auto max-h-44">
                         <div className="grid grid-cols-8 gap-0.5">
                           {MEDICAL_EMOJIS.map((emoji) => (
                             <button
@@ -1629,6 +1641,7 @@ function DoctorProfileContent() {
                 { value: 'CASH', label: 'Efectivo', icon: '💵' },
                 { value: 'CARD', label: 'Tarjeta Crédito/Débito', icon: '💳' },
                 { value: 'TRANSFER', label: 'Transferencia Bancaria', icon: '🏦' },
+                { value: 'CRYPTO', label: 'Criptomonedas', icon: '🪙' },
               ].map((method) => {
                 const isSelected = paymentMethods.includes(method.value)
                 return (
@@ -1716,6 +1729,47 @@ function DoctorProfileContent() {
                   maxLength={10}
                   placeholder="1234567890"
                   className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Datos cripto — solo si CRYPTO está seleccionado */}
+          {paymentMethods.includes('CRYPTO') && (
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Datos para pago en criptomonedas</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Moneda</label>
+                  <input
+                    type="text"
+                    value={cryptoCurrency}
+                    onChange={(e) => setCryptoCurrency(e.target.value)}
+                    placeholder="Ej: USDT, BTC, ETH"
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Red</label>
+                  <input
+                    type="text"
+                    value={cryptoNetwork}
+                    onChange={(e) => setCryptoNetwork(e.target.value)}
+                    placeholder="Ej: TRC20, ERC20, BEP20"
+                    className="input text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-slate-300 mb-1.5">Dirección de billetera (wallet)</label>
+                <input
+                  type="text"
+                  value={cryptoAddress}
+                  onChange={(e) => setCryptoAddress(e.target.value.trim())}
+                  placeholder="Ej: TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE"
+                  className="input text-sm font-mono dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
             </div>

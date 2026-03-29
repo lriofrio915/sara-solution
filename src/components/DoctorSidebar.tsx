@@ -44,7 +44,7 @@ const clinicalItems = [
 const adminItems = [
   { href: '/leads',      icon: UserPlus,    label: 'Leads' },
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
-  { href: '/reminders',  icon: Bell,        label: 'Notificaciones' },
+  { href: '/reminders',  icon: Bell,        label: 'Recordatorios' },
   { href: '/billing',    icon: Receipt,     label: 'Facturación' },
 ]
 

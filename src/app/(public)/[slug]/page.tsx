@@ -101,7 +101,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   try { modes = doctor.consultationModes ? JSON.parse(doctor.consultationModes) : [] } catch { /* */ }
 
   // Payment
-  type PaymentData = { methods: string[]; bankName?: string; accountNumber?: string; accountHolder?: string; accountType?: string }
+  type PaymentData = { methods: string[]; bankName?: string; accountNumber?: string; accountHolder?: string; accountType?: string; cryptoAddress?: string; cryptoNetwork?: string; cryptoCurrency?: string }
   let paymentData: PaymentData | null = null
   try { paymentData = doctor.paymentData ? JSON.parse(doctor.paymentData) : null } catch { /* */ }
 
@@ -138,6 +138,7 @@ export default async function DoctorPublicPage({ params }: Props) {
     CASH:     { icon: '💵', label: 'Efectivo' },
     CARD:     { icon: '💳', label: 'Tarjeta crédito/débito' },
     TRANSFER: { icon: '🏦', label: 'Transferencia bancaria' },
+    CRYPTO:   { icon: '🪙', label: 'Criptomonedas' },
   }
 
   // Avatar helpers
@@ -219,7 +220,7 @@ export default async function DoctorPublicPage({ params }: Props) {
         {/* ── QUICK TRUST BADGES ────────────────────────────── */}
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 pb-12 border-b border-gray-100 dark:border-gray-800">
           {[
-            { icon: '🕐', label: 'Atención 24/7' },
+            { icon: '📅', label: 'Reservas 24/7' },
             { icon: '🔒', label: 'Datos protegidos' },
             { icon: '⚡', label: 'Respuesta inmediata' },
             { icon: '📋', label: 'Sin filas de espera' },
@@ -321,6 +322,34 @@ export default async function DoctorPublicPage({ params }: Props) {
                     </div>
                   ))}
 
+                  {/* Map visual */}
+                  {(doctor.address || locationStr) && (
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent([doctor.address, locationStr].filter(Boolean).join(', '))}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-4 w-full block rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group"
+                    >
+                      <div
+                        className="h-28 flex flex-col items-center justify-center gap-2 relative"
+                        style={{
+                          background: 'linear-gradient(135deg, #d1fae5 0%, #dbeafe 50%, #ede9fe 100%)',
+                          backgroundImage: [
+                            'linear-gradient(135deg, rgba(209,250,229,0.92) 0%, rgba(219,234,254,0.92) 50%, rgba(237,233,254,0.92) 100%)',
+                            'repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(148,163,184,0.25) 28px, rgba(148,163,184,0.25) 29px)',
+                            'repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(148,163,184,0.25) 28px, rgba(148,163,184,0.25) 29px)',
+                          ].join(', '),
+                        }}
+                      >
+                        <div className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center text-2xl border-2 border-teal-100 group-hover:scale-110 transition-transform z-10">
+                          📍
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 bg-white/90 px-3 py-1 rounded-full shadow-sm z-10">
+                          Ver en Google Maps ↗
+                        </span>
+                      </div>
+                    </a>
+                  )}
+
                   {doctor.whatsapp && (
                     <a href={`https://wa.me/${doctor.whatsapp.replace(/\D/g, '')}`}
                       target="_blank" rel="noopener noreferrer"
@@ -348,7 +377,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 dark:hover:border-blue-900 transition-all duration-200 group flex flex-col items-center text-center gap-3 w-full sm:w-56">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"
                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)' }}>
-                    {service.emoji || '🩺'}
+                    {service.emoji?.trim() || '🩺'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-800 dark:text-gray-200 text-sm leading-snug">{service.name}</p>
@@ -356,7 +385,9 @@ export default async function DoctorPublicPage({ params }: Props) {
                       <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5 leading-relaxed line-clamp-2">{service.description}</p>
                     )}
                     {service.price && (
-                      <p className="text-blue-600 text-sm font-bold mt-1.5">{formatPrice(service.price)}</p>
+                      <p className="text-blue-600 text-sm font-bold mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {formatPrice(service.price)}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -385,6 +416,36 @@ export default async function DoctorPublicPage({ params }: Props) {
                 )
               })}
             </div>
+
+            {/* Detalle de criptomonedas */}
+            {paymentData.methods.includes('CRYPTO') && paymentData.cryptoAddress && (
+              <div className="mt-6 max-w-sm mx-auto bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">🪙</span>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm">Datos para pago en cripto</p>
+                </div>
+                <div className="space-y-2">
+                  {paymentData.cryptoCurrency && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Moneda</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">{paymentData.cryptoCurrency}</span>
+                    </div>
+                  )}
+                  {paymentData.cryptoNetwork && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Red</span>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">{paymentData.cryptoNetwork}</span>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-xs text-gray-400 mb-1">Dirección de billetera</p>
+                    <p className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-2">
+                      {paymentData.cryptoAddress}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         )}
 

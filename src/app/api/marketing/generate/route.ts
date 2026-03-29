@@ -3,18 +3,26 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { generateMarketingContent } from '@/lib/marketing-ai'
 
-async function getDoctor() {
+const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+
+async function getUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  return user
+}
+
+async function getDoctor(userId: string, userEmail: string) {
   return prisma.doctor.findFirst({
-    where: { OR: [{ id: user.id }, { email: user.email! }] },
+    where: { OR: [{ id: userId }, { email: userEmail }] },
     select: { id: true, name: true, specialty: true },
   })
 }
 
 export async function POST(req: Request) {
-  const doctor = await getDoctor()
+  const user = await getUser()
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const doctor = await getDoctor(user.id, user.email!)
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const body = await req.json()
@@ -22,19 +30,32 @@ export async function POST(req: Request) {
 
   if (!topic?.trim()) return NextResponse.json({ error: 'El tema es requerido' }, { status: 400 })
 
-  // Load brand profile
-  const brand = await prisma.brandProfile.findUnique({
-    where: { doctorId: doctor.id },
-  })
-
-  const brandContext = {
-    clinicName: brand?.clinicName ?? null,
-    doctorName: doctor.name,
-    specialties: brand?.specialties?.length ? brand.specialties : [doctor.specialty],
-    slogan: brand?.slogan ?? null,
-    tones: brand?.tones ?? [],
-    targetAudience: brand?.targetAudience ?? null,
-    excludedTopics: brand?.excludedTopics ?? null,
+  // ── Contexto de marca para Luis (admin Sara Medical) ───────────────────────
+  let brandContext
+  if (user.email === SUPERADMIN_EMAIL) {
+    brandContext = {
+      clinicName: 'Sara Medical',
+      doctorName: 'Luis Riofrio',
+      specialties: ['Software médico con IA', 'Gestión de consultorios', 'Salud digital'],
+      slogan: 'El asistente médico que trabaja 24/7 por ti',
+      tones: ['inspirador', 'cercano', 'disruptivo', 'auténtico'],
+      targetAudience: 'Médicos que tienen consultorio propio o clínica y quieren automatizar su administración y captar más pacientes',
+      excludedTopics: 'temas clínicos o diagnósticos médicos',
+    }
+  } else {
+    // ── Contexto normal: marca del médico ─────────────────────────────────────
+    const brand = await prisma.brandProfile.findUnique({
+      where: { doctorId: doctor.id },
+    })
+    brandContext = {
+      clinicName: brand?.clinicName ?? null,
+      doctorName: doctor.name,
+      specialties: brand?.specialties?.length ? brand.specialties : [doctor.specialty],
+      slogan: brand?.slogan ?? null,
+      tones: brand?.tones ?? [],
+      targetAudience: brand?.targetAudience ?? null,
+      excludedTopics: brand?.excludedTopics ?? null,
+    }
   }
 
   try {

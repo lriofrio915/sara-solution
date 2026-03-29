@@ -28,6 +28,13 @@ const FOCUS_OPTIONS = [
   { value: 'aumentar_alcance',   label: 'Aumentar alcance',    description: 'Contenido emocional y compartible que llega a amigos y familiares de tus pacientes. Cada compartido es un nuevo paciente potencial.',             instruction: 'Crea contenido emocional y compartible que llegue a amigos y familiares de tus pacientes.' },
 ]
 
+const ADMIN_FOCUS_OPTIONS = [
+  { value: 'crear_comunidad',    label: 'Crear comunidad',     description: 'Posts que invitan a médicos a comentar, compartir y unirse. Construye una tribu de médicos emprendedores alrededor de Sara Medical.',            instruction: 'Fomenta la participación activa de médicos: invita a comentar experiencias, hacer preguntas y compartir. Tono de comunidad.' },
+  { value: 'ganar_credibilidad', label: 'Ganar credibilidad',  description: 'Muestra resultados reales: tiempo ahorrado, citas duplicadas, testimonios de médicos. Posiciónate como referente en salud digital.',             instruction: 'Usa datos concretos, casos de éxito y resultados medibles de Sara Medical para construir credibilidad como fundador de software médico.' },
+  { value: 'fidelizar_medicos',  label: 'Fidelizar médicos',   description: 'Contenido de valor para usuarios actuales: tips de uso, funciones nuevas e historias de éxito que refuerzan su decisión de usar el software.',  instruction: 'Crea contenido que aporte valor a médicos que ya usan Sara Medical: tips avanzados, nuevas funciones y casos de uso inspiradores.' },
+  { value: 'aumentar_alcance',   label: 'Aumentar alcance',    description: 'Contenido viral sobre automatización médica que se comparte solo. Llega a médicos que aún no conocen Sara Medical a través de sus colegas.',      instruction: 'Crea contenido altamente compartible sobre transformación digital de consultorios para llegar a médicos que aún no conocen Sara Medical.' },
+]
+
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -52,11 +59,15 @@ export default function FacebookPage() {
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
   const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     fetch('/api/marketing/specialty-topics?platform=facebook')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.topics?.length) setSpecialtyTopics(d.topics) })
+      .then(d => {
+        if (d?.topics?.length) setSpecialtyTopics(d.topics)
+        if (d?.isAdmin) setIsAdmin(true)
+      })
       .catch(() => {})
       .finally(() => setSpecialtyLoading(false))
   }, [])
@@ -69,6 +80,7 @@ export default function FacebookPage() {
       const res = await fetch(`/api/marketing/specialty-topics?platform=facebook&_t=${Date.now()}`, { cache: 'no-store' })
       const d = res.ok ? await res.json() : null
       if (d?.topics?.length) setSpecialtyTopics(d.topics)
+      if (d?.isAdmin) setIsAdmin(true)
     } catch { /* ignore */ } finally {
       setRefreshingSpecialty(false)
       setSpecialtyLoading(false)
@@ -91,7 +103,7 @@ export default function FacebookPage() {
           topic: topic.trim(),
           contentType: apiContentType,
           targetPlatform: 'FACEBOOK',
-          extraInstructions: [FOCUS_OPTIONS.find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
+          extraInstructions: [(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined,
         }),
       })
       const data = await res.json()
@@ -160,7 +172,7 @@ export default function FacebookPage() {
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del post</label>
               <div className="flex flex-wrap gap-2">
-                {FOCUS_OPTIONS.map(f => (
+                {(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-[#1877F2] text-white border-[#1877F2]' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-blue-300'}`}>
                     {f.label}

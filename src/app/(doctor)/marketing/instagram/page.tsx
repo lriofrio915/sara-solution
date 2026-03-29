@@ -29,6 +29,13 @@ const FOCUS_OPTIONS = [
   { value: 'fidelizar',          label: 'Fidelizar pacientes', description: 'Contenido de cuidado continuo para tus pacientes actuales: consejos de salud, recordatorios y acompañamiento en su proceso.', instruction: 'Crea contenido de seguimiento, consejos de cuidado y recordatorios de salud.' },
 ]
 
+const ADMIN_FOCUS_OPTIONS = [
+  { value: 'crear_comunidad',     label: 'Crear comunidad',        description: 'Contenido que invita a médicos a unirse, opinar y compartir. Construye una tribu de profesionales que confían en ti.', instruction: 'Crea contenido que genere conversación y comunidad entre médicos emprendedores. Invita a comentar y compartir.' },
+  { value: 'ganar_credibilidad',  label: 'Ganar credibilidad',     description: 'Posts que muestran resultados reales, casos de éxito y el impacto medible de Sara Medical en consultorios.', instruction: 'Demuestra credibilidad como fundador mostrando resultados reales, métricas concretas y testimonios de médicos.' },
+  { value: 'aumentar_alcance',    label: 'Aumentar alcance',       description: 'Contenido viral y compartible que llega a médicos que aún no te conocen. Convierte extraños en seguidores calificados.', instruction: 'Crea contenido altamente compartible sobre automatización médica y transformación digital de consultorios para maximizar el alcance.' },
+  { value: 'fidelizar_medicos',   label: 'Fidelizar médicos',      description: 'Muestra el valor continuo del software: nuevas funciones, tips de uso y cómo sacarle más partido a Sara Medical.', instruction: 'Crea contenido de valor para usuarios actuales del software: tips, funciones, casos de uso avanzados e historias de éxito.' },
+]
+
 
 export default function InstagramPage() {
   const [format, setFormat] = useState<ContentType>('POST')
@@ -45,11 +52,15 @@ export default function InstagramPage() {
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
   const [refreshingSpecialty, setRefreshingSpecialty] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     fetch('/api/marketing/specialty-topics?platform=instagram')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.topics?.length) setSpecialtyTopics(d.topics) })
+      .then(d => {
+        if (d?.topics?.length) setSpecialtyTopics(d.topics)
+        if (d?.isAdmin) setIsAdmin(true)
+      })
       .catch(() => {})
       .finally(() => setSpecialtyLoading(false))
   }, [])
@@ -62,6 +73,7 @@ export default function InstagramPage() {
       const res = await fetch(`/api/marketing/specialty-topics?platform=instagram&_t=${Date.now()}`, { cache: 'no-store' })
       const d = res.ok ? await res.json() : null
       if (d?.topics?.length) setSpecialtyTopics(d.topics)
+      if (d?.isAdmin) setIsAdmin(true)
     } catch { /* ignore */ } finally {
       setRefreshingSpecialty(false)
       setSpecialtyLoading(false)
@@ -78,7 +90,7 @@ export default function InstagramPage() {
       const res = await fetch('/api/marketing/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topic.trim(), contentType: format, targetPlatform: 'INSTAGRAM', extraInstructions: [FOCUS_OPTIONS.find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined }),
+        body: JSON.stringify({ topic: topic.trim(), contentType: format, targetPlatform: 'INSTAGRAM', extraInstructions: [(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).find(f => f.value === focus)?.instruction, extra].filter(Boolean).join(' ') || undefined }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al generar')
@@ -150,7 +162,7 @@ export default function InstagramPage() {
             <div>
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Enfoque del post</label>
               <div className="flex flex-wrap gap-2">
-                {FOCUS_OPTIONS.map(f => (
+                {(isAdmin ? ADMIN_FOCUS_OPTIONS : FOCUS_OPTIONS).map(f => (
                   <button key={f.value} type="button" onClick={() => setFocus(focus === f.value ? '' : f.value)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${focus === f.value ? 'bg-pink-500 text-white border-pink-500' : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-gray-600 hover:border-pink-300'}`}>
                     {f.label}

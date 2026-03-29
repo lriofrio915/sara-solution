@@ -32,7 +32,19 @@ export default function PublicPageActions() {
   }
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const startY = window.scrollY
+    if (startY === 0) return
+    const duration = 600
+    const start = performance.now()
+    const step = (timestamp: number) => {
+      const elapsed = timestamp - start
+      const progress = Math.min(elapsed / duration, 1)
+      // ease-out cubic
+      const ease = 1 - Math.pow(1 - progress, 3)
+      window.scrollTo(0, Math.round(startY * (1 - ease)))
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
   }
 
   return (
