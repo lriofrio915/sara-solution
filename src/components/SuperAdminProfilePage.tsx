@@ -7,6 +7,7 @@ import {
   Users, Activity, Calendar, TrendingUp, Gift,
   Shield, Clock, ChevronRight, AlertTriangle,
   BarChart2, UserPlus, Camera, CheckCircle, AlertCircle, Pencil, X,
+  ExternalLink, Copy, CheckCheck,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -83,6 +84,23 @@ const planColors: Record<string, string> = {
   ENTERPRISE:  'bg-yellow-400',
 }
 
+const SOURCE_COLORS: Record<string, string> = {
+  LANDING:   'bg-blue-500',
+  FACEBOOK:  'bg-indigo-500',
+  INSTAGRAM: 'bg-pink-500',
+  TIKTOK:    'bg-slate-700',
+  LINKEDIN:  'bg-sky-600',
+  GOOGLE:    'bg-red-500',
+  WHATSAPP:  'bg-green-500',
+  REFERIDO:  'bg-teal-500',
+  OTRO:      'bg-gray-400',
+}
+
+const LEAD_CHANNELS = [
+  { key: 'LANDING', label: 'Landing Page', url: 'https://consultorio.site', icon: '🌐', desc: 'Página principal' },
+  { key: 'WHATSAPP', label: 'WhatsApp', url: 'https://wa.me/593996691586', icon: '📱', desc: 'Chat directo' },
+]
+
 function daysUntil(dateStr: string | null) {
   if (!dateStr) return null
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -108,6 +126,11 @@ export default function SuperAdminProfilePage() {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Lead sources
+  const [leadSources, setLeadSources] = useState<Record<string, number>>({})
+  const [leadSourcesLoading, setLeadSourcesLoading] = useState(true)
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
   useEffect(() => {
     // Load profile data
     fetch('/api/profile')
@@ -128,6 +151,19 @@ export default function SuperAdminProfilePage() {
       .then(r => r.ok ? r.json() : null)
       .then(d => { setStats(d); setLoading(false) })
       .catch(() => setLoading(false))
+
+    // Load lead sources
+    fetch('/api/admin/leads')
+      .then(r => r.ok ? r.json() : [])
+      .then((leads: any[]) => {
+        const counts: Record<string, number> = {}
+        if (Array.isArray(leads)) {
+          leads.forEach((l: any) => { counts[l.source] = (counts[l.source] ?? 0) + 1 })
+        }
+        setLeadSources(counts)
+        setLeadSourcesLoading(false)
+      })
+      .catch(() => setLeadSourcesLoading(false))
   }, [])
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -181,6 +217,13 @@ export default function SuperAdminProfilePage() {
     }
   }
 
+  function copyLink(key: string, url: string) {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedKey(key)
+      setTimeout(() => setCopiedKey(null), 2000)
+    })
+  }
+
   const displayName = profile?.name ?? 'Luis Riofrio'
   const displayInitials = getInitials(displayName)
 
@@ -221,7 +264,7 @@ export default function SuperAdminProfilePage() {
 
   const quickLinks = [
     { href: '/admin/doctors', label: 'Gestionar médicos', icon: Users, desc: 'Cambiar planes, eliminar cuentas' },
-    { href: '/admin/leads', label: 'Leads & Marketing', icon: TrendingUp, desc: 'Contactos y campañas' },
+    { href: '/admin/leads', label: 'Leads', icon: TrendingUp, desc: 'Contactos y fuentes de captación' },
     { href: '/admin/referidos', label: 'Sistema de referidos', icon: Gift, desc: 'Seguimiento de referidos' },
   ]
 
@@ -513,6 +556,78 @@ export default function SuperAdminProfilePage() {
             }
           </div>
         </div>
+      </div>
+
+      {/* ── Lead sources ── */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+            <TrendingUp size={15} className="text-primary" />
+            Fuentes de captación de leads
+          </h2>
+          <Link href="/admin/leads" className="text-xs text-primary hover:underline flex items-center gap-1">
+            Ver todos <ChevronRight size={12} />
+          </Link>
+        </div>
+
+        {/* Channel quick links */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          {LEAD_CHANNELS.map(ch => (
+            <div key={ch.key} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
+              <span className="text-xl flex-shrink-0">{ch.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">{ch.label}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-400 truncate">{ch.url}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <a href={ch.url} target="_blank" rel="noopener noreferrer"
+                   className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                   title="Abrir">
+                  <ExternalLink size={13} />
+                </a>
+                <button onClick={() => copyLink(ch.key, ch.url)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                  title="Copiar enlace">
+                  {copiedKey === ch.key
+                    ? <CheckCheck size={13} className="text-green-500" />
+                    : <Copy size={13} />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Source distribution */}
+        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">Distribución por origen</p>
+        {leadSourcesLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => <div key={i} className="h-6 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />)}
+          </div>
+        ) : Object.keys(leadSources).length === 0 ? (
+          <p className="text-xs text-gray-400 dark:text-slate-400 text-center py-4">No hay leads registrados aún</p>
+        ) : (
+          <div className="space-y-2.5">
+            {Object.entries(leadSources)
+              .sort((a, b) => b[1] - a[1])
+              .map(([source, count]) => {
+                const total = Object.values(leadSources).reduce((a, b) => a + b, 0)
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0
+                return (
+                  <div key={source} className="flex items-center gap-2 sm:gap-3">
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 min-w-[72px] flex-shrink-0">{source}</span>
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ${SOURCE_COLORS[source] ?? 'bg-gray-400'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 w-5 text-right flex-shrink-0">{count}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-400 w-8 text-right flex-shrink-0">{pct}%</span>
+                  </div>
+                )
+              })}
+          </div>
+        )}
       </div>
 
       {/* ── Quick access links ── */}
