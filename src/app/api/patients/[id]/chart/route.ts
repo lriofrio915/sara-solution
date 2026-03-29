@@ -60,6 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       tutorName, tutorRelation, tutorPhone, tutorEmail,
       heredoFamiliar, personalPathologic, personalNonPathologic,
       gynecoObstetric, dentalHabits, stimulation,
+      surgicalHistory, currentMedication,
     } = body
 
     const chartData = {
@@ -89,6 +90,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       ...(gynecoObstetric !== undefined && { gynecoObstetric }),
       ...(dentalHabits !== undefined && { dentalHabits }),
       ...(stimulation !== undefined && { stimulation }),
+      ...(surgicalHistory !== undefined && { surgicalHistory }),
+      ...(currentMedication !== undefined && { currentMedication: currentMedication || null }),
     }
 
     const chart = await prisma.patientChart.upsert({

@@ -1,6 +1,6 @@
 'use client'
 
-import AttentionForm from '@/components/attention/AttentionForm'
+import AttentionForm, { PatientSummary } from '@/components/attention/AttentionForm'
 
 interface ExplorationData {
   peso?: string
@@ -13,12 +13,14 @@ interface ExplorationData {
   temperatura?: string
   saturacionO2?: string
   perimetroCefalico?: string
+  piel?: string
   cabezaCuello?: string
   torax?: string
   abdomen?: string
   extremidades?: string
   neurologico?: string
   observacionesGenerales?: string
+  examEvolutionNotes?: string
 }
 
 interface Diagnosis {
@@ -47,10 +49,8 @@ interface Props {
   attention: {
     establishment: string
     service: string
-    attentionType: string
     insurance: string
     datetime: string
-    nextAppointment: string
     durationMins: number | null
     motive: string
     evolution: string
@@ -67,9 +67,20 @@ interface Props {
     evolution: string | null
     diagnoses: unknown
   } | null
+  doctorEstablishments?: string[]
+  doctorServices?: string[]
+  patientSummary?: PatientSummary
 }
 
-export default function AtencionDetailClient({ patientId, attentionId, attention, previousAttention }: Props) {
+export default function AtencionDetailClient({
+  patientId,
+  attentionId,
+  attention,
+  previousAttention,
+  doctorEstablishments,
+  doctorServices,
+  patientSummary,
+}: Props) {
   const dt = new Date(attention.datetime)
   const fecha = dt.toISOString().slice(0, 10)
   const hora = dt.toTimeString().slice(0, 5)
@@ -85,33 +96,34 @@ export default function AtencionDetailClient({ patientId, attentionId, attention
     status?: string
   } | null
 
+  const explorationRaw = attention.exploration as ExplorationData | null
+
   const initialData = {
     establishment: attention.establishment,
     service: attention.service,
-    attentionType: attention.attentionType,
     insurance: attention.insurance,
     fecha,
     hora,
-    nextAppointment: attention.nextAppointment ? attention.nextAppointment.slice(0, 10) : '',
     motive: attention.motive,
     evolution: attention.evolution,
-    exploration: attention.exploration ? {
-      peso: (attention.exploration as ExplorationData).peso ?? '',
-      talla: (attention.exploration as ExplorationData).talla ?? '',
-      imc: (attention.exploration as ExplorationData).imc ?? '',
-      pasSistolica: (attention.exploration as ExplorationData).pasSistolica ?? '',
-      pasDiastolica: (attention.exploration as ExplorationData).pasDiastolica ?? '',
-      frecuenciaCardiaca: (attention.exploration as ExplorationData).frecuenciaCardiaca ?? '',
-      frecuenciaRespiratoria: (attention.exploration as ExplorationData).frecuenciaRespiratoria ?? '',
-      temperatura: (attention.exploration as ExplorationData).temperatura ?? '',
-      saturacionO2: (attention.exploration as ExplorationData).saturacionO2 ?? '',
-      perimetroCefalico: (attention.exploration as ExplorationData).perimetroCefalico ?? '',
-      cabezaCuello: (attention.exploration as ExplorationData).cabezaCuello ?? '',
-      torax: (attention.exploration as ExplorationData).torax ?? '',
-      abdomen: (attention.exploration as ExplorationData).abdomen ?? '',
-      extremidades: (attention.exploration as ExplorationData).extremidades ?? '',
-      neurologico: (attention.exploration as ExplorationData).neurologico ?? '',
-      observacionesGenerales: (attention.exploration as ExplorationData).observacionesGenerales ?? '',
+    exploration: explorationRaw ? {
+      peso: explorationRaw.peso ?? '',
+      talla: explorationRaw.talla ?? '',
+      imc: explorationRaw.imc ?? '',
+      pasSistolica: explorationRaw.pasSistolica ?? '',
+      pasDiastolica: explorationRaw.pasDiastolica ?? '',
+      frecuenciaCardiaca: explorationRaw.frecuenciaCardiaca ?? '',
+      frecuenciaRespiratoria: explorationRaw.frecuenciaRespiratoria ?? '',
+      temperatura: explorationRaw.temperatura ?? '',
+      saturacionO2: explorationRaw.saturacionO2 ?? '',
+      perimetroCefalico: explorationRaw.perimetroCefalico ?? '',
+      piel: explorationRaw.piel ?? '',
+      cabezaCuello: explorationRaw.cabezaCuello ?? '',
+      torax: explorationRaw.torax ?? '',
+      abdomen: explorationRaw.abdomen ?? '',
+      extremidades: explorationRaw.extremidades ?? '',
+      neurologico: explorationRaw.neurologico ?? '',
+      observacionesGenerales: explorationRaw.observacionesGenerales ?? '',
     } : undefined,
     diagnoses: (attention.diagnoses as Diagnosis[]) ?? [],
     prescriptionItems: prescriptionData?.items ?? [],
@@ -119,6 +131,7 @@ export default function AtencionDetailClient({ patientId, attentionId, attention
     prescriptionNotes: prescriptionData?.notes ?? 'Recomendaciones:\nSignos de Alarma:\nAlergias:',
     exams: attention.exams ?? undefined,
     images: attention.images ?? [],
+    examEvolutionNotes: explorationRaw?.examEvolutionNotes ?? '',
     billing: billingData?.items ?? [],
     billingStatus: billingData?.status ?? 'Pendiente',
   }
@@ -135,6 +148,9 @@ export default function AtencionDetailClient({ patientId, attentionId, attention
         attentionId={attentionId}
         initialData={initialData}
         previousAttention={previousAttention}
+        doctorEstablishments={doctorEstablishments}
+        doctorServices={doctorServices}
+        patientSummary={patientSummary}
       />
     </div>
   )

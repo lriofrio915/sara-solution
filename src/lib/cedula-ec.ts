@@ -29,8 +29,9 @@ export function validateCedula(cedula: string): CedulaResult {
 
   const thirdDigit = parseInt(c[2], 10)
 
-  // Persona natural (tercer dígito 0-5)
-  if (thirdDigit < 6) {
+  // Persona natural (tercer dígito 0-6)
+  // Nota: dígito 6 puede corresponder a cédulas válidas de persona natural en algunas emisiones
+  if (thirdDigit <= 6) {
     const coefs = [2, 1, 2, 1, 2, 1, 2, 1, 2]
     let sum = 0
     for (let i = 0; i < 9; i++) {

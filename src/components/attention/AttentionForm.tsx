@@ -36,6 +36,7 @@ interface ExplorationData {
   temperatura: string
   saturacionO2: string
   perimetroCefalico: string
+  piel: string
   cabezaCuello: string
   torax: string
   abdomen: string
@@ -47,11 +48,9 @@ interface ExplorationData {
 interface AttentionData {
   establishment: string
   service: string
-  attentionType: string
   insurance: string
   fecha: string
   hora: string
-  nextAppointment: string
   motive: string
   evolution: string
   exploration: ExplorationData
@@ -61,6 +60,7 @@ interface AttentionData {
   prescriptionNotes: string
   exams: Record<string, string[]>
   images: { url: string; description: string }[]
+  examEvolutionNotes: string
   billing: BillingItem[]
   billingStatus: string
 }
@@ -70,10 +70,17 @@ interface Cie10Result {
   description: string
 }
 
+export interface PatientSummary {
+  allergies: string[]
+  currentMedication: string
+  personalPathologic: string
+  heredoFamiliar: string
+}
+
 // Imported from shared lib to keep consistent with ÓRDENES section
 import { EXAM_CATEGORIES } from '@/lib/exam-categories'
 
-const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Facturación']
+const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Facturación']
 
 function defaultExploration(): ExplorationData {
   return {
@@ -81,6 +88,7 @@ function defaultExploration(): ExplorationData {
     pasSistolica: '', pasDiastolica: '',
     frecuenciaCardiaca: '', frecuenciaRespiratoria: '',
     temperatura: '', saturacionO2: '', perimetroCefalico: '',
+    piel: '',
     cabezaCuello: '', torax: '', abdomen: '', extremidades: '',
     neurologico: '', observacionesGenerales: '',
   }
@@ -90,78 +98,6 @@ function defaultExams(): Record<string, string[]> {
   const exams: Record<string, string[]> = {}
   for (const cat of EXAM_CATEGORIES) exams[cat.key] = []
   return exams
-}
-
-// ─── AI Analysis Modal ───────────────────────────────────────────────────────
-
-function AIModal({ patientId, onClose }: { patientId: string; onClose: () => void }) {
-  const [loading, setLoading] = useState(true)
-  const [analysis, setAnalysis] = useState('')
-  const [sources, setSources] = useState<string[]>([])
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    fetch(`/api/patients/${patientId}/ai-analysis`, { method: 'POST' })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) { setError(data.error); return }
-        setAnalysis(data.analysis ?? '')
-        setSources(data.sources ?? [])
-      })
-      .catch(() => setError('Error al conectar con Sara IA'))
-      .finally(() => setLoading(false))
-  }, [patientId])
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🤖</span>
-            <h3 className="font-bold text-gray-900 dark:text-white">Análisis de Sara IA</h3>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">✕</button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-5">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-              <p className="text-sm text-gray-500 dark:text-slate-300">Sara está analizando la historia clínica...</p>
-            </div>
-          ) : error ? (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm">
-              {error}
-            </div>
-          ) : (
-            <>
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {analysis}
-                </pre>
-              </div>
-              {sources.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide mb-2">
-                    Fuentes consultadas
-                  </p>
-                  <ul className="space-y-1">
-                    {sources.map((s) => (
-                      <li key={s} className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-                        <span>📄</span> {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={onClose} className="btn-primary w-full py-2">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  )
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -176,16 +112,26 @@ interface Props {
     evolution: string | null
     diagnoses: unknown
   } | null
+  doctorEstablishments?: string[]
+  doctorServices?: string[]
+  patientSummary?: PatientSummary
 }
 
-export default function AttentionForm({ patientId, attentionId, initialData, previousAttention }: Props) {
+export default function AttentionForm({
+  patientId,
+  attentionId,
+  initialData,
+  previousAttention,
+  doctorEstablishments = [],
+  doctorServices = [],
+  patientSummary,
+}: Props) {
   const router = useRouter()
   const startTimeRef = useRef(Date.now())
   const [elapsedMins, setElapsedMins] = useState(0)
   const [activeTab, setActiveTab] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showAI, setShowAI] = useState(false)
   const [showPrevious, setShowPrevious] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
 
@@ -194,8 +140,8 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
   const [cie10Results, setCie10Results] = useState<Cie10Result[]>([])
   const [cie10Loading, setCie10Loading] = useState(false)
 
-  // Image upload
-  const imageInputRef = useRef<HTMLInputElement>(null)
+  // File upload for Exámenes y Evolución
+  const examFileInputRef = useRef<HTMLInputElement>(null)
 
   const now = new Date()
   const todayStr = now.toISOString().slice(0, 10)
@@ -203,12 +149,10 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
 
   const [form, setForm] = useState<AttentionData>({
     establishment: '',
-    service: 'Consulta',
-    attentionType: '',
+    service: doctorServices[0] ?? 'Consulta',
     insurance: '',
     fecha: todayStr,
     hora: timeStr,
-    nextAppointment: '',
     motive: '',
     evolution: '',
     exploration: defaultExploration(),
@@ -218,6 +162,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
     prescriptionNotes: 'Recomendaciones:\nSignos de Alarma:\nAlergias:',
     exams: defaultExams(),
     images: [],
+    examEvolutionNotes: '',
     billing: [],
     billingStatus: 'Pendiente',
     ...initialData,
@@ -301,7 +246,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
     update('exams', { ...form.exams, [categoryKey]: next })
   }
 
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleExamFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files
     if (!files) return
     const newImages = [...form.images]
@@ -323,17 +268,19 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
     setError(null)
     try {
       const datetime = `${form.fecha}T${form.hora}:00`
+      const explorationWithNotes = {
+        ...form.exploration,
+        examEvolutionNotes: form.examEvolutionNotes || null,
+      }
       const payload = {
         establishment: form.establishment || null,
         service: form.service || null,
-        attentionType: form.attentionType || null,
         insurance: form.insurance || null,
         datetime,
-        nextAppointment: form.nextAppointment || null,
         durationMins: elapsedMins > 0 ? elapsedMins : null,
         motive: form.motive || null,
         evolution: form.evolution || null,
-        exploration: form.exploration,
+        exploration: explorationWithNotes,
         diagnoses: form.diagnoses,
         prescriptionData: {
           items: form.prescriptionItems,
@@ -381,11 +328,50 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
 
   return (
     <div className="max-w-7xl">
-      {showAI && <AIModal patientId={patientId} onClose={() => setShowAI(false)} />}
-
       {error && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">
           {error}
+        </div>
+      )}
+
+      {/* Patient summary banner */}
+      {patientSummary && (patientSummary.allergies.length > 0 || patientSummary.currentMedication || patientSummary.personalPathologic || patientSummary.heredoFamiliar) && (
+        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl">
+          <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-3">
+            📋 Recordatorio clínico del paciente
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {patientSummary.allergies.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">🚨 Alergias</p>
+                <div className="flex flex-wrap gap-1">
+                  {patientSummary.allergies.map(a => (
+                    <span key={a} className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs rounded-full border border-orange-200 dark:border-orange-700">
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {patientSummary.currentMedication && (
+              <div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">💊 Medicación habitual</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line">{patientSummary.currentMedication}</p>
+              </div>
+            )}
+            {patientSummary.personalPathologic && (
+              <div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">🏥 Antecedentes personales</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">{patientSummary.personalPathologic}</p>
+              </div>
+            )}
+            {patientSummary.heredoFamiliar && (
+              <div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">🧬 Antecedentes familiares</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300">{patientSummary.heredoFamiliar}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -403,33 +389,50 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label text-xs">Establecimiento</label>
-              <input
-                className="input text-sm py-1.5"
-                value={form.establishment}
-                onChange={(e) => update('establishment', e.target.value)}
-                placeholder="Clínica, hospital..."
-              />
+              {doctorEstablishments.length > 0 ? (
+                <select
+                  className="input text-sm py-1.5"
+                  value={form.establishment}
+                  onChange={(e) => update('establishment', e.target.value)}
+                >
+                  <option value="">Seleccionar...</option>
+                  {doctorEstablishments.map(est => (
+                    <option key={est} value={est}>{est}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="input text-sm py-1.5"
+                  value={form.establishment}
+                  onChange={(e) => update('establishment', e.target.value)}
+                  placeholder="Clínica, hospital..."
+                />
+              )}
             </div>
             <div>
               <label className="label text-xs">Servicio</label>
-              <select
-                className="input text-sm py-1.5"
-                value={form.service}
-                onChange={(e) => update('service', e.target.value)}
-              >
-                <option value="Consulta">Consulta</option>
-                <option value="Emergencia">Emergencia</option>
-                <option value="Hospitalización">Hospitalización</option>
-              </select>
-            </div>
-            <div>
-              <label className="label text-xs">Tipo de atención</label>
-              <input
-                className="input text-sm py-1.5"
-                value={form.attentionType}
-                onChange={(e) => update('attentionType', e.target.value)}
-                placeholder="Primera vez, control..."
-              />
+              {doctorServices.length > 0 ? (
+                <select
+                  className="input text-sm py-1.5"
+                  value={form.service}
+                  onChange={(e) => update('service', e.target.value)}
+                >
+                  <option value="">Seleccionar...</option>
+                  {doctorServices.map(svc => (
+                    <option key={svc} value={svc}>{svc}</option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  className="input text-sm py-1.5"
+                  value={form.service}
+                  onChange={(e) => update('service', e.target.value)}
+                >
+                  <option value="Consulta">Consulta</option>
+                  <option value="Emergencia">Emergencia</option>
+                  <option value="Hospitalización">Hospitalización</option>
+                </select>
+              )}
             </div>
             <div>
               <label className="label text-xs">Seguro</label>
@@ -458,24 +461,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                 onChange={(e) => update('hora', e.target.value)}
               />
             </div>
-            <div className="col-span-2">
-              <label className="label text-xs">Próxima cita</label>
-              <input
-                type="date"
-                className="input text-sm py-1.5"
-                value={form.nextAppointment}
-                onChange={(e) => update('nextAppointment', e.target.value)}
-              />
-            </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowAI(true)}
-            className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-400 text-sm font-medium rounded-xl transition-colors"
-          >
-            🤖 Analizar con Sara IA
-          </button>
 
           {/* Previous attention */}
           {previousAttention && (
@@ -500,9 +486,8 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
 
         {/* Right panel */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Motivo y evolución</h3>
           <div>
-            <label className="label text-xs">Motivo de la atención actual</label>
+            <label className="label text-sm font-semibold text-gray-700 dark:text-gray-300">Motivo de consulta</label>
             <textarea
               className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
               rows={4}
@@ -513,7 +498,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="label text-xs mb-0">Evolución</label>
+              <label className="label text-sm font-semibold text-gray-700 dark:text-gray-300 mb-0">Enfermedad actual</label>
               {previousAttention?.evolution && (
                 <button
                   type="button"
@@ -529,7 +514,7 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
               rows={4}
               value={form.evolution}
               onChange={(e) => update('evolution', e.target.value)}
-              placeholder="Evolución del paciente..."
+              placeholder="Descripción de la enfermedad actual..."
             />
           </div>
         </div>
@@ -594,10 +579,11 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
 
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
-                  Exploración Regional
+                  Examen Físico
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {([
+                    ['piel', 'Piel'],
                     ['cabezaCuello', 'Cabeza y Cuello'],
                     ['torax', 'Tórax'],
                     ['abdomen', 'Abdomen'],
@@ -618,13 +604,105 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                   ))}
                 </div>
               </div>
+
+              {/* Exámenes y Evolución */}
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400 mb-3">
+                  Exámenes y Evolución
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <input
+                      ref={examFileInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      multiple
+                      className="hidden"
+                      onChange={handleExamFileUpload}
+                    />
+                    <div
+                      className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl py-6 flex flex-col items-center justify-center gap-2 hover:border-primary dark:hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => examFileInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={async (e) => {
+                        e.preventDefault()
+                        const files = Array.from(e.dataTransfer.files)
+                        const newImages = [...form.images]
+                        for (const file of files) {
+                          const reader = new FileReader()
+                          await new Promise<void>((resolve) => {
+                            reader.onload = (ev) => {
+                              newImages.push({ url: ev.target?.result as string, description: file.name })
+                              resolve()
+                            }
+                            reader.readAsDataURL(file)
+                          })
+                        }
+                        update('images', newImages)
+                      }}
+                    >
+                      <span className="text-2xl">📎</span>
+                      <span className="text-sm text-gray-500 dark:text-slate-300">
+                        Arrastra o haz clic para subir documentos, imágenes o PDFs
+                      </span>
+                      <span className="text-xs text-gray-400">PNG, JPG, PDF</span>
+                    </div>
+                  </div>
+
+                  {form.images.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {form.images.map((img, i) => (
+                        <div key={i} className="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                          {img.url.startsWith('data:image') ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={img.url} alt={img.description} className="w-full h-24 object-cover" />
+                          ) : (
+                            <div className="w-full h-24 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                              <span className="text-2xl">📄</span>
+                            </div>
+                          )}
+                          <div className="p-1.5">
+                            <input
+                              className="input text-xs py-0.5"
+                              value={img.description}
+                              onChange={(e) => {
+                                const next = [...form.images]
+                                next[i] = { ...next[i], description: e.target.value }
+                                update('images', next)
+                              }}
+                              placeholder="Descripción..."
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => update('images', form.images.filter((_, idx) => idx !== i))}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="label text-xs">Interpretación y evolución del caso</label>
+                    <textarea
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                      rows={4}
+                      value={form.examEvolutionNotes}
+                      onChange={(e) => update('examEvolutionNotes', e.target.value)}
+                      placeholder="Interpretación de los exámenes presentados y evolución del caso clínico..."
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Tab 2: Diagnóstico */}
           {activeTab === 1 && (
             <div className="space-y-4">
-              {/* CIE-10 search */}
               <div className="relative">
                 <label className="label text-xs">Buscar diagnóstico CIE-10</label>
                 <input
@@ -655,7 +733,6 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                 )}
               </div>
 
-              {/* Diagnoses table */}
               {form.diagnoses.length > 0 ? (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
@@ -793,16 +870,14 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
                 + Agregar medicamento
               </button>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label text-xs">Válida hasta</label>
-                  <input
-                    type="date"
-                    className="input text-sm"
-                    value={form.prescriptionValidUntil}
-                    onChange={(e) => update('prescriptionValidUntil', e.target.value)}
-                  />
-                </div>
+              <div>
+                <label className="label text-xs">Válida hasta</label>
+                <input
+                  type="date"
+                  className="input text-sm w-48"
+                  value={form.prescriptionValidUntil}
+                  onChange={(e) => update('prescriptionValidUntil', e.target.value)}
+                />
               </div>
 
               <div>
@@ -848,71 +923,8 @@ export default function AttentionForm({ patientId, attentionId, initialData, pre
             </div>
           )}
 
-          {/* Tab 5: Imágenes */}
+          {/* Tab 5: Facturación */}
           {activeTab === 4 && (
-            <div className="space-y-4">
-              <div>
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl py-8 flex flex-col items-center justify-center gap-2 hover:border-primary dark:hover:border-primary transition-colors"
-                >
-                  <span className="text-3xl">📎</span>
-                  <span className="text-sm text-gray-500 dark:text-slate-300">
-                    Clic para subir imágenes o PDFs
-                  </span>
-                  <span className="text-xs text-gray-400">PNG, JPG, PDF</span>
-                </button>
-              </div>
-
-              {form.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {form.images.map((img, i) => (
-                    <div key={i} className="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                      {img.url.startsWith('data:image') ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img.url} alt={img.description} className="w-full h-32 object-cover" />
-                      ) : (
-                        <div className="w-full h-32 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
-                          <span className="text-3xl">📄</span>
-                        </div>
-                      )}
-                      <div className="p-2">
-                        <input
-                          className="input text-xs py-1"
-                          value={img.description}
-                          onChange={(e) => {
-                            const next = [...form.images]
-                            next[i] = { ...next[i], description: e.target.value }
-                            update('images', next)
-                          }}
-                          placeholder="Descripción..."
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => update('images', form.images.filter((_, idx) => idx !== i))}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tab 6: Facturación */}
-          {activeTab === 5 && (
             <div className="space-y-4">
               {form.billing.length > 0 && (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">

@@ -26,6 +26,8 @@ export default function NewPatientPage() {
   const [existingPatientId, setExistingPatientId] = useState<string | null>(null)
   const lookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const [currentMedication, setCurrentMedication] = useState('')
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -152,6 +154,14 @@ export default function NewPatientPage() {
         throw new Error(body.error ?? 'Error al guardar')
       }
       const { patient } = await res.json()
+      // Save currentMedication to chart if provided
+      if (currentMedication.trim()) {
+        await fetch(`/api/patients/${patient.id}/chart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentMedication: currentMedication.trim() }),
+        }).catch(() => {/* non-critical */})
+      }
       router.push(`/patients/${patient.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar paciente')
@@ -369,6 +379,19 @@ export default function NewPatientPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Medicación habitual
+            </label>
+            <textarea
+              value={currentMedication}
+              onChange={e => setCurrentMedication(e.target.value)}
+              rows={3}
+              placeholder="Medicamentos que toma habitualmente el paciente..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+            />
           </div>
 
           <div>

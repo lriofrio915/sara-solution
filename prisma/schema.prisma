@@ -644,6 +644,10 @@ model PatientChart {
   dentalHabits          Json?
   stimulation           Json?
 
+  // Medicación habitual y antecedentes quirúrgicos
+  currentMedication String?  @db.Text
+  surgicalHistory   Json?    // [{procedure, date, reason, hospital, complications, anesthesia}]
+
   // Controles médicos especiales
   vaccineRecords  Json?   // [{id, vaccine, scheduledAgeMonths, scheduledLabel, dose, appliedDate, lot, notes}]
   growthRecords   Json?   // [{date, ageMonths, weight, height, headCirc}]
