@@ -156,8 +156,8 @@ export default function PatientsPage() {
               {/* Contact */}
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 {p.phone && <p>{p.phone}</p>}
-                {p.email && <p className="text-xs text-gray-400 truncate max-w-[180px]">{p.email}</p>}
-                {!p.phone && !p.email && <p className="text-gray-300 text-xs">Sin contacto</p>}
+                {p.email && <p className="text-xs text-gray-400 dark:text-slate-400 truncate max-w-[180px]">{p.email}</p>}
+                {!p.phone && !p.email && <p className="text-xs text-gray-400 dark:text-slate-500 italic">Sin contacto</p>}
               </div>
 
               {/* Doc + blood */}

@@ -198,7 +198,7 @@ function VacunasSection({
       {/* Groups by age */}
       {Object.entries(grouped).map(([ageLabel, items]) => (
         <div key={ageLabel} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-2.5 bg-gray-50 dark:bg-gray-750 border-b border-gray-100 dark:border-gray-700">
+          <div className="px-4 py-2.5 bg-gray-50 dark:bg-gray-700/60 border-b border-gray-100 dark:border-gray-700">
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{ageLabel}</span>
           </div>
           <div className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -450,7 +450,7 @@ function CrecimientoSection({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+                <tr className="border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/60">
                   <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">Fecha</th>
                   <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">Edad</th>
                   <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-400">Peso (kg)</th>
@@ -461,7 +461,7 @@ function CrecimientoSection({
               </thead>
               <tbody>
                 {sorted.map((r, i) => (
-                  <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                  <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/70 transition-colors">
                     <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200">
                       {new Date(r.date).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
                     </td>
@@ -745,7 +745,7 @@ function EmbarazoSection({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+                <tr className="border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/60">
                   <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">Fecha</th>
                   <th className="px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-400">Sem.</th>
                   <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-400">Peso</th>
@@ -757,7 +757,7 @@ function EmbarazoSection({
               </thead>
               <tbody>
                 {sortedControls.map((c, i) => (
-                  <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                  <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/70 transition-colors">
                     <td className="px-4 py-2.5 text-gray-800 dark:text-gray-200 whitespace-nowrap">
                       {new Date(c.date).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
                     </td>

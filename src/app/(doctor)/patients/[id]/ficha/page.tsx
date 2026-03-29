@@ -262,7 +262,7 @@ function Accordion({ title, children, defaultOpen = false }: {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70 transition-colors"
       >
         <span>{title}</span>
         <span className="text-gray-400 transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)' }}>

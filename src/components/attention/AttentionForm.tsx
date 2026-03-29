@@ -475,7 +475,7 @@ export default function AttentionForm({
                 Atención anterior ({new Date(previousAttention.datetime).toLocaleDateString('es-EC')})
               </button>
               {showPrevious && (
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-600 dark:text-slate-300 space-y-1">
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-600 dark:text-slate-300 space-y-1">
                   {previousAttention.motive && <p><strong>Motivo:</strong> {previousAttention.motive}</p>}
                   {previousAttention.evolution && <p><strong>Evolución:</strong> {previousAttention.evolution}</p>}
                 </div>
@@ -737,7 +737,7 @@ export default function AttentionForm({
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700">
+                      <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Código</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Descripción</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Observaciones</th>
@@ -810,10 +810,10 @@ export default function AttentionForm({
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Medicamento</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Cantidad</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Indicaciones</th>
+                      <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Medicamento</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Cantidad</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Indicaciones</th>
                         <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
@@ -897,7 +897,7 @@ export default function AttentionForm({
             <div className="space-y-2">
               {EXAM_CATEGORIES.map((cat) => (
                 <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-750 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
+                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
                     <span>{cat.label}</span>
                     {(form.exams[cat.key]?.length ?? 0) > 0 && (
                       <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
@@ -930,11 +930,11 @@ export default function AttentionForm({
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Descripción</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Cantidad</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Precio Unit.</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 font-medium">Subtotal</th>
+                      <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Descripción</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Cantidad</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Precio Unit.</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Subtotal</th>
                         <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
@@ -990,7 +990,7 @@ export default function AttentionForm({
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+                      <tr className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/60">
                         <td colSpan={3} className="px-3 py-2 text-sm font-semibold text-right text-gray-700 dark:text-gray-300">
                           Total:
                         </td>

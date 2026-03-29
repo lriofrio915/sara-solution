@@ -64,7 +64,7 @@ function AiAnalysisPanel({ patientId }: { patientId: string }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
       <div
-        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+        className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/70 transition-colors"
         onClick={() => !loading && setOpen((v) => !v)}
       >
         <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ function AiAnalysisPanel({ patientId }: { patientId: string }) {
               </div>
               {sources.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <p className="text-xs text-gray-400 mb-1.5">Fuentes consultadas:</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mb-1.5">Fuentes consultadas:</p>
                   <div className="flex flex-wrap gap-2">
                     {sources.map((s, i) => (
                       <span key={i} className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-xs rounded-full border border-purple-200 dark:border-purple-800">
@@ -431,7 +431,7 @@ export default function PatientDetailPage() {
             <div className="space-y-4">
               {patient.medicalRecords.map((r) => (
                 <div key={r.id} className="border-b border-gray-50 dark:border-gray-700 pb-4 last:border-0 last:pb-0">
-                  <p className="text-xs text-gray-400 mb-1">
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">
                     {new Date(r.createdAt).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
                   </p>
                   <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{r.diagnosis}</p>
@@ -517,11 +517,11 @@ export default function PatientDetailPage() {
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Correo</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mb-0.5">Correo</p>
                   <p className="text-sm font-mono font-medium text-gray-900 dark:text-white">{credentials.email}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-0.5">Contraseña temporal</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-400 mb-0.5">Contraseña temporal</p>
                   <p className="text-sm font-mono font-bold text-primary">{credentials.password}</p>
                 </div>
               </div>

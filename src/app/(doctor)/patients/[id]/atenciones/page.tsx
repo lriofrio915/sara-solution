@@ -147,7 +147,7 @@ export default function AtencionesPage() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+                  <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/60">
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Fecha / Hora
                     </th>
@@ -170,7 +170,7 @@ export default function AtencionesPage() {
                     <tr
                       key={a.id}
                       onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
-                      className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-colors"
+                      className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/70 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-3 text-gray-800 dark:text-gray-200 font-medium whitespace-nowrap">
                         <div>{new Date(a.datetime).toLocaleDateString('es-EC', { dateStyle: 'medium' })}</div>
@@ -208,7 +208,7 @@ export default function AtencionesPage() {
                 <button
                   key={a.id}
                   onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
-                  className="w-full text-left px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                  className="w-full text-left px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/70 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
