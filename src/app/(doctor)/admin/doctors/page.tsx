@@ -148,14 +148,14 @@ export default function AdminDoctorsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-10">#</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Médico</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden md:table-cell">Especialidad</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden lg:table-cell">Email</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Plan</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden sm:table-cell">Pacientes</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden xl:table-cell">Registro</th>
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Acciones</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-10 hidden sm:table-cell">#</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Médico</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden md:table-cell">Especialidad</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden lg:table-cell">Email</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Plan</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden sm:table-cell">Pacientes</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 hidden xl:table-cell">Registro</th>
+                <th className="text-left px-3 sm:px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -183,23 +183,23 @@ export default function AdminDoctorsPage() {
                   const isUpdatingPlan = updatingPlanId === doc.id
                   return (
                     <tr key={doc.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-4 py-3 text-gray-400 dark:text-slate-400">{rowNum}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
+                      <td className="px-3 sm:px-4 py-3 text-gray-400 dark:text-slate-400 hidden sm:table-cell">{rowNum}</td>
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           {doc.avatarUrl ? (
-                            <Image src={doc.avatarUrl} alt={doc.name} width={36} height={36}
-                              className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                            <Image src={doc.avatarUrl} alt={doc.name} width={32} height={32}
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                               {getInitials(doc.name)}
                             </div>
                           )}
-                          <span className="font-medium text-gray-900 dark:text-white truncate max-w-[140px]">{doc.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-white truncate max-w-[100px] sm:max-w-[160px]">{doc.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">{doc.specialty}</td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-slate-300 hidden lg:table-cell text-xs">{doc.email}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">{doc.specialty}</td>
+                      <td className="px-3 sm:px-4 py-3 text-gray-500 dark:text-slate-300 hidden lg:table-cell text-xs">{doc.email}</td>
+                      <td className="px-3 sm:px-4 py-3">
                         <select
                           value={plan}
                           disabled={isUpdatingPlan}
@@ -211,31 +211,33 @@ export default function AdminDoctorsPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium hidden sm:table-cell">
+                      <td className="px-3 sm:px-4 py-3 text-gray-700 dark:text-gray-300 font-medium hidden sm:table-cell">
                         {doc._count.patients}
                       </td>
-                      <td className="px-4 py-3 text-gray-400 dark:text-slate-400 text-xs hidden xl:table-cell">
+                      <td className="px-3 sm:px-4 py-3 text-gray-400 dark:text-slate-400 text-xs hidden xl:table-cell">
                         {new Date(doc.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="flex items-center gap-1.5">
                           {doc.slug && (
                             <a
                               href={`/${doc.slug}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors"
+                              title="Ver perfil"
+                              className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors"
                             >
                               <ExternalLink size={12} />
-                              Ver perfil
+                              <span className="hidden sm:inline">Ver perfil</span>
                             </a>
                           )}
                           <button
                             onClick={() => setConfirmDelete(doc)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                            title="Eliminar"
+                            className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                           >
                             <Trash2 size={12} />
-                            Eliminar
+                            <span className="hidden sm:inline">Eliminar</span>
                           </button>
                         </div>
                       </td>

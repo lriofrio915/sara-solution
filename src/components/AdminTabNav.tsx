@@ -6,7 +6,7 @@ import { Users, TrendingUp, Gift } from 'lucide-react'
 
 const tabs = [
   { href: '/admin/doctors', label: 'Médicos', icon: Users },
-  { href: '/admin/leads', label: 'Leads & Marketing', icon: TrendingUp },
+  { href: '/admin/leads', label: 'Leads', icon: TrendingUp },
   { href: '/admin/referidos', label: 'Referidos', icon: Gift },
 ]
 
