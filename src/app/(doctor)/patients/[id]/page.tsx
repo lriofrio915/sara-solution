@@ -222,8 +222,14 @@ export default function PatientDetailPage() {
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Error')
       const { patient: updated } = await res.json()
-      setPatient(updated)
-      setForm(updated)
+      // Preserve relational data not returned by PATCH
+      setPatient((prev) => ({
+        ...prev!,
+        ...updated,
+        appointments: prev?.appointments ?? [],
+        medicalRecords: prev?.medicalRecords ?? [],
+      }))
+      setForm((prev) => ({ ...prev, ...updated }))
       setEditing(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
