@@ -150,6 +150,9 @@ model Doctor {
   signatureTag     String?  // AES-256-GCM auth tag (hex)
   signatureEncPass String?  // AES-256-GCM encrypted .p12 password (hex)
 
+  // Redes Sociales — tokens OAuth (AES-256-GCM encriptado)
+  socialTokens     String?  @db.Text  // JSON: {instagram:{accessToken,userId,expiresAt}, facebook:{...}, linkedin:{...}}
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

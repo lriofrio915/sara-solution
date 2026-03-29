@@ -75,6 +75,11 @@ const tabs = [
     icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>📅</span>,
   },
   {
+    href: '/marketing/calendario',
+    label: 'Calendario',
+    icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>📅</span>,
+  },
+  {
     href: '/marketing/library',
     label: 'Biblioteca',
     icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>📚</span>,
