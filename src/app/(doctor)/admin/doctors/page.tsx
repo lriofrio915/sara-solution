@@ -18,9 +18,9 @@ const planBadge: Record<string, string> = {
 const PLAN_LABELS: Record<string, string> = {
   FREE:        'Free',
   TRIAL:       'Trial',
-  PRO_MENSUAL: 'Pro Mensual',
-  PRO_ANUAL:   'Pro Anual',
-  ENTERPRISE:  'Enterprise',
+  PRO_MENSUAL: 'Pro M',
+  PRO_ANUAL:   'Pro A',
+  ENTERPRISE:  'Enterp',
 }
 
 const PLANS = ['FREE', 'TRIAL', 'PRO_MENSUAL', 'PRO_ANUAL', 'ENTERPRISE']
@@ -204,7 +204,7 @@ export default function AdminDoctorsPage() {
                           value={plan}
                           disabled={isUpdatingPlan}
                           onChange={e => handlePlanChange(doc.id, e.target.value)}
-                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60 disabled:cursor-wait ${planBadge[plan] ?? planBadge.FREE}`}
+                          className={`text-xs font-semibold px-1 sm:px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60 disabled:cursor-wait max-w-[68px] sm:max-w-none ${planBadge[plan] ?? planBadge.FREE}`}
                         >
                           {PLANS.map(p => (
                             <option key={p} value={p}>{PLAN_LABELS[p] ?? p}</option>
