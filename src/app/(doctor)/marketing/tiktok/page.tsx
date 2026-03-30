@@ -251,17 +251,17 @@ export default function TikTokPage() {
             </div>
           </div>
 
-          {/* Proxima funcion */}
+          {/* TikTok no permite publicación vía API externa para cuentas personales */}
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center flex-shrink-0">
                 <TikTokIcon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">Publicacion automatica</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Conecta TikTok para subir videos directamente</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Publicación en TikTok</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Copia el guion generado y súbelo manualmente desde la app de TikTok</p>
               </div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium">Proximamente</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium flex-shrink-0">Manual</span>
             </div>
           </div>
         </div>
