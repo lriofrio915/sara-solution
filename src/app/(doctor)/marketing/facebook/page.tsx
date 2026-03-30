@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AIImage from '../_ai-image'
 import SchedulePostModal from '@/components/marketing/SchedulePostModal'
+import ConnectPublishCard from '@/components/marketing/ConnectPublishCard'
 
 type ContentType = 'POST' | 'CAROUSEL' | 'VIDEO'
 
@@ -240,19 +241,11 @@ export default function FacebookPage() {
             </form>
           </div>
 
-          {/* Conectar cuenta */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-700/50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#1877F2] flex items-center justify-center">
-                <FacebookIcon className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">Publicacion automatica</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Conecta Facebook para publicar directamente</p>
-              </div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium">Proximamente</span>
-            </div>
-          </div>
+          <ConnectPublishCard
+            platform="facebook"
+            postId={post?.id ?? null}
+            onPublished={() => setMarked(true)}
+          />
         </div>
 
         {/* Resultado */}

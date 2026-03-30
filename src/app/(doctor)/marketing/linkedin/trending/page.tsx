@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AIImage from '../../_ai-image'
 import SchedulePostModal from '@/components/marketing/SchedulePostModal'
+import ConnectPublishCard from '@/components/marketing/ConnectPublishCard'
 
 interface GeneratedPost {
   hook: string
@@ -283,19 +284,11 @@ export default function LinkedInTrendingPage() {
             </form>
           </div>
 
-          {/* Publicación automática */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-700/50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#0A66C2] flex items-center justify-center flex-shrink-0">
-                <LinkedInIcon className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">Publicación automática</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Conecta LinkedIn para publicar directamente</p>
-              </div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium flex-shrink-0">Próximamente</span>
-            </div>
-          </div>
+          <ConnectPublishCard
+            platform="linkedin"
+            postId={savedPost?.id ?? null}
+            onPublished={() => setSavedPost(p => p ? { ...p, status: 'PUBLISHED' } : p)}
+          />
         </div>
 
         {/* ── Resultado ──────────────────────────────────────────── */}
