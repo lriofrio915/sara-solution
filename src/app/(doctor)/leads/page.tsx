@@ -93,11 +93,13 @@ export default function DoctorLeadsPage() {
     return matchSearch && matchStatus && matchSource
   }), [leads, filters])
 
-  const now = new Date()
-  const thisMonth = useMemo(() => leads.filter(l => {
-    const d = new Date(l.createdAt)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  }).length, [leads, now])
+  const thisMonth = useMemo(() => {
+    const now = new Date()
+    return leads.filter(l => {
+      const d = new Date(l.createdAt)
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }).length
+  }, [leads])
   const agendados = leads.filter(l => l.status === 'AGENDADO').length
   const convRate  = leads.length > 0 ? ((agendados / leads.length) * 100).toFixed(1) : '0.0'
 

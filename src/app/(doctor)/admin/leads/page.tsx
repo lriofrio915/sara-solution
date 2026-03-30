@@ -70,11 +70,13 @@ export default function AdminLeadsPage() {
     })
   }, [leads, filters])
 
-  const now = new Date()
-  const thisMonth = useMemo(() => leads.filter(l => {
-    const d = new Date(l.createdAt)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  }).length, [leads, now])
+  const thisMonth = useMemo(() => {
+    const now = new Date()
+    return leads.filter(l => {
+      const d = new Date(l.createdAt)
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }).length
+  }, [leads])
   const converted = leads.filter(l => l.status === 'CONVERTIDO').length
   const convRate = leads.length > 0 ? ((converted / leads.length) * 100).toFixed(1) : '0.0'
 

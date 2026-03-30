@@ -752,23 +752,6 @@ function DoctorProfileContent() {
     }
   }
 
-  if (!profile) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    )
-  }
-
-  const initials = getInitials(form.name || profile.name)
-
-  const locationOptions = [
-    ...(form.address ? [{ label: form.address, value: form.address }] : []),
-    ...branches
-      .filter((b) => b.address.trim())
-      .map((b) => ({ label: b.name ? `${b.name} — ${b.address}` : b.address, value: b.address })),
-  ]
-
   // Navigate to 'redes' tab if URL has ?tab=redes (after OAuth redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -785,6 +768,23 @@ function DoctorProfileContent() {
       .catch(() => {})
       .finally(() => setAccountsLoading(false))
   }, [activeTab])
+
+  if (!profile) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  const initials = getInitials(form.name || profile.name)
+
+  const locationOptions = [
+    ...(form.address ? [{ label: form.address, value: form.address }] : []),
+    ...branches
+      .filter((b) => b.address.trim())
+      .map((b) => ({ label: b.name ? `${b.name} — ${b.address}` : b.address, value: b.address })),
+  ]
 
   const TABS = [
     { id: 'perfil',      icon: '👤', label: 'Perfil' },
@@ -2810,7 +2810,7 @@ function DoctorProfileContent() {
 
               <div className="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50">
                 <p className="text-xs text-amber-700 dark:text-amber-400">
-                  <strong>Instagram y Facebook</strong> comparten una sola app de Meta. Al hacer clic en "Conectar" en cualquiera de los dos, se conectarán ambas cuentas simultáneamente (si tienes una cuenta de Instagram Business vinculada a tu página de Facebook).
+                  <strong>Instagram y Facebook</strong> comparten una sola app de Meta. Al hacer clic en &ldquo;Conectar&rdquo; en cualquiera de los dos, se conectarán ambas cuentas simultáneamente (si tienes una cuenta de Instagram Business vinculada a tu página de Facebook).
                 </p>
               </div>
             </div>
