@@ -7,19 +7,24 @@ import Cie10Search from '@/components/Cie10Search'
 
 interface Patient { id: string; name: string; documentId: string | null }
 
-const CONTENT_TEMPLATES = [
-  {
-    label: 'Reposo médico',
-    content: 'El/La paciente antes mencionado/a ha sido atendido/a en mi consulta médica el día de hoy. Después de la evaluación clínica correspondiente, se recomienda REPOSO ABSOLUTO por _____ días a partir de la presente fecha, por presentar _______________.\n\nEl paciente podrá reintegrarse a sus actividades normales a partir del _______________.',
-  },
-  {
-    label: 'Certificado de salud',
-    content: 'El/La paciente antes mencionado/a ha sido evaluado/a clínicamente, encontrándose en BUEN ESTADO DE SALUD al momento de la consulta, sin restricciones para realizar sus actividades habituales.',
-  },
-  {
-    label: 'Certificado de atención',
-    content: 'El/La paciente antes mencionado/a fue atendido/a en consulta médica el día de hoy, recibiendo diagnóstico y tratamiento correspondiente.\n\nDiagnóstico: _______________\nTratamiento: _______________\n\nSe indica seguimiento según evolución clínica.',
-  },
+function buildTemplateContent(type: 'reposo' | 'salud' | 'atencion', patient: Patient | null): string {
+  const pName = patient?.name ?? '_____'
+  const pDoc = patient?.documentId ? `, portador/a de la cédula/pasaporte N.º ${patient.documentId}` : ''
+  const header = `El/La paciente ${pName}${pDoc}`
+  switch (type) {
+    case 'reposo':
+      return `${header} ha sido atendido/a en mi consulta médica el día de hoy. Después de la evaluación clínica correspondiente, se recomienda REPOSO ABSOLUTO por _____ días a partir de la presente fecha, por presentar _______________.\n\nEl/La paciente podrá reintegrarse a sus actividades normales a partir del _______________.`
+    case 'salud':
+      return `${header} ha sido evaluado/a clínicamente, encontrándose en BUEN ESTADO DE SALUD al momento de la consulta, sin restricciones para realizar sus actividades habituales.`
+    case 'atencion':
+      return `${header} fue atendido/a en consulta médica el día de hoy, recibiendo diagnóstico y tratamiento correspondiente.\n\nDiagnóstico: _______________\nTratamiento: _______________\n\nSe indica seguimiento según evolución clínica.`
+  }
+}
+
+const TEMPLATE_LABELS = [
+  { key: 'reposo' as const, label: 'Reposo médico' },
+  { key: 'salud' as const, label: 'Certificado de salud' },
+  { key: 'atencion' as const, label: 'Certificado de atención' },
 ]
 
 export default function NewCertificatePage() {
@@ -108,7 +113,7 @@ export default function NewCertificatePage() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-8 w-full max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/certificates" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm">← Certificados</Link>
         <span className="text-gray-300 dark:text-gray-600">/</span>
@@ -192,12 +197,12 @@ export default function NewCertificatePage() {
 
         {/* Contenido */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">Texto del certificado</h2>
             <div className="flex gap-2 flex-wrap">
-              {CONTENT_TEMPLATES.map(t => (
-                <button key={t.label} type="button"
-                  onClick={() => setContent(t.content)}
+              {TEMPLATE_LABELS.map(t => (
+                <button key={t.key} type="button"
+                  onClick={() => setContent(buildTemplateContent(t.key, selectedPatient))}
                   className="text-xs px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors">
                   {t.label}
                 </button>

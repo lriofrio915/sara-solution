@@ -15,6 +15,7 @@ interface Diagnosis {
 
 interface PrescriptionItem {
   medicine: string
+  dosis: string
   quantity: string
   indications: string
 }
@@ -67,7 +68,8 @@ interface AttentionData {
 
 interface Cie10Result {
   code: string
-  description: string
+  description?: string
+  title?: string
 }
 
 export interface PatientSummary {
@@ -78,9 +80,9 @@ export interface PatientSummary {
 }
 
 // Imported from shared lib to keep consistent with ÓRDENES section
-import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
 
-const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Facturación']
+const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Facturación']
 
 function defaultExploration(): ExplorationData {
   return {
@@ -97,6 +99,7 @@ function defaultExploration(): ExplorationData {
 function defaultExams(): Record<string, string[]> {
   const exams: Record<string, string[]> = {}
   for (const cat of EXAM_CATEGORIES) exams[cat.key] = []
+  for (const cat of IMAGING_CATEGORIES) exams[cat.key] = []
   return exams
 }
 
@@ -159,7 +162,7 @@ export default function AttentionForm({
     diagnoses: [],
     prescriptionItems: [],
     prescriptionValidUntil: '',
-    prescriptionNotes: 'Recomendaciones:\nSignos de Alarma:\nAlergias:',
+    prescriptionNotes: `Recomendaciones:\nSignos de Alarma:\nAlergias:${patientSummary?.allergies?.length ? ' ' + patientSummary.allergies.join(', ') : ''}`,
     exams: defaultExams(),
     images: [],
     examEvolutionNotes: '',
@@ -201,9 +204,11 @@ export default function AttentionForm({
     const timeout = setTimeout(async () => {
       setCie10Loading(true)
       try {
-        const res = await fetch(`/api/cie10?q=${encodeURIComponent(cie10Query)}`)
+        const res = await fetch(`/api/icd11?q=${encodeURIComponent(cie10Query)}`)
         const data = await res.json()
         setCie10Results(data.results ?? [])
+      } catch {
+        setCie10Results([])
       } finally {
         setCie10Loading(false)
       }
@@ -212,7 +217,7 @@ export default function AttentionForm({
   }, [cie10Query])
 
   function addDiagnosis(code: string, desc: string) {
-    const newDiag: Diagnosis = { cie10Code: code, cie10Desc: desc, observations: '', isNew: true, isDefinitive: false }
+    const newDiag: Diagnosis = { cie10Code: code, cie10Desc: desc, observations: '', isNew: false, isDefinitive: false }
     update('diagnoses', [...form.diagnoses, newDiag])
     setCie10Query('')
     setCie10Results([])
@@ -223,7 +228,7 @@ export default function AttentionForm({
   }
 
   function addPrescriptionItem() {
-    update('prescriptionItems', [...form.prescriptionItems, { medicine: '', quantity: '', indications: '' }])
+    update('prescriptionItems', [...form.prescriptionItems, { medicine: '', dosis: '', quantity: '', indications: '' }])
   }
 
   function removePrescriptionItem(i: number) {
@@ -704,12 +709,12 @@ export default function AttentionForm({
           {activeTab === 1 && (
             <div className="space-y-4">
               <div className="relative">
-                <label className="label text-xs">Buscar diagnóstico CIE-10</label>
+                <label className="label text-xs">Buscar diagnóstico CIE-10 / ICD-11</label>
                 <input
                   className="input text-sm"
                   value={cie10Query}
                   onChange={(e) => setCie10Query(e.target.value)}
-                  placeholder="Ej: hipertensión, J45, diabetes..."
+                  placeholder="Ej: neuralgia, diabetes tipo 2, J45, hipertensión..."
                 />
                 {cie10Loading && (
                   <div className="absolute right-3 top-8">
@@ -722,11 +727,11 @@ export default function AttentionForm({
                       <button
                         key={result.code}
                         type="button"
-                        onClick={() => addDiagnosis(result.code, result.description)}
+                        onClick={() => addDiagnosis(result.code, result.title ?? result.description ?? '')}
                         className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
                       >
                         <span className="font-mono text-primary text-xs mr-2">{result.code}</span>
-                        <span className="text-gray-700 dark:text-gray-300">{result.description}</span>
+                        <span className="text-gray-700 dark:text-gray-300">{result.title ?? result.description}</span>
                       </button>
                     ))}
                   </div>
@@ -738,11 +743,10 @@ export default function AttentionForm({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Código</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium whitespace-nowrap">Código</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Descripción</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Observaciones</th>
-                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-slate-300 font-medium">Nuevo</th>
-                        <th className="px-3 py-2 text-center text-xs text-gray-500 dark:text-slate-300 font-medium">Definitivo</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium whitespace-nowrap">Tipo</th>
                         <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
@@ -763,29 +767,19 @@ export default function AttentionForm({
                               placeholder="Observaciones..."
                             />
                           </td>
-                          <td className="px-3 py-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={d.isNew}
+                          <td className="px-3 py-2">
+                            <select
+                              value={d.isDefinitive ? 'definitivo' : 'presuntivo'}
                               onChange={(e) => {
                                 const next = [...form.diagnoses]
-                                next[i] = { ...next[i], isNew: e.target.checked }
+                                next[i] = { ...next[i], isDefinitive: e.target.value === 'definitivo' }
                                 update('diagnoses', next)
                               }}
-                              className="rounded text-primary"
-                            />
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={d.isDefinitive}
-                              onChange={(e) => {
-                                const next = [...form.diagnoses]
-                                next[i] = { ...next[i], isDefinitive: e.target.checked }
-                                update('diagnoses', next)
-                              }}
-                              className="rounded text-primary"
-                            />
+                              className="input text-xs py-1 w-28"
+                            >
+                              <option value="presuntivo">Presuntivo</option>
+                              <option value="definitivo">Definitivo</option>
+                            </select>
                           </td>
                           <td className="px-3 py-2">
                             <button type="button" onClick={() => removeDiagnosis(i)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
@@ -807,14 +801,15 @@ export default function AttentionForm({
           {activeTab === 2 && (
             <div className="space-y-4">
               {form.prescriptionItems.length > 0 && (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <table className="w-full text-sm">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
+                  <table className="w-full text-sm min-w-[600px]">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Medicamento</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Cantidad</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium">Indicaciones</th>
-                        <th className="px-3 py-2"></th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[160px]">Presentación del medicamento</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-28">Dosis</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-24">Cantidad</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[160px]">Indicación</th>
+                        <th className="px-3 py-2 w-8"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -822,38 +817,50 @@ export default function AttentionForm({
                         <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0">
                           <td className="px-3 py-2">
                             <input
-                              className="input text-sm py-1"
+                              className="input text-sm py-1 w-full"
                               value={item.medicine}
                               onChange={(e) => {
                                 const next = [...form.prescriptionItems]
                                 next[i] = { ...next[i], medicine: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="Nombre del medicamento"
+                              placeholder="Amoxicilina 500mg cápsulas"
                             />
                           </td>
                           <td className="px-3 py-2">
                             <input
-                              className="input text-sm py-1 w-24"
+                              className="input text-sm py-1 w-full"
+                              value={item.dosis}
+                              onChange={(e) => {
+                                const next = [...form.prescriptionItems]
+                                next[i] = { ...next[i], dosis: e.target.value }
+                                update('prescriptionItems', next)
+                              }}
+                              placeholder="500mg"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              className="input text-sm py-1 w-full"
                               value={item.quantity}
                               onChange={(e) => {
                                 const next = [...form.prescriptionItems]
                                 next[i] = { ...next[i], quantity: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="Cantidad"
+                              placeholder="21"
                             />
                           </td>
                           <td className="px-3 py-2">
                             <input
-                              className="input text-sm py-1"
+                              className="input text-sm py-1 w-full"
                               value={item.indications}
                               onChange={(e) => {
                                 const next = [...form.prescriptionItems]
                                 next[i] = { ...next[i], indications: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="Dosis, frecuencia..."
+                              placeholder="1 cada 8h por 7 días"
                             />
                           </td>
                           <td className="px-3 py-2">
@@ -892,7 +899,7 @@ export default function AttentionForm({
             </div>
           )}
 
-          {/* Tab 4: Exámenes */}
+          {/* Tab 4: Exámenes de laboratorio */}
           {activeTab === 3 && (
             <div className="space-y-2">
               {EXAM_CATEGORIES.map((cat) => (
@@ -923,8 +930,39 @@ export default function AttentionForm({
             </div>
           )}
 
-          {/* Tab 5: Facturación */}
+          {/* Tab 5: Imágenes */}
           {activeTab === 4 && (
+            <div className="space-y-2">
+              {IMAGING_CATEGORIES.map((cat) => (
+                <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
+                    <span>{cat.label}</span>
+                    {(form.exams[cat.key]?.length ?? 0) > 0 && (
+                      <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                        {form.exams[cat.key].length}
+                      </span>
+                    )}
+                  </summary>
+                  <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-3 gap-2 bg-white dark:bg-gray-800">
+                    {cat.exams.map((item) => (
+                      <label key={item} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.exams[cat.key]?.includes(item) ?? false}
+                          onChange={() => toggleExam(cat.key, item)}
+                          className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                      </label>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+
+          {/* Tab 6: Facturación */}
+          {activeTab === 5 && (
             <div className="space-y-4">
               {form.billing.length > 0 && (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
@@ -943,6 +981,7 @@ export default function AttentionForm({
                         <tr key={i} className="border-b border-gray-50 dark:border-gray-700 last:border-0">
                           <td className="px-3 py-2">
                             <input
+                              list={`billing-services-${i}`}
                               className="input text-sm py-1"
                               value={item.description}
                               onChange={(e) => {
@@ -952,6 +991,13 @@ export default function AttentionForm({
                               }}
                               placeholder="Servicio o producto"
                             />
+                            {doctorServices.length > 0 && (
+                              <datalist id={`billing-services-${i}`}>
+                                {doctorServices.map(svc => (
+                                  <option key={svc} value={svc} />
+                                ))}
+                              </datalist>
+                            )}
                           </td>
                           <td className="px-3 py-2">
                             <input

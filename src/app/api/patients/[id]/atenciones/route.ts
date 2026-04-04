@@ -122,6 +122,46 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       datetime,
     })
 
+    // Sync prescription: create a Prescription record if the attention has prescription items
+    if (prescriptionData?.items?.length > 0) {
+      try {
+        const rxItems = (prescriptionData.items as { medicine: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
+          name: item.medicine,
+          dose: item.dosis ?? '',
+          frequency: item.indications ?? '',
+          duration: item.quantity ?? '',
+          notes: '',
+        }))
+        const diagText = Array.isArray(diagnoses)
+          ? (diagnoses as { cie10Desc: string; cie10Code: string }[])
+              .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
+          : null
+        const lastRx = await prisma.prescription.findFirst({
+          where: { doctorId: doctor.id },
+          orderBy: { issuedAt: 'desc' },
+          select: { rxNumber: true },
+        })
+        const nextNum = String((parseInt(lastRx?.rxNumber?.replace(/\D/g, '') ?? '0') || 0) + 1).padStart(3, '0')
+        await prisma.prescription.create({
+          data: {
+            patientId: params.id,
+            doctorId: doctor.id,
+            attentionId: attention.id,
+            rxNumber: `N.${nextNum}`,
+            date: attention.datetime,
+            issuedAt: attention.datetime,
+            expiresAt: prescriptionData.validUntil ? new Date(prescriptionData.validUntil as string) : null,
+            medications: rxItems,
+            instructions: (prescriptionData.notes as string) ?? null,
+            diagnosis: diagText,
+          },
+        })
+      } catch (rxErr) {
+        console.error('Error creating prescription from attention:', rxErr)
+        // Non-blocking: don't fail the attention creation if prescription sync fails
+      }
+    }
+
     return NextResponse.json({ attention }, { status: 201 })
   } catch (err) {
     console.error('POST /api/patients/[id]/atenciones:', err)

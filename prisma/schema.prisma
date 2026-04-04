@@ -314,6 +314,7 @@ model Prescription {
   patientId     String
   doctorId      String
   appointmentId String?
+  attentionId   String?   // link to the Attention that generated this prescription
   date          DateTime  @default(now())
   medications   Json      // [{ name, dose, frequency, duration, notes }]
   instructions  String?   @db.Text  // INDICACIONES (right column)
@@ -332,6 +333,7 @@ model Prescription {
   @@index([patientId])
   @@index([doctorId])
   @@index([appointmentId])
+  @@index([attentionId])
   @@index([date])
 }
 

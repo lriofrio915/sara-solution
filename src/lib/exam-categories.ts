@@ -106,3 +106,71 @@ export const EXAM_CATEGORIES: ExamCategory[] = [
 ]
 
 export type ExamSelection = Record<string, string[]> & { otros?: string }
+
+export const IMAGING_CATEGORIES: ExamCategory[] = [
+  {
+    key: 'radiologia',
+    label: 'RADIOLOGÍA / RAYOS X',
+    exams: [
+      'Tórax AP y lateral', 'Columna cervical AP y lateral', 'Columna lumbar AP y lateral',
+      'Columna dorsal', 'Pelvis', 'Cadera', 'Rodilla AP y lateral', 'Tobillo', 'Pie',
+      'Mano / Muñeca', 'Cráneo AP y lateral', 'Abdomen simple', 'Senos paranasales',
+      'Hombro', 'Codo', 'Antebrazo', 'Fémur', 'Tibia y Peroné',
+    ],
+  },
+  {
+    key: 'ecografia',
+    label: 'ECOGRAFÍA / ULTRASONIDO',
+    exams: [
+      'Abdominal completa', 'Pélvica', 'Obstétrica', 'Renal y vías urinarias', 'Vesical',
+      'Tiroides y paratiroides', 'Partes blandas', 'Doppler venoso miembros inferiores',
+      'Doppler arterial', 'Testicular', 'Mamaria bilateral', 'Cuello', 'Inguinal',
+      'Doppler renal', 'Transvaginal',
+    ],
+  },
+  {
+    key: 'tomografia',
+    label: 'TOMOGRAFÍA COMPUTARIZADA (TAC)',
+    exams: [
+      'Cráneo simple', 'Cráneo con contraste', 'Tórax simple', 'Tórax con contraste',
+      'Abdomen y pelvis simple', 'Abdomen y pelvis con contraste', 'Columna cervical',
+      'Columna lumbar', 'Columna dorsal', 'Angio-TAC pulmonar (ATCP)', 'Senos paranasales',
+      'Macizo facial', 'Cuello', 'Pelvis',
+    ],
+  },
+  {
+    key: 'resonancia',
+    label: 'RESONANCIA MAGNÉTICA (RM)',
+    exams: [
+      'Cerebro simple', 'Cerebro con contraste', 'Columna cervical', 'Columna lumbar',
+      'Columna dorsal', 'Rodilla', 'Hombro', 'Cadera', 'Abdomen', 'Pelvis',
+      'Tobillo', 'Muñeca', 'Angio-RM cerebral', 'Articulación temporomandibular (ATM)',
+    ],
+  },
+  {
+    key: 'mamografia',
+    label: 'MAMOGRAFÍA',
+    exams: [
+      'Mamografía bilateral', 'Mamografía unilateral derecha', 'Mamografía unilateral izquierda',
+      'Ecografía mamaria bilateral', 'Ecografía mamaria unilateral',
+    ],
+  },
+  {
+    key: 'endoscopia',
+    label: 'ENDOSCOPIA / PROCEDIMIENTOS',
+    exams: [
+      'Endoscopia digestiva alta (EDA)', 'Colonoscopia', 'Rectosigmoidoscopia',
+      'Broncoscopia', 'Laparoscopia diagnóstica', 'Colposcopia',
+      'Cistoscopia', 'CPRE',
+    ],
+  },
+  {
+    key: 'otrosImagenes',
+    label: 'OTROS ESTUDIOS',
+    exams: [
+      'Densitometría ósea (DXA)', 'Gammagrafía ósea', 'Ecocardiograma 2D + Doppler',
+      'Ecocardiograma transtorácico', 'Holter 24 horas', 'Electrocardiograma (ECG)',
+      'Test de esfuerzo (ergometría)', 'Espirometría', 'Pletismografía',
+    ],
+  },
+]
