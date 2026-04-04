@@ -79,6 +79,64 @@ export async function PATCH(
       },
     })
 
+    // Sync prescription: upsert the linked Prescription record if items exist
+    if (prescriptionData?.items?.length > 0) {
+      try {
+        const rxItems = (prescriptionData.items as { medicine: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
+          name: item.medicine,
+          dose: item.dosis ?? '',
+          frequency: item.indications ?? '',
+          duration: item.quantity ?? '',
+          notes: '',
+        }))
+        const body2 = await prisma.attention.findFirst({
+          where: { id: params.aid },
+          select: { diagnoses: true, datetime: true },
+        })
+        const diagText = Array.isArray(body2?.diagnoses)
+          ? (body2.diagnoses as { cie10Desc: string; cie10Code: string }[])
+              .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
+          : null
+
+        const existingRx = await prisma.prescription.findFirst({ where: { attentionId: params.aid } })
+        if (existingRx) {
+          await prisma.prescription.update({
+            where: { id: existingRx.id },
+            data: {
+              medications: rxItems,
+              instructions: (prescriptionData.notes as string) ?? null,
+              diagnosis: diagText,
+              expiresAt: prescriptionData.validUntil ? new Date(prescriptionData.validUntil as string) : null,
+            },
+          })
+        } else {
+          const lastRx = await prisma.prescription.findFirst({
+            where: { doctorId: doctor.id },
+            orderBy: { issuedAt: 'desc' },
+            select: { rxNumber: true },
+          })
+          const nextNum = String((parseInt(lastRx?.rxNumber?.replace(/\D/g, '') ?? '0') || 0) + 1).padStart(3, '0')
+          await prisma.prescription.create({
+            data: {
+              patientId: params.id,
+              doctorId: doctor.id,
+              attentionId: params.aid,
+              rxNumber: `N.${nextNum}`,
+              date: body2?.datetime ?? new Date(),
+              issuedAt: body2?.datetime ?? new Date(),
+              expiresAt: prescriptionData.validUntil ? new Date(prescriptionData.validUntil as string) : null,
+              medications: rxItems,
+              instructions: (prescriptionData.notes as string) ?? null,
+              diagnosis: diagText,
+            },
+          })
+        }
+      } catch (rxErr) {
+        console.error('Error syncing prescription on attention update:', rxErr)
+        // Non-blocking: don't fail the attention update if prescription sync fails
+      }
+    }
+
     return NextResponse.json({ attention })
   } catch (err) {
     console.error('PATCH /api/patients/[id]/atenciones/[aid]:', err)
