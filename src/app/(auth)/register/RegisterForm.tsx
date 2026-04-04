@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PhoneInput from '@/components/PhoneInput'
-import { Gift } from 'lucide-react'
+import { CheckCircle, Gift, Mail } from 'lucide-react'
 
 interface Props {
   referralCode?: string
@@ -14,6 +14,8 @@ export default function RegisterForm({ referralCode }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
   const [honeypot, setHoneypot] = useState('')
   const [loadedAt] = useState(() => Date.now())
   const [form, setForm] = useState({
@@ -58,7 +60,10 @@ export default function RegisterForm({ referralCode }: Props) {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim() } },
+      options: {
+        data: { full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
 
     if (signUpError) {
@@ -97,8 +102,47 @@ export default function RegisterForm({ referralCode }: Props) {
       return
     }
 
-    // Full reload so the server middleware reads the Supabase session cookie
-    window.location.href = '/dashboard'
+    // Mostrar pantalla de éxito e informar sobre el correo de confirmación.
+    // Si Supabase tiene "Confirm email" activado, data.session será null y el
+    // usuario debe confirmar su correo antes de iniciar sesión.
+    // Si está desactivado, data.session existe y puede ir al dashboard.
+    setRegisteredEmail(form.email)
+    setSuccess(true)
+    setLoading(false)
+  }
+
+  if (success) {
+    return (
+      <div className="text-center py-4">
+        <div className="flex justify-center mb-5">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle size={36} className="text-green-600" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Registro exitoso!</h2>
+        <p className="text-gray-600 mb-6">
+          Tu cuenta ha sido creada. Para activarla, revisa tu correo electrónico y haz clic en el enlace de confirmación que te enviamos.
+        </p>
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3 text-left">
+          <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Mail size={18} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Correo de confirmación enviado a:</p>
+            <p className="text-sm text-blue-700 font-medium mt-0.5">{registeredEmail}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Si no lo ves en tu bandeja de entrada, revisa la carpeta de <strong>spam</strong> o correo no deseado.
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500">
+          ¿Ya confirmaste tu correo?{' '}
+          <Link href="/login" className="text-primary font-semibold hover:underline">
+            Inicia sesión
+          </Link>
+        </p>
+      </div>
+    )
   }
 
   return (
