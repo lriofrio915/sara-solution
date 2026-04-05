@@ -33,6 +33,7 @@ interface Diagnosis {
 
 interface PrescriptionItem {
   medicine: string
+  dosis: string
   quantity: string
   indications: string
 }
