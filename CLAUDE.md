@@ -38,3 +38,16 @@
 - Planes disponibles: `FREE`, `TRIAL`, `PRO_MENSUAL`, `PRO_ANUAL`, `ENTERPRISE`
 - Para activar Pro Mensual: `UPDATE "Doctor" SET plan = 'PRO_MENSUAL', "trialEndsAt" = NULL WHERE email = '...'`
 - Para activar Pro Anual: `UPDATE "Doctor" SET plan = 'PRO_ANUAL', "trialEndsAt" = NULL WHERE email = '...'`
+
+## Reglas de calidad
+
+- SIEMPRE verifica tu trabajo antes de darlo por terminado. Revisa que el código compila, que no hay errores de tipos, y que la lógica tiene sentido.
+- Antes de implementar cualquier cambio, investiga el código existente para entender cómo funciona. No asumas — lee el código primero.
+- NO implementes nada a menos que estés 100% seguro de que va a funcionar. Si tienes dudas, investiga más o pregúntame antes de proceder.
+
+## Sistema de memoria
+
+- Antes de terminar cualquier sesión de trabajo, guarda un resumen de lo que hiciste, lo que falta por hacer y cualquier decisión importante en un archivo .md dentro de la carpeta del proyecto (por ejemplo: PROGRESS.md o SESSION_NOTES.md).
+- Al iniciar una nueva sesión, busca y lee estos archivos de memoria para entender dónde te quedaste y qué sigue.
+- Organiza las notas por secciones: "Completado", "En progreso", "Pendiente" y "Decisiones tomadas".
+- Actualiza estos archivos cada vez que completes un bloque significativo de trabajo.
