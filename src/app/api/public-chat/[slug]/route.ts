@@ -9,14 +9,16 @@ import OpenAI from 'openai'
 
 export const dynamic = 'force-dynamic'
 
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    'HTTP-Referer': 'https://consultorio.site',
-    'X-Title': 'Sara Medical Doctor Chat',
-  },
-})
+function getOpenAI() {
+  return new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY,
+    defaultHeaders: {
+      'HTTP-Referer': 'https://consultorio.site',
+      'X-Title': 'Sara Medical Doctor Chat',
+    },
+  })
+}
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -131,7 +133,7 @@ REGLAS CRÍTICAS:
 
     const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model,
       max_tokens: 400,
       messages: [

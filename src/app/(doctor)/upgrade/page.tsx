@@ -150,7 +150,7 @@ export default async function UpgradePage() {
         {[
           { q: '¿Qué pasa con mis datos si no me suscribo?', a: 'Tus datos están guardados de forma segura. Si te suscribes después, recuperas acceso inmediato a toda tu información.' },
           { q: '¿Puedo cancelar en cualquier momento?', a: 'Sí. Para el plan mensual, cancelas desde Hotmart y no se te cobra el siguiente mes. Para el plan anual, el acceso continúa hasta que termine el período pagado.' },
-          { q: '¿Cómo activo mi plan después de pagar?', a: 'Escríbenos por WhatsApp o email con tu comprobante de pago y activamos tu cuenta Pro en menos de 24 horas.' },
+          { q: '¿Cómo activo mi plan después de pagar?', a: 'Tu cuenta se activa automáticamente al completar el pago en Hotmart. En menos de 1 minuto tendrás acceso Pro completo.' },
         ].map((item, i) => (
           <div key={i}>
             <p className="font-semibold text-sm text-gray-800 dark:text-white">{item.q}</p>

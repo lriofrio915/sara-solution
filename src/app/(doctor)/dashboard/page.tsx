@@ -280,6 +280,99 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* ── Agenda del día (primera sección — acción principal del médico) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          {/* Agenda del día */}
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-gray-900 dark:text-white">
+                Agenda de hoy
+                <span className="ml-2 text-sm font-normal text-gray-400">({todayAppointments.length} citas)</span>
+              </h2>
+              <Link href="/appointments" className="text-xs text-primary font-semibold hover:underline">
+                Ver todas →
+              </Link>
+            </div>
+
+            {todayAppointments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
+                <CalendarDays size={32} className="text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-500 dark:text-slate-400">No hay citas programadas hoy</p>
+                <Link href="/appointments/new"
+                  className="mt-3 text-primary text-sm font-semibold hover:underline">
+                  Agendar una cita →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {todayAppointments.map((apt) => (
+                  <div key={apt.id}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
+                    <div className="text-center w-14 flex-shrink-0">
+                      <p className="font-bold text-primary text-sm">{formatTime(apt.date)}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                        {apt.patient.name}
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        {APT_TYPE_LABELS[apt.type] ?? apt.type}
+                        {apt.reason ? ` · ${apt.reason}` : ''}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold flex-shrink-0 ${
+                      apt.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      apt.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300' :
+                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {apt.status === 'CONFIRMED' ? 'Confirmada' :
+                       apt.status === 'COMPLETED' ? 'Completada' : 'Programada'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Panel de actividad del mes */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+            <h2 className="font-bold text-gray-900 dark:text-white mb-4">Actividad del mes</h2>
+
+            {/* Document stats */}
+            <div className="space-y-3 mb-5">
+              {[
+                { icon: Pill, label: 'Recetas emitidas', value: prescriptionsThisMonth, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', href: '/prescriptions' },
+                { icon: FlaskConical, label: 'Órdenes de examen', value: examOrdersThisMonth, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20', href: '/exam-orders' },
+                { icon: FileText, label: 'Certificados', value: certificatesThisMonth, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', href: '/certificates' },
+              ].map(item => (
+                <Link key={item.label} href={item.href}
+                  className={`flex items-center gap-3 p-3 rounded-xl ${item.bg} hover:opacity-80 transition-opacity`}>
+                  <item.icon size={18} className={item.color} />
+                  <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
+                  <span className={`text-xl font-bold ${item.color}`}>{item.value}</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Rate summary */}
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2">
+              <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Indicadores del mes</p>
+              {[
+                { label: 'Completadas', value: `${completionRate}%`, icon: CheckCircle2, color: 'text-green-500' },
+                { label: 'Canceladas', value: `${cancellationRate}%`, icon: XCircle, color: 'text-red-400' },
+                { label: 'No asistió', value: `${noShowRate}%`, icon: AlertCircle, color: 'text-yellow-500' },
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <item.icon size={14} className={item.color} />
+                  <span className="text-xs text-gray-600 dark:text-slate-300 flex-1">{item.label}</span>
+                  <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* ── KPI Cards ─────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
 
@@ -390,100 +483,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Second row ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-          {/* Agenda del día */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-gray-900 dark:text-white">
-                Agenda de hoy
-                <span className="ml-2 text-sm font-normal text-gray-400">({todayAppointments.length} citas)</span>
-              </h2>
-              <Link href="/appointments" className="text-xs text-primary font-semibold hover:underline">
-                Ver todas →
-              </Link>
-            </div>
-
-            {todayAppointments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-                <CalendarDays size={32} className="text-gray-300 dark:text-gray-600 mb-2" />
-                <p className="text-sm text-gray-500 dark:text-slate-400">No hay citas programadas hoy</p>
-                <Link href="/appointments/new"
-                  className="mt-3 text-primary text-sm font-semibold hover:underline">
-                  Agendar una cita →
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {todayAppointments.map((apt) => (
-                  <div key={apt.id}
-                    className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
-                    <div className="text-center w-14 flex-shrink-0">
-                      <p className="font-bold text-primary text-sm">{formatTime(apt.date)}</p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                        {apt.patient.name}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        {APT_TYPE_LABELS[apt.type] ?? apt.type}
-                        {apt.reason ? ` · ${apt.reason}` : ''}
-                      </p>
-                    </div>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold flex-shrink-0 ${
-                      apt.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                      apt.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300' :
-                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    }`}>
-                      {apt.status === 'CONFIRMED' ? 'Confirmada' :
-                       apt.status === 'COMPLETED' ? 'Completada' : 'Programada'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Panel de actividad */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
-            <h2 className="font-bold text-gray-900 dark:text-white mb-4">Actividad del mes</h2>
-
-            {/* Document stats */}
-            <div className="space-y-3 mb-5">
-              {[
-                { icon: Pill, label: 'Recetas emitidas', value: prescriptionsThisMonth, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', href: '/prescriptions' },
-                { icon: FlaskConical, label: 'Órdenes de examen', value: examOrdersThisMonth, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20', href: '/exam-orders' },
-                { icon: FileText, label: 'Certificados', value: certificatesThisMonth, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20', href: '/certificates' },
-              ].map(item => (
-                <Link key={item.label} href={item.href}
-                  className={`flex items-center gap-3 p-3 rounded-xl ${item.bg} hover:opacity-80 transition-opacity`}>
-                  <item.icon size={18} className={item.color} />
-                  <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
-                  <span className={`text-xl font-bold ${item.color}`}>{item.value}</span>
-                </Link>
-              ))}
-            </div>
-
-            {/* Rate summary */}
-            <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Indicadores del mes</p>
-              {[
-                { label: 'Completadas', value: `${completionRate}%`, icon: CheckCircle2, color: 'text-green-500' },
-                { label: 'Canceladas', value: `${cancellationRate}%`, icon: XCircle, color: 'text-red-400' },
-                { label: 'No asistió', value: `${noShowRate}%`, icon: AlertCircle, color: 'text-yellow-500' },
-              ].map(item => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <item.icon size={14} className={item.color} />
-                  <span className="text-xs text-gray-600 dark:text-slate-300 flex-1">{item.label}</span>
-                  <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Third row ─────────────────────────────────────────────────────── */}
+        {/* ── Analytics row ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* Estado de citas (donut) */}

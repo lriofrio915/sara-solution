@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // Helpers de publicación (duplicados aquí para mantener el cron independiente)
 
 async function publishInstagram(token: string, userId: string, content: string, imageUrl?: string | null): Promise<string> {
