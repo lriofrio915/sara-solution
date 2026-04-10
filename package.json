@@ -11,12 +11,17 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:security": "vitest run test/security/",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.3.2",
+    "@sentry/nextjs": "^10.48.0",
     "@signpdf/placeholder-plain": "^3.3.0",
     "@signpdf/signer-p12": "^3.3.0",
     "@signpdf/signpdf": "^3.3.0",
@@ -26,6 +31,7 @@
     "autoprefixer": "^10.4.27",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "isomorphic-dompurify": "^3.8.0",
     "lucide-react": "^0.469.0",
     "mammoth": "^1.11.0",
     "next": "14.2.35",
@@ -49,11 +55,13 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^8",
     "eslint-config-next": "^14.2.29",
     "postcss": "^8",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.4"
   }
 }
