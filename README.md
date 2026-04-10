@@ -2,7 +2,7 @@
 
 **MedSara** es un SaaS médico multi-tenant construido para la Dra. Stéfanny Medrano, especialista en Medicina Interna. Combina gestión clínica moderna con Sara, una asistente médica IA disponible 24/7.
 
-> **Dominio**: [doctoramedranointernista.com](https://doctoramedranointernista.com)
+> **Dominio**: [consultorio.site](https://consultorio.site)
 
 ---
 
