@@ -2,21 +2,34 @@
 
 ## REGLAS CRÍTICAS — NUNCA IGNORAR
 
-### Comandos PROHIBIDOS (requieren confirmación explícita del usuario)
-- `prisma db push --force-reset` — BORRA TODOS LOS DATOS. NUNCA ejecutar sin confirmación explícita.
+### 🚨 INCIDENTE 2026-04-11: pérdida total de datos
+`prisma db push --force-reset` fue ejecutado en producción durante una sesión de desarrollo.
+Resultado: TODOS los registros Doctor, Patient, MedicalRecord, Prescription, etc. fueron borrados permanentemente.
+Esta fue una pérdida catastrófica e irrecuperable de datos de médicos reales.
+
+### Comandos ABSOLUTAMENTE PROHIBIDOS — nunca ejecutar, ni con confirmación
+- `prisma db push --force-reset` — DESTRUYE TODOS LOS DATOS. BLOQUEADO por `scripts/prisma-safe.sh`.
 - `prisma migrate reset` — igual de destructivo.
-- `DROP TABLE`, `TRUNCATE`, `DELETE FROM` sin WHERE — destructivo.
-- `rm -rf` en directorios de datos o `.env`.
-- `git push --force` en main.
+- `DROP SCHEMA public CASCADE` — equivalente a force-reset.
+- `TRUNCATE "Doctor" CASCADE` o cualquier TRUNCATE en producción.
+- `DELETE FROM "Doctor"`, `DELETE FROM "Patient"` sin WHERE muy específico.
 
-### Cambios de schema Prisma
-- Usar siempre `npx prisma db push` (sin `--force-reset`) para agregar campos/modelos nuevos.
-- Si hay conflicto de schema, reportar al usuario y esperar instrucción — NUNCA usar `--force-reset` por cuenta propia.
-- Antes de cualquier cambio de schema destructivo (eliminar campo/tabla), hacer backup primero.
+### Comandos que REQUIEREN backup previo explícito
+- Cualquier `ALTER TABLE ... DROP COLUMN`
+- `DROP TABLE`
+- `DELETE FROM` con WHERE amplio
 
-### Base de datos
-- Antes de cualquier operación que pueda borrar datos, ejecutar primero un backup con pg_dump.
-- El script de backup está en: `/var/www/sara-solution/scripts/backup-db.sh`
+### Cambios de schema Prisma — proceso obligatorio
+1. NUNCA usar `db push` en producción directamente. Usar `npm run db:deploy` (migrate deploy).
+2. Para agregar una columna nueva: `npm run db:migrate` (crea migración en `/prisma/migrations/`).
+3. Si `prisma db push` dice "already in sync" pero el campo no existe: el problema es la migración, NO ejecutar force-reset. Investigar primero.
+4. En caso de conflicto irresoluble: reportar al usuario, crear un backup manual, y ESPERAR instrucción.
+
+### Base de datos — backup obligatorio antes de cualquier cambio de schema
+- Backup automático: GitHub Actions corre cada día a las 2am UTC → descargar desde Actions → Artifacts
+- Backup manual: `npm run db:backup`
+- Restaurar: `npm run db:restore <archivo.sql.gz>`
+- Script: `scripts/backup-db.sh` y `scripts/restore-backup.sh`
 
 ## Stack técnico
 - Next.js 14 App Router, TypeScript, Tailwind CSS
