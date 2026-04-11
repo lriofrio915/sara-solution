@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Plug, Loader2, CheckCircle2, XCircle, RefreshCw, Trash2, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Plug, Loader2, CheckCircle2, XCircle, RefreshCw, Trash2, AlertCircle, MessageSquare } from 'lucide-react'
 
 type Status = {
   evolutionInstance: string | null
@@ -188,6 +189,14 @@ export default function IntegracionesPage() {
                   Puedes personalizar su comportamiento desde <strong>Mi Perfil → Instrucciones para Sara</strong>.
                 </p>
               </div>
+
+              <Link
+                href="/integraciones/conversaciones"
+                className="flex items-center gap-2 text-sm text-primary font-semibold hover:opacity-80 transition-opacity"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Ver conversaciones de pacientes →
+              </Link>
 
               <button
                 onClick={handleDisconnect}

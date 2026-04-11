@@ -242,7 +242,7 @@ export async function POST(req: Request) {
     }
 
     // ── Load or create conversation ──────────────────────────────────────────
-    // Key: doctorId + title pattern so each doctor-patient pair is separate
+    // Key: doctorId + title so each doctor-patient pair is independent
     const convTitle = `wa_${cleanPhone}`
 
     let conv = await prisma.saraConversation.findFirst({
@@ -254,13 +254,58 @@ export async function POST(req: Request) {
       ? `"${pushName}" (WhatsApp +${cleanPhone})`
       : `WhatsApp +${cleanPhone}`
 
+    // ── Keyword: patient requests human ─────────────────────────────────────
+    const HUMAN_KEYWORDS = /\b(humano|persona|doctor|médico|medico|agente humano|hablar con alguien)\b/i
+    if (HUMAN_KEYWORDS.test(messageText) && conv && !conv.humanMode) {
+      await prisma.saraConversation.update({
+        where: { id: conv.id },
+        data: {
+          humanMode: true,
+          messages: [
+            ...(conv.messages as unknown as SaraMessage[]).slice(-MAX_HISTORY),
+            { role: 'user', content: messageText },
+            { role: 'assistant', content: '[Modo humano activado]' },
+          ] as unknown as never,
+        },
+      })
+      const handoffMsg = `Entendido. 🙏 He notificado al *${doctor.name}* o su equipo para que te atiendan personalmente. Por favor espera unos momentos.`
+      if (doctor.whatsapp) {
+        sendWA(
+          doctor.whatsapp.replace(/\D/g, ''),
+          `⚠️ *Paciente solicita atención humana*\nPaciente: +${cleanPhone}${pushName ? ` (${pushName})` : ''}\nMensaje: "${messageText}"\n\nResponde directamente a +${cleanPhone} en WhatsApp.`,
+          instanceName,
+        ).catch(() => {/* non-critical */})
+      }
+      await sendWA(remoteJid, handoffMsg, instanceName)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Human mode active — store message, notify doctor, don't call Sara ───
+    if (conv?.humanMode) {
+      const history = (conv.messages as unknown as SaraMessage[]).slice(-MAX_HISTORY)
+      history.push({ role: 'user', content: messageText })
+      await prisma.saraConversation.update({
+        where: { id: conv.id },
+        data: { messages: history as unknown as never },
+      })
+      // Notify doctor again (non-fatal)
+      if (doctor.whatsapp) {
+        sendWA(
+          doctor.whatsapp.replace(/\D/g, ''),
+          `📩 *Nuevo mensaje de +${cleanPhone}${pushName ? ` (${pushName})` : ''}*\n"${messageText}"`,
+          instanceName,
+        ).catch(() => {/* non-critical */})
+      }
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Normal Sara flow ─────────────────────────────────────────────────────
     let history: SaraMessage[]
 
     if (conv) {
       history = (conv.messages as unknown as SaraMessage[]).slice(-MAX_HISTORY)
       history.push({ role: 'user', content: messageText })
     } else {
-      // First message — greet + respond
       history = [
         {
           role: 'user',

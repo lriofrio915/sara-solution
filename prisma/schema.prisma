@@ -432,6 +432,7 @@ model SaraConversation {
   messages  Json
   context   String?
   title     String?
+  humanMode Boolean  @default(false)  // true = Sara paused, doctor handles manually
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
