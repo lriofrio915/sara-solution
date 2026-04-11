@@ -1,0 +1,52 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    # Every day at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: pg_dump → artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y postgresql-client
+
+      - name: Run pg_dump
+        env:
+          DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
+        run: |
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          FILENAME="sara_backup_${TIMESTAMP}.sql.gz"
+          echo "BACKUP_FILE=$FILENAME" >> $GITHUB_ENV
+
+          # Strip pgbouncer params — pg_dump needs a direct connection
+          CLEAN_URL=$(echo "$DATABASE_DIRECT_URL" | sed 's/\?.*$//')
+
+          pg_dump "$CLEAN_URL" \
+            --no-owner \
+            --no-privileges \
+            --format=plain \
+            | gzip > "$FILENAME"
+
+          SIZE=$(du -sh "$FILENAME" | cut -f1)
+          echo "✅ Backup completed: $FILENAME ($SIZE)"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_number }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ BACKUP FAILED on $(date)" >&2
+          exit 1
