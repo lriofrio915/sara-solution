@@ -7,14 +7,8 @@ Sentry.init({
   // Captura el 10% de las transacciones de rendimiento
   tracesSampleRate: 0.1,
 
-  // Captura replays solo cuando hay un error
-  replaysOnErrorSampleRate: 1.0,
+  // Session Replay deshabilitado — withSentryConfig ya inyecta su propia
+  // instancia de Replay en el bundle; tener dos causa un crash de JS.
+  replaysOnErrorSampleRate: 0,
   replaysSessionSampleRate: 0,
-
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,    // oculta texto (datos médicos)
-      blockAllMedia: true,  // bloquea imágenes
-    }),
-  ],
 })
