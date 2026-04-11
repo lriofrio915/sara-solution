@@ -48,16 +48,34 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         instanceName,
         qrcode: true,
+        // 'integration' is optional in newer Evolution API versions
         integration: 'WHATSAPP-BAILEYS',
       }),
     })
 
     if (!createRes.ok) {
       const errorText = await createRes.text()
-      console.error('Evolution create error:', errorText)
-      // Instance may already exist — treat as OK and proceed
-      if (!errorText.includes('already') && createRes.status !== 409) {
-        return NextResponse.json({ error: 'No se pudo crear la instancia en Evolution API' }, { status: 502 })
+      console.error('Evolution create error:', createRes.status, errorText)
+
+      // Instance already exists — treat as OK and continue
+      const alreadyExists = createRes.status === 409
+        || errorText.toLowerCase().includes('already')
+        || errorText.toLowerCase().includes('existe')
+      if (!alreadyExists) {
+        // Parse and surface the actual Evolution API error
+        let detail = errorText
+        try {
+          const parsed = JSON.parse(errorText)
+          detail = parsed.message ?? parsed.error ?? parsed.response?.message ?? errorText
+        } catch { /* keep raw text */ }
+        const hint = createRes.status === 401
+          ? 'Verifica que EVOLUTION_API_KEY sea correcta.'
+          : createRes.status === 404
+            ? 'Verifica que EVOLUTION_API_URL sea la URL correcta de tu servidor Evolution.'
+            : ''
+        return NextResponse.json({
+          error: `Error ${createRes.status} en Evolution API: ${detail}${hint ? ` — ${hint}` : ''}`,
+        }, { status: 502 })
       }
     }
 

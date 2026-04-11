@@ -1,4 +1,11 @@
-import { NextResponse } from 'next/server'
+/**
+ * GET /api/cron/publish-scheduled
+ * Publishes all SocialPosts with status=SCHEDULED and scheduledAt <= now.
+ * Configured to run every 15 minutes via Vercel Cron.
+ *
+ * Requires header: x-cron-secret: $CRON_SECRET
+ */
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -74,15 +81,10 @@ async function publishLinkedIn(token: string, userId: string, content: string): 
 }
 
 // ─── GET /api/cron/publish-scheduled ──────────────────────────────────────
-// Llamar cada 5-15 min desde Vercel Cron / servidor externo
-// Header requerido: Authorization: Bearer <CRON_SECRET>
-export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization') ?? ''
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
+export async function GET(req: NextRequest) {
+  const secret = req.headers.get('x-cron-secret')
+  if (secret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
   const now = new Date()

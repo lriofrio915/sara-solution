@@ -62,6 +62,7 @@ export default function LinkedInTrendingPage() {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null)
 
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isAssistant, setIsAssistant] = useState(false)
   const [strategy, setStrategy] = useState<'B2B' | 'B2C'>('B2C')
 
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
@@ -77,6 +78,7 @@ export default function LinkedInTrendingPage() {
           setIsAdmin(true)
           setStrategy('B2B')
         }
+        if (d?.isAssistant) setIsAssistant(true)
       })
       .catch(() => {})
       .finally(() => setSpecialtyLoading(false))
@@ -91,6 +93,7 @@ export default function LinkedInTrendingPage() {
       const d = res.ok ? await res.json() : null
       if (d?.topics?.length) setSpecialtyTopics(d.topics)
       if (d?.isAdmin) { setIsAdmin(true); setStrategy('B2B') }
+      if (d?.isAssistant) setIsAssistant(true)
     } catch { /* ignore */ } finally {
       setRefreshingSpecialty(false)
       setSpecialtyLoading(false)
@@ -188,6 +191,24 @@ export default function LinkedInTrendingPage() {
         </div>
       </div>
 
+      {/* Banner de asistente */}
+      {isAssistant && (
+        <div className="rounded-2xl border border-sky-200 dark:border-sky-700/50 bg-sky-50 dark:bg-sky-900/20 p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-800 flex items-center justify-center flex-shrink-0 text-base">🗂️</div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-sky-800 dark:text-sky-300 mb-1">Flujo rápido para la asistente</p>
+              <ol className="text-xs text-sky-700 dark:text-sky-400 space-y-1 list-none">
+                <li className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-sky-200 dark:bg-sky-800 text-sky-700 dark:text-sky-300 flex items-center justify-center text-[9px] font-bold flex-shrink-0">1</span>Elige un tema de las sugerencias o escribe uno</li>
+                <li className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-sky-200 dark:bg-sky-800 text-sky-700 dark:text-sky-300 flex items-center justify-center text-[9px] font-bold flex-shrink-0">2</span>Haz clic en <strong>Generar contenido</strong> y espera el resultado</li>
+                <li className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-sky-200 dark:bg-sky-800 text-sky-700 dark:text-sky-300 flex items-center justify-center text-[9px] font-bold flex-shrink-0">3</span>Revisa el texto y usa <strong>Publicar ahora</strong> o <strong>Programar</strong></li>
+                <li className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full bg-sky-200 dark:bg-sky-800 text-sky-700 dark:text-sky-300 flex items-center justify-center text-[9px] font-bold flex-shrink-0">4</span>Copia los hashtags y adjunta la imagen generada</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* ── Formulario ─────────────────────────────────────────── */}
@@ -238,6 +259,7 @@ export default function LinkedInTrendingPage() {
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Sugerencias para tu especialidad</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 font-semibold">✨ IA</span>
                   <button type="button" onClick={handleRefreshSpecialty} disabled={refreshingSpecialty || specialtyLoading}
                     title="Nuevas sugerencias"
                     className="p-0.5 rounded text-gray-400 hover:text-[#0A66C2] disabled:opacity-40 transition-colors">

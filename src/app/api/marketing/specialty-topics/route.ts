@@ -114,7 +114,7 @@ Responde ÚNICAMENTE con un JSON array de 8 strings, sin explicaciones. Ejemplo:
       const raw = completion.choices[0]?.message?.content?.trim() ?? '[]'
       const match = raw.match(/\[[\s\S]*\]/)
       const topics: string[] = match ? JSON.parse(match[0]) : []
-      return NextResponse.json({ topics, specialty: 'Sara Medical', isAdmin: true })
+      return NextResponse.json({ topics, specialty: 'Sara Medical', isAdmin: true, isAssistant: doctorRef.role === 'ASSISTANT' })
     }
 
     // ── Modo normal: sugerencias por especialidad médica ───────────────────────
@@ -155,7 +155,7 @@ Responde ÚNICAMENTE con un JSON array de 8 strings, sin explicaciones. Ejemplo 
     const match = raw.match(/\[[\s\S]*\]/)
     const topics: string[] = match ? JSON.parse(match[0]) : []
 
-    return NextResponse.json({ topics, specialty })
+    return NextResponse.json({ topics, specialty, isAssistant: doctorRef.role === 'ASSISTANT' })
   } catch (err) {
     console.error('GET /api/marketing/specialty-topics:', err)
     return NextResponse.json({ error: 'Error al generar sugerencias' }, { status: 500 })

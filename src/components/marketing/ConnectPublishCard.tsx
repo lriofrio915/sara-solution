@@ -56,6 +56,7 @@ const PLATFORM_CONFIG = {
 export default function ConnectPublishCard({ platform, postId, onPublished }: Props) {
   const cfg = PLATFORM_CONFIG[platform]
   const [connected, setConnected] = useState<boolean | null>(null)
+  const [expiresAt, setExpiresAt] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,9 +64,20 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
   useEffect(() => {
     fetch('/api/marketing/accounts')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.accounts) setConnected(!!d.accounts[platform]?.connected) })
+      .then(d => {
+        if (d?.accounts) {
+          setConnected(!!d.accounts[platform]?.connected)
+          setExpiresAt(d.accounts[platform]?.expiresAt ?? null)
+        }
+      })
       .catch(() => setConnected(false))
   }, [platform])
+
+  const tokenDaysLeft = expiresAt
+    ? Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
+  const tokenExpired = tokenDaysLeft !== null && tokenDaysLeft <= 0
+  const tokenExpiringSoon = tokenDaysLeft !== null && tokenDaysLeft > 0 && tokenDaysLeft <= 7
 
   async function handlePublish() {
     if (!postId) return
@@ -97,10 +109,13 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
           <p className="text-sm font-semibold text-gray-900 dark:text-white">Publicación automática</p>
           {connected === null ? (
             <p className="text-xs text-gray-400">Verificando conexión...</p>
-          ) : connected ? (
+          ) : connected && !tokenExpired ? (
             <p className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
               Cuenta conectada
+              {tokenExpiringSoon && tokenDaysLeft !== null && (
+                <span className="ml-1 text-amber-600 dark:text-amber-400">· vence en {tokenDaysLeft}d</span>
+              )}
             </p>
           ) : (
             <p className="text-xs text-gray-500 dark:text-slate-400">{cfg.description}</p>
@@ -112,20 +127,20 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
           <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin flex-shrink-0" />
         )}
 
-        {connected === false && (
+        {(connected === false || tokenExpired) && (
           <a href={cfg.oauthPath}
             className={`text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-all flex-shrink-0 ${cfg.connectBtnClass}`}>
-            Conectar
+            {tokenExpired ? 'Reconectar' : 'Conectar'}
           </a>
         )}
 
-        {connected === true && !postId && (
+        {connected === true && !tokenExpired && !postId && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium flex-shrink-0">
             Conectado
           </span>
         )}
 
-        {connected === true && postId && !published && (
+        {connected === true && !tokenExpired && postId && !published && (
           <button onClick={handlePublish} disabled={publishing}
             className={`text-xs px-3 py-1.5 rounded-lg text-white font-semibold disabled:opacity-60 transition-all flex-shrink-0 flex items-center gap-1.5 ${cfg.publishBtnClass}`}>
             {publishing ? (
@@ -145,6 +160,13 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
           </span>
         )}
       </div>
+
+      {tokenExpired && connected && (
+        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Tu cuenta de {cfg.label} necesita reconectarse para seguir publicando.
+        </p>
+      )}
 
       {error && (
         <p className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-1.5">{error}</p>

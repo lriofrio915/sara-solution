@@ -24,6 +24,8 @@ const STATUS_OPTIONS = [
   { value: 'DRAFT', label: 'Borrador' },
   { value: 'APPROVED', label: 'Aprobados' },
   { value: 'PUBLISHED', label: 'Publicados' },
+  { value: 'SCHEDULED', label: 'Programados' },
+  { value: 'FAILED', label: 'Fallidos' },
 ]
 
 const TYPE_OPTIONS = [
@@ -61,6 +63,7 @@ const STATUS_COLORS: Record<string, string> = {
   PUBLISHED: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
   SCHEDULED: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
   REJECTED: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+  FAILED: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -69,6 +72,7 @@ const STATUS_LABELS: Record<string, string> = {
   PUBLISHED: 'Publicado',
   SCHEDULED: 'Programado',
   REJECTED: 'Rechazado',
+  FAILED: '❌ Falló',
 }
 
 export default function LibraryPage() {
@@ -400,7 +404,11 @@ export default function LibraryPage() {
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-400">
                     {post.targetPlatform} · {post.contentType} ·{' '}
-                    {new Date(post.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {post.status === 'PUBLISHED' && post.publishedAt
+                      ? <>Publicado el {new Date(post.publishedAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</>
+                      : post.status === 'SCHEDULED' && post.scheduledAt
+                        ? <>Programado para {new Date(post.scheduledAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</>
+                        : new Date(post.createdAt).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
                     {post.aiGenerated && ' · ✨ IA'}
                   </p>
                 </div>

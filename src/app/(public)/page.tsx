@@ -287,7 +287,7 @@ const features = [
   {
     icon: '💼',
     title: 'LinkedIn médico inteligente',
-    desc: 'Posts basados en tendencias reales de salud y medicina. Sara posiciona al médico como referente de su especialidad en LinkedIn para atraer pacientes y networking profesional.',
+    desc: 'Posts con IA basados en tu especialidad médica. Sara genera contenido optimizado para LinkedIn que te posiciona como referente y atrae pacientes y colegas a tu red.',
     color: 'bg-sky-50 text-sky-700',
   },
   {
@@ -450,12 +450,12 @@ function MarketingSuite() {
           {/* Pilar 3: LinkedIn */}
           <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-50 p-7 hover:-translate-y-1 transition-transform duration-200">
             <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl mb-5">💼</div>
-            <h3 className="font-bold text-gray-900 text-lg mb-3">LinkedIn con tendencias reales</h3>
+            <h3 className="font-bold text-gray-900 text-lg mb-3">LinkedIn con contenido de especialidad</h3>
             <p className="text-gray-500 text-sm leading-relaxed mb-4">
-              Sara monitorea las tendencias médicas y de salud digital en tiempo real. Genera posts de LinkedIn basados en esas noticias para posicionarte como referente en tu especialidad y aumentar tu red de pacientes y referidos.
+              Sara genera posts de LinkedIn basados en temas relevantes de tu especialidad, seleccionados por IA a partir de noticias y contexto médico actual. Conviértete en referente de salud digital y amplía tu red de pacientes y referidos.
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {['Tendencias médicas', 'Posicionamiento', 'Networking', 'Referidos'].map(f => (
+              {['Temas de especialidad', 'Posicionamiento', 'Networking', 'Referidos'].map(f => (
                 <span key={f} className="text-xs bg-white border border-blue-200 text-blue-700 px-2.5 py-1 rounded-full font-medium">{f}</span>
               ))}
             </div>
