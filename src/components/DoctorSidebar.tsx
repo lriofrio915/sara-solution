@@ -8,7 +8,7 @@ import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
   User, Bell, BookOpen, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
-  ChevronsUpDown,
+  ChevronsUpDown, Plug,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -57,10 +57,11 @@ const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
 const assistantTabItems = [receptionItem, ...clinicalItems.slice(0, 4)]
 
 const gearItems = [
-  { href: '/profile',   icon: User,       label: 'Mi Perfil' },
-  { href: '/team',      icon: UsersRound, label: 'Equipo' },
-  { href: '/referidos', icon: Gift,       label: 'Referidos' },
-  { href: '/knowledge', icon: BookOpen,   label: 'Base de Conocimiento' },
+  { href: '/profile',       icon: User,       label: 'Mi Perfil' },
+  { href: '/team',          icon: UsersRound, label: 'Equipo' },
+  { href: '/referidos',     icon: Gift,       label: 'Referidos' },
+  { href: '/knowledge',     icon: BookOpen,   label: 'Base de Conocimiento' },
+  { href: '/integraciones', icon: Plug,       label: 'Integraciones' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────
