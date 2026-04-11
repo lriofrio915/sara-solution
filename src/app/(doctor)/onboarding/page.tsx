@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import SaraLogo from '@/components/SaraLogo'
 import PhoneInput from '@/components/PhoneInput'
+import { createClient } from '@/lib/supabase/client'
 
 type Step = 1 | 2 | 3
 
@@ -29,6 +30,10 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   const [doctorName, setDoctorName] = useState('')
   const [slug, setSlug] = useState('')
+  const [doctorId, setDoctorId] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState<FormData>({
     bio: '',
@@ -46,6 +51,8 @@ export default function OnboardingPage() {
       .then((data) => {
         setDoctorName(data.name ?? '')
         setSlug(data.slug ?? '')
+        setDoctorId(data.id ?? '')
+        setAvatarUrl(data.avatarUrl ?? null)
         setForm({
           bio: data.bio ?? '',
           whatsapp: data.whatsapp ?? '',
@@ -61,6 +68,38 @@ export default function OnboardingPage() {
       })
       .catch(() => {})
   }, [router])
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !doctorId) return
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen no puede superar 5MB')
+      return
+    }
+    setAvatarUploading(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()
+      const path = `${doctorId}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = `${data.publicUrl}?t=${Date.now()}`
+      setAvatarUrl(url)
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: url }),
+      })
+    } catch {
+      setError('Error subiendo la foto. Inténtalo de nuevo.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -171,6 +210,40 @@ export default function OnboardingPage() {
             )}
 
             <div className="space-y-5">
+              {/* Avatar upload */}
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="relative group w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-gray-300 hover:border-primary transition-colors focus:outline-none"
+                >
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-50 flex items-center justify-center text-3xl">
+                      👤
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-semibold">
+                      {avatarUploading ? '...' : 'Cambiar'}
+                    </span>
+                  </div>
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <p className="text-gray-400 text-xs text-center">
+                  Foto de perfil (opcional) · Máx 5MB
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Bio profesional <span className="text-red-500">*</span>

@@ -519,9 +519,15 @@ export default async function DoctorPublicPage({ params }: Props) {
                 <div className="flex-1 p-6 md:p-10 flex flex-col justify-center">
                   <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-2">Atención personalizada</p>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">¿Listo para cuidar tu salud?</h2>
-                  <p className="text-white/70 text-sm mb-6 max-w-md leading-relaxed">
+                  <p className="text-white/70 text-sm mb-4 max-w-md leading-relaxed">
                     Deja tus datos y {firstName} o su equipo se pondrán en contacto contigo a la brevedad para coordinar tu cita.
                   </p>
+                  <Link
+                    href={`/${params.slug}/reservar`}
+                    className="inline-flex items-center justify-center gap-2 w-full bg-white text-primary font-bold py-3.5 rounded-2xl hover:bg-blue-50 transition-colors shadow-lg mb-4 text-sm"
+                  >
+                    📅 Reservar cita en línea →
+                  </Link>
                   <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 md:p-6 shadow-lg">
                     <DoctorContactForm slug={params.slug} doctorName={displayName} />
                   </div>
