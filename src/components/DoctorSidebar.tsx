@@ -439,7 +439,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       {/* ── MOBILE TOP BAR ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between px-4 shadow-sm">
         <button onClick={() => setOpen(true)} aria-label="Abrir menú"
-          className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors touch-manipulation">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
@@ -464,7 +464,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       )}
 
       {/* ── MOBILE DRAWER ── */}
-      <div className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-gray-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+      <div className={`md:hidden fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-gray-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
         open ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">

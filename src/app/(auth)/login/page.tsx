@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useTransition } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useFormState } from 'react-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { loginAction } from './actions'
@@ -33,6 +33,15 @@ export default function LoginPage() {
   const [isPending, startTransition] = useTransition()
   const [info, setInfo]               = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
+
+  // Redirect after successful login — cookies are already in the response
+  // by the time this effect runs, so the middleware will find the session.
+  useEffect(() => {
+    if (state.success && state.redirectTo) {
+      router.push(state.redirectTo)
+    }
+  }, [state.success, state.redirectTo, router])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

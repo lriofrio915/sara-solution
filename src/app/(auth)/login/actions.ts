@@ -2,10 +2,11 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 
 export type LoginState = {
   error?: string
+  success?: boolean
+  redirectTo?: string
 }
 
 export async function loginAction(
@@ -45,5 +46,5 @@ export async function loginAction(
   }
 
   const isPatient = data.user?.user_metadata?.role === 'patient'
-  redirect(isPatient ? '/mi-salud' : '/dashboard')
+  return { success: true, redirectTo: isPatient ? '/mi-salud' : '/dashboard' }
 }
