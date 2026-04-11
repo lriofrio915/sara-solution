@@ -53,7 +53,7 @@ export default function PublicPageActions() {
       <button
         onClick={toggleDark}
         aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-        className="fixed bottom-6 left-6 z-50 flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-2 shadow-lg hover:scale-105 transition-all duration-200"
+        className="fixed bottom-20 left-6 md:bottom-6 z-50 flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-3 py-2 shadow-lg hover:scale-105 transition-all duration-200"
       >
         <span className="text-base leading-none">{isDark ? '☀️' : '🌙'}</span>
         <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 select-none">

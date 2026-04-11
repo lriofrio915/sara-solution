@@ -138,7 +138,7 @@ export default function DoctorChatWidget({
       <button
         onClick={() => setOpen(true)}
         aria-label="Chatear con la asistente virtual"
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl hover:scale-105 transition-all duration-200 group"
+        className="fixed bottom-20 right-6 md:bottom-6 z-50 w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl hover:scale-105 transition-all duration-200 group"
         style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #0D9488 100%)' }}
       >
         <span className="absolute inset-0 rounded-2xl animate-ping opacity-20"
