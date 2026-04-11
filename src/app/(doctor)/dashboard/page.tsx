@@ -243,20 +243,56 @@ export default async function DashboardPage() {
     const apptTrend    = trend(monthTotal, prevMonthTotal)
     const patientTrend = trend(newPatientsThisMonth, newPatientsPrevMonth)
 
+    // ── Onboarding checklist ─────────────────────────────────────────────────
+    let igConnected = false
+    try {
+      if (doctor.socialTokens) {
+        const t = JSON.parse(doctor.socialTokens) as Record<string, { accessToken?: string }>
+        igConnected = !!t?.instagram?.accessToken
+      }
+    } catch { /* ignore malformed JSON */ }
+
+    const onboardingSteps = [
+      { done: !!doctor.bio, label: 'Completa tu perfil', href: '/onboarding' },
+      { done: totalPatients > 0, label: 'Agrega tu primer paciente', href: '/patients/new' },
+      { done: igConnected, label: 'Conecta Instagram', href: '/profile' },
+    ]
+    const onboardingDoneCount = onboardingSteps.filter(s => s.done).length
+    const showChecklist = onboardingDoneCount < 3
+
     // ─────────────────────────────────────────────────────────────────────────
     return (
       <div className="p-6 space-y-6 max-w-screen-2xl mx-auto">
 
-        {/* Onboarding banner */}
-        {!doctor.bio && (
-          <div className="flex items-center justify-between gap-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl px-5 py-3.5">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              Completa tu perfil para activar tu página pública y recibir citas online.
-            </p>
-            <a href="/onboarding"
-              className="flex-shrink-0 text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">
-              Completar perfil
-            </a>
+        {/* Onboarding checklist — visible until all 3 steps complete */}
+        {showChecklist && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl px-5 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                Primeros pasos · {onboardingDoneCount}/3 completados
+              </p>
+              <div className="flex gap-1">
+                {onboardingSteps.map((s, i) => (
+                  <div key={i} className={`h-1.5 w-8 rounded-full transition-colors ${s.done ? 'bg-blue-500' : 'bg-blue-200 dark:bg-blue-700'}`} />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {onboardingSteps.map((step, i) => (
+                <a key={i} href={step.href}
+                  className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
+                    step.done
+                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-400 dark:text-blue-500 line-through pointer-events-none'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}>
+                  {step.done
+                    ? <CheckCircle2 size={12} />
+                    : <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/20 text-[10px] font-bold">{i + 1}</span>
+                  }
+                  {step.label}
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

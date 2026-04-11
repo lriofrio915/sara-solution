@@ -1,19 +1,39 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
 
 // ---------------------------------------------------------------------------
-// C6: Rate limiting — in-memory, per-IP, per-tier
-// Suitable for single-process PM2 deployments. For multi-instance deployments
-// replace with Upstash Redis or similar shared store.
+// C6: Rate limiting — Upstash Redis (shared across all Vercel instances)
+// Falls back to allowing all requests if UPSTASH_REDIS_REST_URL is not set.
+// Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel env vars.
 // ---------------------------------------------------------------------------
 
-interface RateLimitEntry {
-  count: number
-  resetAt: number
+interface RateLimits {
+  arco: Ratelimit
+  auth: Ratelimit
+  prescriptions: Ratelimit
+  patients: Ratelimit
+  fhir: Ratelimit
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>()
-let lastCleanup = Date.now()
+let rl: RateLimits | null = null
+
+function getRateLimits(): RateLimits | null {
+  if (rl) return rl
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return null
+  const redis = new Redis({ url, token })
+  rl = {
+    arco:          new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5,  '1 m'), prefix: 'rl:arco' }),
+    auth:          new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 m'), prefix: 'rl:auth' }),
+    prescriptions: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, '1 m'), prefix: 'rl:presc' }),
+    patients:      new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 m'), prefix: 'rl:patients' }),
+    fhir:          new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 m'), prefix: 'rl:fhir' }),
+  }
+  return rl
+}
 
 function getRealIp(request: NextRequest): string {
   return (
@@ -23,93 +43,39 @@ function getRealIp(request: NextRequest): string {
   )
 }
 
-/**
- * Returns a 429 response if the IP has exceeded maxRequests within windowMs,
- * or null if the request is allowed.
- */
-function checkRateLimit(
-  ip: string,
-  tier: string,
-  maxRequests: number,
-  windowMs: number
-): NextResponse | null {
-  const now = Date.now()
+async function applyRateLimit(request: NextRequest, pathname: string): Promise<NextResponse | null> {
+  const limits = getRateLimits()
+  if (!limits) return null  // Upstash not configured — skip
 
-  // Periodic cleanup to prevent unbounded memory growth
-  if (now - lastCleanup > 5 * 60 * 1000) {
-    rateLimitStore.forEach((entry, key) => {
-      if (entry.resetAt < now) rateLimitStore.delete(key)
-    })
-    lastCleanup = now
-  }
-
-  const key = `${ip}:${tier}`
-  const entry = rateLimitStore.get(key)
-
-  if (!entry || entry.resetAt < now) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs })
-    return null
-  }
-
-  entry.count++
-  if (entry.count > maxRequests) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
-    return new NextResponse(
-      JSON.stringify({ error: 'Too Many Requests', retryAfter }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': String(retryAfter),
-          'X-RateLimit-Limit': String(maxRequests),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(Math.ceil(entry.resetAt / 1000)),
-        },
-      }
-    )
-  }
-
-  return null
-}
-
-/**
- * Applies the appropriate rate limit tier for the given pathname.
- * Returns a 429 NextResponse if limited, or null to allow the request.
- */
-function applyRateLimit(request: NextRequest, pathname: string): NextResponse | null {
   const ip = getRealIp(request)
 
-  // ARCO (data rights): very strict — 5 req/min
-  if (pathname.startsWith('/api/arco')) {
-    return checkRateLimit(ip, 'arco', 5, 60_000)
-  }
+  let limiter: Ratelimit | null = null
+  if (pathname.startsWith('/api/arco'))                        limiter = limits.arco
+  else if (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname.startsWith('/api/auth'))
+                                                               limiter = limits.auth
+  else if (pathname.startsWith('/api/prescriptions'))          limiter = limits.prescriptions
+  else if (pathname.startsWith('/api/patients'))               limiter = limits.patients
+  else if (pathname.startsWith('/api/fhir'))                   limiter = limits.fhir
 
-  // Auth pages & Supabase auth API: 10 req/min
-  if (
-    pathname === '/login' ||
-    pathname === '/register' ||
-    pathname === '/forgot-password' ||
-    pathname.startsWith('/api/auth')
-  ) {
-    return checkRateLimit(ip, 'auth', 10, 60_000)
-  }
+  if (!limiter) return null
 
-  // Prescriptions API: 30 req/min
-  if (pathname.startsWith('/api/prescriptions')) {
-    return checkRateLimit(ip, 'prescriptions', 30, 60_000)
-  }
+  const { success, limit, remaining, reset } = await limiter.limit(ip)
+  if (success) return null
 
-  // Patients API: 60 req/min
-  if (pathname.startsWith('/api/patients')) {
-    return checkRateLimit(ip, 'patients', 60, 60_000)
-  }
-
-  // FHIR R4 API: 60 req/min
-  if (pathname.startsWith('/api/fhir')) {
-    return checkRateLimit(ip, 'fhir', 60, 60_000)
-  }
-
-  return null
+  const retryAfter = Math.ceil((reset - Date.now()) / 1000)
+  return new NextResponse(
+    JSON.stringify({ error: 'Too Many Requests', retryAfter }),
+    {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': String(limit),
+        'X-RateLimit-Remaining': String(remaining),
+        'X-RateLimit-Reset': String(Math.ceil(reset / 1000)),
+      },
+    }
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +87,7 @@ export async function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/')
 
   // Apply rate limiting to critical routes first (before any auth overhead)
-  const rateLimitResponse = applyRateLimit(request, pathname)
+  const rateLimitResponse = await applyRateLimit(request, pathname)
   if (rateLimitResponse) return rateLimitResponse
 
   // For API routes that are only included for rate limiting, skip session mgmt

@@ -180,3 +180,64 @@ export async function sendAppointmentConfirmation(
     `,
   })
 }
+
+export async function sendTokenExpiryEmail(
+  email: string,
+  name: string,
+  platforms: string[],
+  daysLeft: number,
+) {
+  const firstName = name.split(' ')[0]
+  const platformList = platforms.join(' y ')
+  const urgency = daysLeft <= 3 ? 'urgente' : 'próxima'
+
+  await getResend().emails.send({
+    from: 'Sara Medical <noreply@consultorio.site>',
+    to: email,
+    subject: `Reconecta ${platformList} para mantener tu marketing activo`,
+    html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1E3A8A 0%,#0F766E 100%);border-radius:16px 16px 0 0;padding:32px 48px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Acción ${urgency} requerida</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:15px;">Tu conexión con ${platformList} expira en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#ffffff;border-radius:0 0 16px 16px;padding:40px 48px;">
+            <p style="color:#374151;font-size:16px;line-height:1.6;">Hola ${firstName},</p>
+            <p style="color:#374151;font-size:15px;line-height:1.6;">
+              Tu token de acceso a <strong>${platformList}</strong> expirará en <strong>${daysLeft} día${daysLeft !== 1 ? 's' : ''}</strong>.
+              Cuando expire, Sara no podrá publicar contenido en tu nombre y tu marketing automático se pausará.
+            </p>
+            <p style="color:#374151;font-size:15px;line-height:1.6;">
+              Para reconectar tu cuenta, ve a tu perfil y haz clic en "Conectar ${platformList}".
+              Solo tarda 30 segundos.
+            </p>
+            <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+              <tr>
+                <td style="background:#2563EB;border-radius:12px;padding:0;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://consultorio.site'}/profile"
+                    style="display:block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">
+                    Reconectar ahora →
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="color:#9ca3af;font-size:13px;margin-top:32px;border-top:1px solid #f3f4f6;padding-top:16px;">
+              Sara Medical · Si no deseas recibir estos avisos, desconecta la red social desde tu perfil.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  })
+}
