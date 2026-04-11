@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 // Separated into its own component so it can be wrapped in Suspense
@@ -17,6 +17,7 @@ function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,8 +38,14 @@ export default function LoginPage() {
         return
       }
 
+      // Session can be null when email confirmation is still pending
+      if (!data.session) {
+        setError('Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.')
+        return
+      }
+
       const isPatient = data.user?.user_metadata?.role === 'patient'
-      window.location.href = isPatient ? '/mi-salud' : '/dashboard'
+      router.push(isPatient ? '/mi-salud' : '/dashboard')
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error inesperado'
       setError(`No se pudo conectar con el servidor de autenticación. ${msg}`)

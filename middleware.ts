@@ -51,8 +51,7 @@ async function applyRateLimit(request: NextRequest, pathname: string): Promise<N
 
   let limiter: Ratelimit | null = null
   if (pathname.startsWith('/api/arco'))                        limiter = limits.arco
-  else if (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password' || pathname.startsWith('/api/auth'))
-                                                               limiter = limits.auth
+  else if (pathname.startsWith('/api/auth'))                   limiter = limits.auth
   else if (pathname.startsWith('/api/prescriptions'))          limiter = limits.prescriptions
   else if (pathname.startsWith('/api/patients'))               limiter = limits.patients
   else if (pathname.startsWith('/api/fhir'))                   limiter = limits.fhir
@@ -87,7 +86,13 @@ export async function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/')
 
   // Apply rate limiting to critical routes first (before any auth overhead)
-  const rateLimitResponse = await applyRateLimit(request, pathname)
+  // Wrapped in try-catch so a Redis outage never blocks normal requests
+  let rateLimitResponse: NextResponse | null = null
+  try {
+    rateLimitResponse = await applyRateLimit(request, pathname)
+  } catch {
+    // Redis unreachable — fail open (allow request through)
+  }
   if (rateLimitResponse) return rateLimitResponse
 
   // For API routes that are only included for rate limiting, skip session mgmt
