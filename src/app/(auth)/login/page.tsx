@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useTransition } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useSearchParams } from 'next/navigation'
+import { useFormState } from 'react-dom'
+import { Eye, EyeOff } from 'lucide-react'
+import { loginAction } from './actions'
 
-// Separated into its own component so it can be wrapped in Suspense
-// (Next.js requires useSearchParams to be inside a Suspense boundary)
 function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
   const searchParams = useSearchParams()
   useEffect(() => {
@@ -16,47 +16,33 @@ function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
   return null
 }
 
+function SubmitButton({ loading }: { loading: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={loading}
+      className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+    >
+      {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+    </button>
+  )
+}
+
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
+  const [state, formAction] = useFormState(loginAction, {})
+  const [isPending, startTransition] = useTransition()
+  const [info, setInfo]               = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const supabase = createClient()
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-      if (authError) {
-        setError('Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.')
-        return
-      }
-
-      // Session can be null when email confirmation is still pending
-      if (!data.session) {
-        setError('Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.')
-        return
-      }
-
-      const isPatient = data.user?.user_metadata?.role === 'patient'
-      router.push(isPatient ? '/mi-salud' : '/dashboard')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error inesperado'
-      setError(`No se pudo conectar con el servidor de autenticación. ${msg}`)
-    } finally {
-      setLoading(false)
-    }
+    startTransition(() => {
+      formAction(new FormData(e.currentTarget))
+    })
   }
 
   return (
     <>
-      {/* Reads ?mensaje= param without blocking static prerender */}
       <Suspense fallback={null}>
         <InfoMessage setInfo={setInfo} />
       </Suspense>
@@ -72,9 +58,9 @@ export default function LoginPage() {
         </div>
       )}
 
-      {error && (
+      {state.error && (
         <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
-          {error}
+          {state.error}
         </div>
       )}
 
@@ -83,8 +69,7 @@ export default function LoginPage() {
           <label className="label">Correo electrónico</label>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
             placeholder="doctora@ejemplo.com"
             required
             autoComplete="email"
@@ -99,24 +84,28 @@ export default function LoginPage() {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            autoComplete="current-password"
-            className="input"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+              className="input pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              tabIndex={-1}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-        >
-          {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-        </button>
+        <SubmitButton loading={isPending} />
       </form>
 
       <p className="text-center text-gray-500 text-sm mt-6">
