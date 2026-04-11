@@ -8,9 +8,9 @@ import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 import DemoSection from '@/components/landing/DemoSection'
 
 export const metadata: Metadata = {
-  title: 'Sara — Tu asistente médico con IA',
+  title: 'Sara — Publica en redes mientras atiendes pacientes',
   description:
-    'Gestiona tu consultorio, capta pacientes y haz crecer tu práctica médica con inteligencia artificial. Agenda inteligente, fichas médicas, recetas digitales y más.',
+    'Sara publica tu contenido en Instagram, Facebook, TikTok y LinkedIn con IA mientras tú atiendes pacientes. Agenda inteligente, fichas médicas y recetas digitales incluidas.',
 }
 
 // ─── Hero ──────────────────────────────────────────────────────────────────────
@@ -37,14 +37,14 @@ function Hero() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6">
-            Sara, tu asistente{' '}
+            Sara publica en redes{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-blue-200">
-              médico con IA
+              mientras atiendes pacientes
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl text-white/75 leading-relaxed mb-10 max-w-lg">
-            Agenda inteligente, fichas médicas, recetas digitales, marketing con IA para 4 redes sociales y planificador de contenido — todo en una sola plataforma.
+            Marketing con IA para Instagram, Facebook, TikTok y LinkedIn. Más agenda inteligente, fichas médicas y recetas digitales — todo en una sola plataforma.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -328,6 +328,21 @@ const features = [
   },
 ]
 
+const featuresTop = features.slice(0, 6)
+const featuresRest = features.slice(6)
+
+function FeatureCard({ f }: { f: typeof features[0] }) {
+  return (
+    <div className="group border border-gray-100 rounded-2xl p-7 hover:border-primary/20 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 bg-white">
+      <div className={`w-12 h-12 rounded-2xl ${f.color} flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform duration-200`}>
+        {f.icon}
+      </div>
+      <h3 className="font-bold text-gray-900 text-lg mb-2">{f.title}</h3>
+      <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+    </div>
+  )
+}
+
 function Features() {
   return (
     <section id="features" className="py-24 bg-white">
@@ -345,20 +360,21 @@ function Features() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="group border border-gray-100 rounded-2xl p-7 hover:border-primary/20 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 bg-white"
-            >
-              <div className={`w-12 h-12 rounded-2xl ${f.color} flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform duration-200`}>
-                {f.icon}
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">{f.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
+        {/* Top 6 features */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          {featuresTop.map((f) => <FeatureCard key={f.title} f={f} />)}
         </div>
+
+        {/* Acordeón con el resto */}
+        <details className="group">
+          <summary className="flex items-center justify-center gap-2 cursor-pointer list-none py-3 text-primary font-semibold text-sm select-none">
+            <span className="group-open:hidden">Ver todas las funcionalidades ({featuresRest.length} más) ↓</span>
+            <span className="hidden group-open:inline">Ocultar ↑</span>
+          </summary>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            {featuresRest.map((f) => <FeatureCard key={f.title} f={f} />)}
+          </div>
+        </details>
       </div>
     </section>
   )
@@ -684,19 +700,12 @@ const plans = [
     badgeBg: 'bg-primary',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
     features: [
-      { icon: '✔', text: 'Pacientes, citas y fichas clínicas ilimitadas.' },
-      { icon: '🤖', text: 'Agente Sara IA en tu WhatsApp Business 24/7.' },
-      { icon: '✔', text: 'Agenda inteligente + recetas digitales + CIE-10.' },
+      { icon: '👥', text: 'Pacientes, citas y fichas clínicas ilimitadas.' },
+      { icon: '🤖', text: 'Sara IA en WhatsApp Business — atiende 24/7.' },
+      { icon: '📱', text: 'Marketing Suite: Instagram, Facebook, TikTok y LinkedIn.' },
       { icon: '🧠', text: 'IA 360°: análisis clínico antes de cada consulta.' },
-      { icon: '📱', text: 'Marketing Suite IA: Instagram, Facebook, TikTok y LinkedIn.' },
-      { icon: '🗓️', text: 'Planificador de contenido con calendario semanal.' },
-      { icon: '💼', text: 'LinkedIn con tendencias médicas en tiempo real.' },
-      { icon: '🩺', text: 'Controles PAI, crecimiento infantil y embarazo.' },
-      { icon: '⭐', text: 'Encuestas de satisfacción automáticas post-consulta.' },
-      { icon: '🔔', text: 'Recordatorios WhatsApp + cumpleaños de pacientes.' },
-      { icon: '👤', text: 'Médico + asistente + portal de pacientes incluido.' },
-      { icon: '📋', text: 'Portal del paciente: atenciones, citas, recetas y órdenes en su celular.' },
-      { icon: '🌐', text: 'Web médica profesional + chat IA para pacientes.' },
+      { icon: '🌐', text: 'Web médica profesional incluida.' },
+      { icon: '📋', text: 'Portal del paciente en su celular.' },
     ],
     cta: 'Elegir Plan Mensual',
     ctaStyle: 'border-2 border-primary text-primary hover:bg-primary hover:text-white',
@@ -858,6 +867,104 @@ function Pricing() {
           </a>{' '}
           y te respondemos en menos de 24 horas.
         </p>
+      </div>
+    </section>
+  )
+}
+
+// ─── Testimonials ──────────────────────────────────────────────────────────────
+
+const testimonials = [
+  {
+    quote: 'Antes tardaba 3 horas a la semana en redes sociales. Con Sara, lo tengo listo en 10 minutos y los posts se publican solos.',
+    name: 'Dra. Ana Morales',
+    title: 'Médico General · Quito',
+    initials: 'AM',
+    gradient: 'from-blue-400 to-teal-400',
+  },
+  {
+    quote: 'Lo que más me sorprendió fue el análisis IA 360° antes de cada consulta. Llego preparado con el historial completo del paciente en segundos.',
+    name: 'Dr. Juan Riofrio',
+    title: 'Cirujano · Guayaquil',
+    initials: 'JR',
+    gradient: 'from-violet-400 to-blue-500',
+  },
+  {
+    quote: 'Mis pacientes me preguntan cómo mantengo tan activo mi Instagram. No les digo que Sara lo hace sola.',
+    name: 'Dra. Carolina Paz',
+    title: 'Dermatóloga · Cuenca',
+    initials: 'CP',
+    gradient: 'from-pink-400 to-orange-400',
+  },
+]
+
+function Testimonials() {
+  return (
+    <section className="py-24 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-14">
+          <span className="inline-block bg-green-50 text-green-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+            Lo dicen los médicos
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Médicos que ya{' '}
+            <span className="text-primary">usan Sara</span>
+          </h2>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-6">
+          {testimonials.map((t) => (
+            <div key={t.name} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 flex flex-col hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+              {/* Stars */}
+              <div className="flex gap-0.5 mb-5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-amber-400 fill-amber-400" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+
+              {/* Quote */}
+              <blockquote className="text-gray-700 text-sm leading-relaxed flex-1 mb-6">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+
+              {/* Author */}
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
+                  {t.initials}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
+                  <p className="text-gray-400 text-xs">{t.title}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Social proof bar */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-center">
+          <div>
+            <p className="text-2xl font-extrabold text-gray-900">+200</p>
+            <p className="text-xs text-gray-400 mt-0.5">médicos activos</p>
+          </div>
+          <div className="w-px h-8 bg-gray-200 hidden sm:block" />
+          <div>
+            <p className="text-2xl font-extrabold text-gray-900">4.9/5</p>
+            <p className="text-xs text-gray-400 mt-0.5">valoración media</p>
+          </div>
+          <div className="w-px h-8 bg-gray-200 hidden sm:block" />
+          <div>
+            <p className="text-2xl font-extrabold text-gray-900">21 días</p>
+            <p className="text-xs text-gray-400 mt-0.5">gratis sin tarjeta</p>
+          </div>
+          <div className="w-px h-8 bg-gray-200 hidden sm:block" />
+          <div>
+            <p className="text-2xl font-extrabold text-gray-900">&lt; 1 min</p>
+            <p className="text-xs text-gray-400 mt-0.5">activación post-pago</p>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -1039,6 +1146,7 @@ export default function LandingPage() {
         <Problems />
         <Features />
         <MarketingSuite />
+        <Testimonials />
         <KnowledgeBase />
         <HowItWorks />
         <Pricing />
