@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect, Suspense, useTransition } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useFormState } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
-import { loginAction } from './actions'
+import { createClient } from '@/lib/supabase/client'
 
 function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
   const searchParams = useSearchParams()
@@ -16,38 +15,39 @@ function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
   return null
 }
 
-function SubmitButton({ loading }: { loading: boolean }) {
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-    >
-      {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-    </button>
-  )
-}
-
 export default function LoginPage() {
-  const [state, formAction] = useFormState(loginAction, {})
-  const [isPending, startTransition] = useTransition()
-  const [info, setInfo]               = useState<string | null>(null)
+  const [email, setEmail]               = useState('')
+  const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
+  const [error, setError]               = useState<string | null>(null)
+  const [loading, setLoading]           = useState(false)
+  const [info, setInfo]                 = useState<string | null>(null)
 
-  // Redirect after successful login — cookies are already in the response
-  // by the time this effect runs, so the middleware will find the session.
-  useEffect(() => {
-    if (state.success && state.redirectTo) {
-      router.push(state.redirectTo)
-    }
-  }, [state.success, state.redirectTo, router])
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    startTransition(() => {
-      formAction(new FormData(e.currentTarget))
-    })
+    setError(null)
+    setLoading(true)
+
+    try {
+      const supabase = createClient()
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (authError) {
+        setError('Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.')
+        return
+      }
+
+      if (!data.session) {
+        setError('Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.')
+        return
+      }
+
+      const isPatient = data.user?.user_metadata?.role === 'patient'
+      // Full reload so the browser sends the fresh session cookies to the server
+      window.location.href = isPatient ? '/mi-salud' : '/dashboard'
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -67,9 +67,9 @@ export default function LoginPage() {
         </div>
       )}
 
-      {state.error && (
+      {error && (
         <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
-          {state.error}
+          {error}
         </div>
       )}
 
@@ -78,7 +78,8 @@ export default function LoginPage() {
           <label className="label">Correo electrónico</label>
           <input
             type="email"
-            name="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             placeholder="doctora@ejemplo.com"
             required
             autoComplete="email"
@@ -96,7 +97,8 @@ export default function LoginPage() {
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
-              name="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               autoComplete="current-password"
@@ -114,7 +116,13 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <SubmitButton loading={isPending} />
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+        >
+          {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+        </button>
       </form>
 
       <p className="text-center text-gray-500 text-sm mt-6">
