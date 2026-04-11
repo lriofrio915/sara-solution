@@ -105,8 +105,9 @@ model Doctor {
   bannerUrl String?  // Foto para la sección CTA al final de la página pública
   bio       String?
   address   String?
-  whatsapp    String?   // WhatsApp Business — Agente Sara IA
-  webhookUrl  String?   // n8n webhook personalizado del médico
+  whatsapp          String?   // WhatsApp Business — número visible en la página pública
+  evolutionInstance String?   // Nombre de la instancia en Evolution API (agente Sara por doctor)
+  webhookUrl        String?   // n8n webhook personalizado del médico
   branches    String?   // JSON: [{name, address}] sucursales adicionales
   schedules String?
   services  String?   // JSON: [{name, description, price, emoji}]

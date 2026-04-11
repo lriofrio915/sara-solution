@@ -1,0 +1,309 @@
+/**
+ * Evolution API Webhook — Per-doctor WhatsApp agent
+ *
+ * Each doctor has their own Evolution instance (evolutionInstance field).
+ * When a patient writes to that doctor's WA Business number, Evolution
+ * POSTs here. We identify the doctor from `instance`, run Sara AI with
+ * that doctor's knowledge, and reply using the same instance.
+ *
+ * Configure in Evolution:
+ *   Webhook URL: https://your-domain.com/api/webhooks/whatsapp-evolution
+ *   Events: messages.upsert
+ *
+ * POST /api/webhooks/whatsapp-evolution
+ */
+
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { sendWA } from '@/lib/whatsapp'
+import { askSara } from '@/lib/sara'
+import type { SaraMessage } from '@/lib/sara'
+import { getEffectivePlan } from '@/lib/plan'
+
+export const dynamic = 'force-dynamic'
+
+const MAX_HISTORY = 20
+const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+// ─── Evolution payload types ──────────────────────────────────────────────────
+
+type EvolutionPayload = {
+  event: string
+  instance: string
+  data?: {
+    key?: {
+      remoteJid?: string
+      fromMe?: boolean
+      id?: string
+    }
+    pushName?: string
+    message?: {
+      conversation?: string
+      extendedTextMessage?: { text?: string }
+      imageMessage?: { caption?: string }
+    }
+    messageType?: string
+  }
+}
+
+function extractText(payload: EvolutionPayload): string | null {
+  const msg = payload.data?.message
+  if (!msg) return null
+  return (
+    msg.conversation?.trim() ||
+    msg.extendedTextMessage?.text?.trim() ||
+    null
+  )
+}
+
+// ─── Doctor context builder ───────────────────────────────────────────────────
+
+type DoctorRow = {
+  id: string
+  name: string
+  specialty: string
+  address: string | null
+  phone: string | null
+  whatsapp: string | null
+  evolutionInstance: string | null
+  province: string | null
+  canton: string | null
+  services: string | null
+  consultationModes: string | null
+  insurances: string | null
+  saraPatientInstructions: string | null
+  patientFaq: string | null
+  plan: string
+  trialEndsAt: Date | null
+  availabilitySchedules: { weekday: number; startTime: string; endTime: string; location: string | null }[]
+}
+
+function buildConsultorioInfo(doctor: DoctorRow): string {
+  const lines: string[] = []
+  const location = [doctor.canton, doctor.province].filter(Boolean).join(', ')
+  if (location) lines.push(`- Ubicación: ${location}`)
+  if (doctor.address) lines.push(`- Dirección: ${doctor.address}`)
+  if (doctor.whatsapp) lines.push(`- WhatsApp business: ${doctor.whatsapp}`)
+
+  try {
+    const modes: string[] = JSON.parse(doctor.consultationModes ?? '[]')
+    const modeMap: Record<string, string> = {
+      IN_PERSON: 'Presencial', TELECONSULT: 'Teleconsulta', HOME_VISIT: 'Visita domiciliaria',
+    }
+    const modesText = modes.map(m => modeMap[m] ?? m).join(', ')
+    if (modesText) lines.push(`- Modalidades: ${modesText}`)
+  } catch { /* ignore */ }
+
+  if (doctor.availabilitySchedules.length > 0) {
+    lines.push('- Horario de atención:')
+    for (const s of doctor.availabilitySchedules) {
+      lines.push(`  ${DAYS[s.weekday]}: ${s.startTime} – ${s.endTime}${s.location ? ` (${s.location})` : ''}`)
+    }
+  }
+
+  try {
+    const parsed = JSON.parse(doctor.services ?? '[]')
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      lines.push('- Servicios:')
+      for (const s of parsed) {
+        lines.push(`  • ${s.name}${s.price ? ` ($${s.price})` : ''}`)
+      }
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const ins: { name: string; active: boolean; requirements?: string }[] = JSON.parse(doctor.insurances ?? '[]')
+    const active = ins.filter(i => i.active)
+    if (active.length > 0) {
+      lines.push('- Seguros/convenios aceptados:')
+      for (const i of active) {
+        lines.push(`  • ${i.name}${i.requirements ? ` (${i.requirements})` : ''}`)
+      }
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const faqItems: { question: string; answer: string }[] = JSON.parse(doctor.patientFaq ?? '[]')
+    const valid = faqItems.filter(f => f.question?.trim() && f.answer?.trim())
+    if (valid.length > 0) {
+      lines.push('- Preguntas frecuentes (responde exactamente así):')
+      for (const f of valid) {
+        lines.push(`  P: ${f.question.trim()}`)
+        lines.push(`  R: ${f.answer.trim()}`)
+      }
+    }
+  } catch { /* ignore */ }
+
+  return lines.join('\n')
+}
+
+function toWhatsApp(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '*$1*')
+    .replace(/#{1,3}\s+/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+// ─── Sara call ────────────────────────────────────────────────────────────────
+
+async function callSara(
+  doctor: DoctorRow,
+  history: SaraMessage[],
+): Promise<{ reply: string; appointmentBooked: boolean }> {
+  let appointmentBooked = false
+
+  const reply = await askSara(
+    history,
+    {
+      doctorId: doctor.id,
+      doctorName: doctor.name,
+      doctorSpecialty: doctor.specialty,
+      consultorioInfo: buildConsultorioInfo(doctor),
+      saraPersonality: doctor.saraPatientInstructions ?? undefined,
+    },
+    (event) => {
+      if (event.type === 'tool_done' && event.name === 'schedule_appointment') {
+        appointmentBooked = true
+      }
+    },
+    6,
+  )
+
+  if (reply.includes('No tengo ese dato')) {
+    const patientMsg = [...history].reverse().find(m => m.role === 'user')?.content
+    if (patientMsg && !patientMsg.startsWith('[Sistema:')) {
+      prisma.saraUnansweredQuestion.create({
+        data: { doctorId: doctor.id, question: patientMsg.trim(), source: 'whatsapp' },
+      }).catch(() => {/* non-critical */})
+    }
+  }
+
+  return { reply, appointmentBooked }
+}
+
+// ─── Main handler ─────────────────────────────────────────────────────────────
+
+export async function POST(req: Request) {
+  try {
+    // ── Auth: Evolution sends its API key in the header ─────────────────────
+    const apiKey = req.headers.get('apikey')
+    const expectedKey = process.env.EVOLUTION_API_KEY
+    if (!apiKey || apiKey !== expectedKey) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const payload = await req.json() as EvolutionPayload
+
+    // Only process incoming text messages
+    if (payload.event !== 'messages.upsert') {
+      return NextResponse.json({ ok: true })
+    }
+    if (payload.data?.key?.fromMe) {
+      return NextResponse.json({ ok: true }) // ignore outgoing messages
+    }
+
+    const messageText = extractText(payload)
+    if (!messageText) {
+      return NextResponse.json({ ok: true }) // ignore non-text (audio, images, etc.)
+    }
+
+    const instanceName = payload.instance
+    const remoteJid = payload.data?.key?.remoteJid ?? ''
+    const cleanPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '')
+    const pushName = payload.data?.pushName
+
+    if (!cleanPhone) {
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Find doctor by evolution instance ───────────────────────────────────
+    const doctor = await prisma.doctor.findFirst({
+      where: { evolutionInstance: instanceName },
+      select: {
+        id: true, name: true, specialty: true, address: true, phone: true, whatsapp: true,
+        evolutionInstance: true,
+        province: true, canton: true, services: true, consultationModes: true,
+        insurances: true, saraPatientInstructions: true, patientFaq: true,
+        plan: true, trialEndsAt: true,
+        availabilitySchedules: { where: { isActive: true }, orderBy: { weekday: 'asc' } },
+      },
+    })
+
+    if (!doctor) {
+      console.warn(`WA webhook: no doctor found for instance "${instanceName}"`)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Check plan ───────────────────────────────────────────────────────────
+    const effectivePlan = getEffectivePlan(doctor)
+    if (effectivePlan === 'FREE') {
+      return NextResponse.json({ ok: true }) // silently ignore — doctor is on free plan
+    }
+
+    // ── Load or create conversation ──────────────────────────────────────────
+    // Key: doctorId + title pattern so each doctor-patient pair is separate
+    const convTitle = `wa_${cleanPhone}`
+
+    let conv = await prisma.saraConversation.findFirst({
+      where: { doctorId: doctor.id, title: convTitle, context: 'whatsapp' },
+      orderBy: { updatedAt: 'desc' },
+    })
+
+    const patientLabel = pushName
+      ? `"${pushName}" (WhatsApp +${cleanPhone})`
+      : `WhatsApp +${cleanPhone}`
+
+    let history: SaraMessage[]
+
+    if (conv) {
+      history = (conv.messages as unknown as SaraMessage[]).slice(-MAX_HISTORY)
+      history.push({ role: 'user', content: messageText })
+    } else {
+      // First message — greet + respond
+      history = [
+        {
+          role: 'user',
+          content: `[Sistema: Atiende al paciente ${patientLabel} por WhatsApp. Salúdalo y responde a su mensaje a continuación.]`,
+        },
+        { role: 'user', content: messageText },
+      ]
+    }
+
+    // ── Call Sara ────────────────────────────────────────────────────────────
+    const { reply, appointmentBooked } = await callSara(doctor, history)
+    history.push({ role: 'assistant', content: reply })
+
+    // ── Persist conversation ─────────────────────────────────────────────────
+    if (conv) {
+      await prisma.saraConversation.update({
+        where: { id: conv.id },
+        data: { messages: history.slice(-MAX_HISTORY) as unknown as never },
+      })
+    } else {
+      conv = await prisma.saraConversation.create({
+        data: {
+          doctorId: doctor.id,
+          context: 'whatsapp',
+          title: convTitle,
+          messages: history.slice(-MAX_HISTORY) as unknown as never,
+        },
+      })
+    }
+
+    // ── Notify doctor when appointment is booked ─────────────────────────────
+    if (appointmentBooked && doctor.whatsapp) {
+      const notif = `📅 *Nueva cita agendada por WhatsApp*\nPaciente: +${cleanPhone}\n\n${reply}`
+      sendWA(doctor.whatsapp, notif, instanceName).catch(() => {/* non-critical */})
+    }
+
+    // ── Send reply to patient ────────────────────────────────────────────────
+    await sendWA(remoteJid, toWhatsApp(reply), instanceName)
+
+    return NextResponse.json({ ok: true })
+
+  } catch (err) {
+    console.error('POST /api/webhooks/whatsapp-evolution:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
