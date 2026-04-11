@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 function InfoMessage({ setInfo }: { setInfo: (v: string | null) => void }) {
   const searchParams = useSearchParams()
@@ -29,22 +28,26 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'same-origin',
+      })
 
-      if (authError) {
-        setError('Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.')
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error ?? 'Error al iniciar sesión. Intenta de nuevo.')
         return
       }
 
-      if (!data.session) {
-        setError('Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.')
-        return
-      }
-
-      const isPatient = data.user?.user_metadata?.role === 'patient'
-      // Full reload so the browser sends the fresh session cookies to the server
-      window.location.href = isPatient ? '/mi-salud' : '/dashboard'
+      // By the time we reach here the browser has already applied the
+      // Set-Cookie headers from the API response. A full-page navigation
+      // will include those cookies, so the middleware will find the session.
+      window.location.href = data.redirectTo
+    } catch {
+      setError('Error de conexión. Verifica tu internet e intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -107,7 +110,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-gray-400 hover:text-gray-600 transition-colors"
               tabIndex={-1}
               aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
             >
