@@ -4,9 +4,8 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
 // ---------------------------------------------------------------------------
-// C6: Rate limiting — Upstash Redis (shared across all Vercel instances)
+// Rate limiting — Upstash Redis (shared across all Vercel instances)
 // Falls back to allowing all requests if UPSTASH_REDIS_REST_URL is not set.
-// Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel env vars.
 // ---------------------------------------------------------------------------
 
 interface RateLimits {
