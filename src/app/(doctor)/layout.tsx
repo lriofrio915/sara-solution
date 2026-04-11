@@ -103,6 +103,6 @@ export default async function DoctorLayout({ children }: { children: React.React
     )
   } catch (error) {
     console.error('DoctorLayout error:', error)
-    redirect('/login')
+    redirect('/account-not-found')
   }
 }

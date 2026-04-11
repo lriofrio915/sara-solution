@@ -13,8 +13,8 @@ export default async function SelectDoctorPage() {
 
   const doctors = await getAssistantDoctors(user.id)
 
-  // If not an assistant or has no doctors → back to login
-  if (doctors.length === 0) redirect('/login')
+  // If not an assistant or has no doctors → account not found (avoid login loop)
+  if (doctors.length === 0) redirect('/account-not-found')
 
   // Single-doctor assistants are handled by getDoctorFromUser without needing a cookie.
   // If somehow they land here, just send them to dashboard.

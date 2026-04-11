@@ -90,7 +90,7 @@ export default async function DashboardPage() {
     if (authError || !user) redirect('/login')
 
     const doctor = await prisma.doctor.findFirst({
-      where: { OR: [{ id: user.id }, { email: user.email! }] },
+      where: { OR: [{ authId: user.id }, { email: user.email! }] },
     })
     if (!doctor) redirect('/onboarding')
 
