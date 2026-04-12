@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
   const appId     = process.env.META_APP_ID!
   const appSecret = process.env.META_APP_SECRET!
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/meta/callback`
+  const redirectUri = 'https://www.consultorio.site/api/auth/meta/callback'
 
   try {
     // 1. Intercambiar code por short-lived token
