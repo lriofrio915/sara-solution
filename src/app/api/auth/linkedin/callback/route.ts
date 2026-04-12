@@ -2,15 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-function originFromRequest(req: Request): string {
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || ''
-  const proto = req.headers.get('x-forwarded-proto') || 'https'
-  return `${proto}://${host}`
-}
-
 // GET /api/auth/linkedin/callback — callback OAuth de LinkedIn
 export async function GET(req: Request) {
-  const origin = originFromRequest(req)
+  const origin = process.env.NEXT_PUBLIC_APP_URL!
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -27,7 +21,7 @@ export async function GET(req: Request) {
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
   const clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-  const redirectUri = `${origin}/api/auth/linkedin/callback`
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
   console.log('[LINKEDIN CB] origin:', origin, '| redirect_uri:', redirectUri)
 
   try {
