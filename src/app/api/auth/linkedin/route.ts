@@ -12,11 +12,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'LINKEDIN_CLIENT_ID no configurado' }, { status: 500 })
   }
 
-  const redirectUri = 'https://www.consultorio.site/api/auth/linkedin/callback'
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
   console.log('[LINKEDIN] redirect_uri enviado a LinkedIn:', redirectUri)
 
-  // Scopes básicos — w_member_social requiere producto "Share on LinkedIn" aprobado en Developer Portal
-  const scope = ['openid', 'profile', 'email'].join(' ')
+  // w_member_social requiere producto "Share on LinkedIn" aprobado en LinkedIn Developer Portal
+  const scope = ['openid', 'profile', 'email', 'w_member_social'].join(' ')
 
   const authUrl = new URL('https://www.linkedin.com/oauth/v2/authorization')
   authUrl.searchParams.set('response_type', 'code')

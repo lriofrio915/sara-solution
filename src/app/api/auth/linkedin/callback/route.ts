@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
   const clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-  const redirectUri = 'https://www.consultorio.site/api/auth/linkedin/callback'
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
   console.log('[LINKEDIN CB] origin:', origin, '| redirect_uri:', redirectUri)
 
   try {

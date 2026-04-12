@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
   const appId     = process.env.META_APP_ID!
   const appSecret = process.env.META_APP_SECRET!
-  const redirectUri = 'https://www.consultorio.site/api/auth/meta/callback'
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/meta/callback`
 
   try {
     // 1. Intercambiar code por short-lived token
@@ -45,7 +45,9 @@ export async function GET(req: Request) {
     const meData = await meRes.json()
     const fbUserId = meData.id ?? null
 
-    // 4. Obtener Instagram Business Account vinculado (si existe)
+    // 4. Obtener Pages y su Instagram Business Account vinculado
+    let pageId: string | null = null
+    let pageAccessToken: string | null = null
     let igUserId: string | null = null
     try {
       const pagesRes = await fetch(
@@ -54,6 +56,9 @@ export async function GET(req: Request) {
       const pagesData = await pagesRes.json()
       const page = pagesData.data?.[0]
       if (page) {
+        // Usar Page ID y Page Access Token para publicar en Facebook
+        pageId = page.id
+        pageAccessToken = page.access_token
         const igRes = await fetch(
           `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
         )
@@ -76,9 +81,13 @@ export async function GET(req: Request) {
       try { tokens = JSON.parse(doctor.socialTokens) } catch { /* ignore */ }
     }
 
-    tokens.facebook = { accessToken: longToken, userId: fbUserId, expiresAt }
-    if (igUserId) {
-      tokens.instagram = { accessToken: longToken, userId: igUserId, expiresAt }
+    // Facebook requiere Page ID y Page Access Token (no el user token)
+    if (pageId && pageAccessToken) {
+      tokens.facebook = { accessToken: pageAccessToken, userId: pageId, expiresAt }
+    }
+    // Instagram requiere Page Access Token de la página vinculada
+    if (igUserId && pageAccessToken) {
+      tokens.instagram = { accessToken: pageAccessToken, userId: igUserId, expiresAt }
     }
 
     await prisma.doctor.update({

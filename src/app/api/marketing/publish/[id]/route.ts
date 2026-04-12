@@ -116,31 +116,54 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const externalIds: Record<string, string> = (post.externalIds as Record<string, string>) ?? {}
   const errors: string[] = []
 
+  function isTokenExpired(expiresAt?: string): boolean {
+    if (!expiresAt) return false
+    return new Date(expiresAt) < new Date()
+  }
+
   try {
-    if ((platform === 'INSTAGRAM' || platform === 'BOTH') && tokens.instagram?.accessToken) {
-      try {
-        const extId = await publishInstagram(tokens.instagram.accessToken, tokens.instagram.userId, post.content, post.imageUrl)
-        externalIds.instagram = extId
-      } catch (e) {
-        errors.push(`Instagram: ${e instanceof Error ? e.message : 'Error'}`)
+    if (platform === 'INSTAGRAM' || platform === 'BOTH') {
+      if (!tokens.instagram?.accessToken) {
+        errors.push('Instagram: cuenta no conectada')
+      } else if (isTokenExpired(tokens.instagram.expiresAt)) {
+        errors.push('Instagram: token expirado, reconecta tu cuenta')
+      } else {
+        try {
+          const extId = await publishInstagram(tokens.instagram.accessToken, tokens.instagram.userId, post.content, post.imageUrl)
+          externalIds.instagram = extId
+        } catch (e) {
+          errors.push(`Instagram: ${e instanceof Error ? e.message : 'Error'}`)
+        }
       }
     }
 
-    if ((platform === 'FACEBOOK' || platform === 'BOTH') && tokens.facebook?.accessToken) {
-      try {
-        const extId = await publishFacebook(tokens.facebook.accessToken, tokens.facebook.userId, post.content, post.imageUrl)
-        externalIds.facebook = extId
-      } catch (e) {
-        errors.push(`Facebook: ${e instanceof Error ? e.message : 'Error'}`)
+    if (platform === 'FACEBOOK' || platform === 'BOTH') {
+      if (!tokens.facebook?.accessToken) {
+        errors.push('Facebook: cuenta no conectada')
+      } else if (isTokenExpired(tokens.facebook.expiresAt)) {
+        errors.push('Facebook: token expirado, reconecta tu cuenta')
+      } else {
+        try {
+          const extId = await publishFacebook(tokens.facebook.accessToken, tokens.facebook.userId, post.content, post.imageUrl)
+          externalIds.facebook = extId
+        } catch (e) {
+          errors.push(`Facebook: ${e instanceof Error ? e.message : 'Error'}`)
+        }
       }
     }
 
-    if (platform === 'LINKEDIN' && tokens.linkedin?.accessToken) {
-      try {
-        const extId = await publishLinkedIn(tokens.linkedin.accessToken, tokens.linkedin.userId, post.content)
-        externalIds.linkedin = extId
-      } catch (e) {
-        errors.push(`LinkedIn: ${e instanceof Error ? e.message : 'Error'}`)
+    if (platform === 'LINKEDIN') {
+      if (!tokens.linkedin?.accessToken) {
+        errors.push('LinkedIn: cuenta no conectada')
+      } else if (isTokenExpired(tokens.linkedin.expiresAt)) {
+        errors.push('LinkedIn: token expirado, reconecta tu cuenta')
+      } else {
+        try {
+          const extId = await publishLinkedIn(tokens.linkedin.accessToken, tokens.linkedin.userId, post.content)
+          externalIds.linkedin = extId
+        } catch (e) {
+          errors.push(`LinkedIn: ${e instanceof Error ? e.message : 'Error'}`)
+        }
       }
     }
 
