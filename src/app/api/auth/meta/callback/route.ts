@@ -95,9 +95,9 @@ export async function GET(req: Request) {
       data: { socialTokens: JSON.stringify(tokens) },
     })
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?tab=redes&success=meta_connected`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?success=meta_connected`)
   } catch (err) {
     console.error('[META OAUTH]', err)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?tab=redes&error=meta_failed`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?error=meta_failed`)
   }
 }
