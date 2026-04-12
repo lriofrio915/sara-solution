@@ -518,7 +518,7 @@ export default function IntegracionesPage() {
         </div>
 
         <div className="space-y-3">
-          {(['linkedin', 'instagram', 'facebook'] as const).map(platform => {
+          {(['linkedin', 'instagram', 'facebook', 'tiktok'] as const).map(platform => {
             const cfg = SOCIAL_CONFIG[platform]
             const account = socialAccounts?.[platform]
             const daysLeft = socialTokenDaysLeft(account?.expiresAt ?? null)
@@ -555,7 +555,12 @@ export default function IntegracionesPage() {
                     {socialAccounts !== null && (!account?.connected || expired) && (
                       <a href={cfg.oauthPath}
                         className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90 flex-shrink-0"
-                        style={platform === 'instagram' ? { background: 'linear-gradient(to right, #7c3aed, #ec4899)' } : { background: platform === 'facebook' ? '#1877F2' : '#0A66C2' }}>
+                        style={
+                          platform === 'instagram' ? { background: 'linear-gradient(to right, #7c3aed, #ec4899)' }
+                          : platform === 'facebook' ? { background: '#1877F2' }
+                          : platform === 'tiktok'   ? { background: '#000000' }
+                          : { background: '#0A66C2' }
+                        }>
                         {expired ? 'Reconectar' : 'Conectar'}
                       </a>
                     )}

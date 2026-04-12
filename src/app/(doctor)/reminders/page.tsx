@@ -177,7 +177,7 @@ export default function RemindersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            🔔 Recordatorios
+            ⏰ Recordatorios
           </h1>
           <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">
             {filter === 'pending'
@@ -224,7 +224,7 @@ export default function RemindersPage() {
         </div>
       ) : reminders.length === 0 ? (
         <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-          <p className="text-4xl mb-3">🔔</p>
+          <p className="text-4xl mb-3">⏰</p>
           <p className="font-medium text-gray-500 dark:text-slate-300">No hay recordatorios {filter === 'pending' ? 'pendientes' : filter === 'completed' ? 'completados' : ''}</p>
           <p className="text-sm mt-1">
             {filter === 'pending'

@@ -72,7 +72,7 @@ const tabs = [
   {
     href: '/marketing/autopilot',
     label: 'Planificador',
-    icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>📅</span>,
+    icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>🤖</span>,
   },
   {
     href: '/marketing/calendario',

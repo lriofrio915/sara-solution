@@ -423,7 +423,7 @@ export default function PlanificadorPage() {
       {/* Empty state */}
       {!loading && calendars.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-14 text-center">
-          <p className="text-5xl mb-3">📅</p>
+          <p className="text-5xl mb-3">🤖</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sin planes de contenido</h3>
           <p className="text-gray-500 dark:text-slate-300 text-sm max-w-xs mx-auto">
             Elige las plataformas, la frecuencia y genera tu primer calendario editorial con IA.
