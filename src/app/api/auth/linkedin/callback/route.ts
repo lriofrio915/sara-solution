@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
+function appOrigin(): string {
+  const raw = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
+  return raw.replace(/^(https?:\/\/)(?!www\.)/, '$1www.')
+}
+
 // GET /api/auth/linkedin/callback — callback OAuth de LinkedIn
 export async function GET(req: Request) {
+  const origin = appOrigin()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login?error=no_auth`)
+    return NextResponse.redirect(`${origin}/login?error=no_auth`)
   }
 
   const url = new URL(req.url)
@@ -15,12 +21,13 @@ export async function GET(req: Request) {
   const error = url.searchParams.get('error')
 
   if (error || !code) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?error=linkedin_denied`)
+    return NextResponse.redirect(`${origin}/integraciones?error=linkedin_denied`)
   }
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
   const clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-  const redirectUri  = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
+  const redirectUri  = `${origin}/api/auth/linkedin/callback`
+  console.log('[LINKEDIN CB] redirect_uri usado en token exchange:', redirectUri)
 
   try {
     // 1. Intercambiar code por access_token
@@ -71,9 +78,9 @@ export async function GET(req: Request) {
       data: { socialTokens: JSON.stringify(tokens) },
     })
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?success=linkedin`)
+    return NextResponse.redirect(`${origin}/integraciones?success=linkedin`)
   } catch (err) {
     console.error('[LINKEDIN OAUTH]', err)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?error=linkedin_failed`)
+    return NextResponse.redirect(`${origin}/integraciones?error=linkedin_failed`)
   }
 }
