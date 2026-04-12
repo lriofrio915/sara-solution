@@ -6,6 +6,10 @@
  * PATCH /api/integrations/whatsapp/conversations
  *   Body: { id: string; humanMode: boolean }
  *   Toggles humanMode on a specific conversation.
+ *
+ * DELETE /api/integrations/whatsapp/conversations
+ *   Body: { id: string }
+ *   Permanently deletes a conversation.
  */
 
 import { NextResponse } from 'next/server'
@@ -59,6 +63,7 @@ export async function GET() {
         phone,
         humanMode: conv.humanMode,
         messageCount: visible.length,
+        messages: visible,
         lastMessage: last
           ? { role: last.role, content: last.content.slice(0, 120) }
           : null,
@@ -102,6 +107,33 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('PATCH /api/integrations/whatsapp/conversations:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const doctor = await getAuthDoctor(user.id, user.email!)
+    if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
+
+    const body = await req.json() as { id?: string }
+    if (!body.id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+    // Verify ownership before deleting
+    const conv = await prisma.saraConversation.findFirst({
+      where: { id: body.id, doctorId: doctor.id, context: 'whatsapp' },
+    })
+    if (!conv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    await prisma.saraConversation.delete({ where: { id: body.id } })
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('DELETE /api/integrations/whatsapp/conversations:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

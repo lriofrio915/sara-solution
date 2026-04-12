@@ -4,20 +4,21 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Loader2, MessageSquare, User, Bot,
-  UserCheck, RefreshCw, ChevronDown, ChevronUp,
+  UserCheck, RefreshCw, ChevronDown, ChevronUp, Trash2,
 } from 'lucide-react'
+
+type Message = { role: string; content: string }
 
 type ConvSummary = {
   id: string
   phone: string
   humanMode: boolean
   messageCount: number
+  messages: Message[]
   lastMessage: { role: string; content: string } | null
   updatedAt: string
   createdAt: string
 }
-
-type Message = { role: string; content: string }
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -33,8 +34,9 @@ export default function ConversacionesPage() {
   const [convs, setConvs] = useState<ConvSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [fullMessages, setFullMessages] = useState<Record<string, Message[]>>({})
   const [toggling, setToggling] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   const fetchConvs = useCallback(async () => {
     try {
@@ -47,21 +49,8 @@ export default function ConversacionesPage() {
 
   useEffect(() => { fetchConvs() }, [fetchConvs])
 
-  async function expandConv(conv: ConvSummary) {
-    if (expanded === conv.id) { setExpanded(null); return }
-    setExpanded(conv.id)
-    if (fullMessages[conv.id]) return
-
-    // Fetch full messages from the conversations list endpoint —
-    // they come back as the full messages array (we extract them server-side)
-    // For now, re-use the summary — full history requires a separate detail endpoint
-    // Build a placeholder from the summary
-    setFullMessages(prev => ({
-      ...prev,
-      [conv.id]: conv.lastMessage
-        ? [conv.lastMessage as Message]
-        : [],
-    }))
+  function toggleExpand(id: string) {
+    setExpanded(prev => prev === id ? null : id)
   }
 
   async function toggleHumanMode(conv: ConvSummary) {
@@ -76,6 +65,22 @@ export default function ConversacionesPage() {
         c.id === conv.id ? { ...c, humanMode: !c.humanMode } : c,
       ))
     } finally { setToggling(null) }
+  }
+
+  async function deleteConv(id: string) {
+    setDeleting(id)
+    try {
+      await fetch('/api/integrations/whatsapp/conversations', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      setConvs(prev => prev.filter(c => c.id !== id))
+      if (expanded === id) setExpanded(null)
+    } finally {
+      setDeleting(null)
+      setConfirmDelete(null)
+    }
   }
 
   if (loading) {
@@ -186,9 +191,36 @@ export default function ConversacionesPage() {
                   }
                 </button>
 
+                {/* Delete button */}
+                {confirmDelete === conv.id ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => deleteConv(conv.id)}
+                      disabled={deleting === conv.id}
+                      className="text-xs font-semibold px-2 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    >
+                      {deleting === conv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirmar'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(null)}
+                      className="text-xs px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(conv.id)}
+                    title="Eliminar conversación"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+
                 {/* Expand toggle */}
                 <button
-                  onClick={() => expandConv(conv)}
+                  onClick={() => toggleExpand(conv.id)}
                   className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   {expanded === conv.id
@@ -199,27 +231,25 @@ export default function ConversacionesPage() {
               </div>
             </div>
 
-            {/* ── Expanded chat preview ── */}
+            {/* ── Expanded chat ── */}
             {expanded === conv.id && (
               <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-4">
-                {(fullMessages[conv.id] ?? []).length === 0 ? (
+                {conv.messages.length === 0 ? (
                   <p className="text-xs text-gray-400 text-center py-2">Sin mensajes visibles</p>
                 ) : (
-                  <div className="space-y-2">
-                    {(fullMessages[conv.id] ?? [])
-                      .filter(m => !m.content.startsWith('[Sistema:') && m.content !== '[Modo humano activado]')
-                      .map((m, i) => (
-                        <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                          <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
-                            m.role === 'user'
-                              ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-tl-sm'
-                              : 'text-white rounded-tr-sm'
-                          }`}
-                            style={m.role !== 'user' ? { background: 'linear-gradient(135deg, #2563EB, #0D9488)' } : {}}>
-                            {m.content}
-                          </div>
+                  <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    {conv.messages.map((m, i) => (
+                      <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+                        <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap break-words ${
+                          m.role === 'user'
+                            ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-tl-sm'
+                            : 'text-white rounded-tr-sm'
+                        }`}
+                          style={m.role !== 'user' ? { background: 'linear-gradient(135deg, #2563EB, #0D9488)' } : {}}>
+                          {m.content}
                         </div>
-                      ))}
+                      </div>
+                    ))}
                   </div>
                 )}
                 <p className="text-center text-xs text-gray-400 mt-3">
