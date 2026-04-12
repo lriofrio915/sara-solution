@@ -69,6 +69,8 @@ export default function IntegracionesPage() {
   const [qr, setQr] = useState<string | null>(null)
   const [qrLoading, setQrLoading] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [settingWebhook, setSettingWebhook] = useState(false)
+  const [webhookMsg, setWebhookMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Social accounts state
@@ -165,6 +167,24 @@ export default function IntegracionesPage() {
       setError('Error de conexión')
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleSetupWebhook() {
+    setSettingWebhook(true)
+    setWebhookMsg(null)
+    try {
+      const res = await fetch('/api/integrations/whatsapp/setup-webhook', { method: 'POST' })
+      const data = await res.json() as { ok?: boolean; error?: string; webhookUrl?: string }
+      if (!res.ok || data.error) {
+        setWebhookMsg({ ok: false, text: data.error ?? 'Error al configurar webhook' })
+      } else {
+        setWebhookMsg({ ok: true, text: `Webhook activado. Sara recibirá mensajes en: ${data.webhookUrl}` })
+      }
+    } catch {
+      setWebhookMsg({ ok: false, text: 'Error de conexión' })
+    } finally {
+      setSettingWebhook(false)
     }
   }
 
@@ -265,6 +285,27 @@ export default function IntegracionesPage() {
                   Cuando un paciente escriba a este WhatsApp, Sara responderá automáticamente con el conocimiento de tu consultorio: horarios, servicios, precios y más.
                   Puedes personalizar su comportamiento desde <strong>Mi Perfil → Instrucciones para Sara</strong>.
                 </p>
+              </div>
+
+              {/* Webhook setup */}
+              <div className="space-y-2">
+                <button
+                  onClick={handleSetupWebhook}
+                  disabled={settingWebhook}
+                  className="flex items-center gap-2 text-sm text-primary font-semibold hover:opacity-80 disabled:opacity-50 transition-opacity"
+                >
+                  {settingWebhook
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <RefreshCw className="w-4 h-4" />}
+                  Activar / sincronizar agente Sara
+                </button>
+                {webhookMsg && (
+                  <p className={`text-xs rounded-lg px-3 py-2 ${webhookMsg.ok
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                    {webhookMsg.text}
+                  </p>
+                )}
               </div>
 
               <Link

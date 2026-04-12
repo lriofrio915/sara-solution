@@ -27,31 +27,47 @@ const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 
 // ─── Evolution payload types ──────────────────────────────────────────────────
 
+type MsgData = {
+  key?: {
+    remoteJid?: string
+    fromMe?: boolean
+    id?: string
+  }
+  pushName?: string
+  message?: {
+    conversation?: string
+    extendedTextMessage?: { text?: string }
+    imageMessage?: { caption?: string }
+    buttonsResponseMessage?: { selectedDisplayText?: string }
+    listResponseMessage?: { title?: string }
+  }
+  messageType?: string
+}
+
 type EvolutionPayload = {
   event: string
   instance: string
-  data?: {
-    key?: {
-      remoteJid?: string
-      fromMe?: boolean
-      id?: string
-    }
-    pushName?: string
-    message?: {
-      conversation?: string
-      extendedTextMessage?: { text?: string }
-      imageMessage?: { caption?: string }
-    }
-    messageType?: string
-  }
+  // Evolution v2 may send data as object or as array of messages
+  data?: MsgData | MsgData[]
 }
 
-function extractText(payload: EvolutionPayload): string | null {
-  const msg = payload.data?.message
+function getMessageData(payload: EvolutionPayload): MsgData | null {
+  if (!payload.data) return null
+  // Normalize: some Evolution v2 versions wrap in array
+  if (Array.isArray(payload.data)) {
+    return payload.data[0] ?? null
+  }
+  return payload.data
+}
+
+function extractText(data: MsgData): string | null {
+  const msg = data.message
   if (!msg) return null
   return (
     msg.conversation?.trim() ||
     msg.extendedTextMessage?.text?.trim() ||
+    msg.buttonsResponseMessage?.selectedDisplayText?.trim() ||
+    msg.listResponseMessage?.title?.trim() ||
     null
   )
 }
@@ -195,23 +211,28 @@ export async function POST(req: Request) {
 
     const payload = await req.json() as EvolutionPayload
 
-    // Only process incoming text messages
-    if (payload.event !== 'messages.upsert') {
+    // Only process incoming text messages (Evolution sends lowercase or uppercase event names)
+    const event = payload.event?.toLowerCase()
+    if (event !== 'messages.upsert') {
       return NextResponse.json({ ok: true })
     }
-    if (payload.data?.key?.fromMe) {
+
+    const msgData = getMessageData(payload)
+    if (!msgData) return NextResponse.json({ ok: true })
+
+    if (msgData.key?.fromMe) {
       return NextResponse.json({ ok: true }) // ignore outgoing messages
     }
 
-    const messageText = extractText(payload)
+    const messageText = extractText(msgData)
     if (!messageText) {
       return NextResponse.json({ ok: true }) // ignore non-text (audio, images, etc.)
     }
 
     const instanceName = payload.instance
-    const remoteJid = payload.data?.key?.remoteJid ?? ''
+    const remoteJid = msgData.key?.remoteJid ?? ''
     const cleanPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '')
-    const pushName = payload.data?.pushName
+    const pushName = msgData.pushName
 
     if (!cleanPhone) {
       return NextResponse.json({ ok: true })
