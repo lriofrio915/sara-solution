@@ -15,8 +15,8 @@ export async function GET(req: Request) {
   const redirectUri = 'https://www.consultorio.site/api/auth/linkedin/callback'
   console.log('[LINKEDIN] redirect_uri enviado a LinkedIn:', redirectUri)
 
-  // Scopes para LinkedIn API v2
-  const scope = ['openid', 'profile', 'w_member_social'].join(' ')
+  // Scopes básicos — w_member_social requiere producto "Share on LinkedIn" aprobado en Developer Portal
+  const scope = ['openid', 'profile', 'email'].join(' ')
 
   const authUrl = new URL('https://www.linkedin.com/oauth/v2/authorization')
   authUrl.searchParams.set('response_type', 'code')
