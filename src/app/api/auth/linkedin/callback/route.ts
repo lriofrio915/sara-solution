@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const error = url.searchParams.get('error')
 
   if (error || !code) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?tab=redes&error=linkedin_denied`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?error=linkedin_denied`)
   }
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
@@ -71,9 +71,9 @@ export async function GET(req: Request) {
       data: { socialTokens: JSON.stringify(tokens) },
     })
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?tab=redes&success=linkedin_connected`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?success=linkedin`)
   } catch (err) {
     console.error('[LINKEDIN OAUTH]', err)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/profile?tab=redes&error=linkedin_failed`)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/integraciones?error=linkedin_failed`)
   }
 }

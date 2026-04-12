@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Plug, Loader2, CheckCircle2, XCircle, RefreshCw, Trash2, AlertCircle, MessageSquare } from 'lucide-react'
 
@@ -60,6 +61,35 @@ const SOCIAL_CONFIG = {
   },
 } as const
 
+// ── Sub-component that reads search params (must be inside Suspense) ─────────
+
+type BannerMsg = { ok: boolean; text: string }
+
+function OAuthBannerReader({ onBanner }: { onBanner: (b: BannerMsg | null) => void }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const err = searchParams.get('error')
+    if (success === 'linkedin') {
+      onBanner({ ok: true, text: 'LinkedIn conectado correctamente.' })
+      router.replace('/integraciones')
+    } else if (err === 'linkedin_denied') {
+      onBanner({ ok: false, text: 'Conexión cancelada por el usuario.' })
+      router.replace('/integraciones')
+    } else if (err === 'linkedin_failed') {
+      onBanner({ ok: false, text: 'Error al conectar LinkedIn. Intenta de nuevo.' })
+      router.replace('/integraciones')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return null
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function IntegracionesPage() {
   const [status, setStatus] = useState<Status | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,6 +106,9 @@ export default function IntegracionesPage() {
   // Social accounts state
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts | null>(null)
   const [disconnectingSocial, setDisconnectingSocial] = useState<string | null>(null)
+
+  // OAuth result banner (set by OAuthBannerReader)
+  const [oauthBanner, setOauthBanner] = useState<BannerMsg | null>(null)
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -216,6 +249,27 @@ export default function IntegracionesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
+
+      {/* Reads ?success/error params after OAuth redirect — must be in Suspense */}
+      <Suspense fallback={null}>
+        <OAuthBannerReader onBanner={setOauthBanner} />
+      </Suspense>
+
+      {/* ── OAuth result banner ───────────────────────────────────────────────── */}
+      {oauthBanner && (
+        <div className={`mb-6 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium border ${
+          oauthBanner.ok
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-800 dark:text-green-300'
+            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-800 dark:text-red-300'
+        }`}>
+          {oauthBanner.ok
+            ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            : <XCircle className="w-4 h-4 flex-shrink-0" />
+          }
+          {oauthBanner.text}
+          <button onClick={() => setOauthBanner(null)} className="ml-auto text-current opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">

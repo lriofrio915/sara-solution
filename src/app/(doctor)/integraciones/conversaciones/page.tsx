@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Loader2, MessageSquare, User, Bot,
-  UserCheck, RefreshCw, ChevronDown, ChevronUp, Trash2,
+  UserCheck, RefreshCw, ChevronDown, ChevronUp, Trash2, Send,
 } from 'lucide-react'
 
 type Message = { role: string; content: string }
@@ -30,6 +30,47 @@ function timeAgo(dateStr: string) {
   return `hace ${Math.floor(h / 24)}d`
 }
 
+function MessageBubble({ m }: { m: Message }) {
+  const isDoctor = m.content.startsWith('[Doctor]:')
+  const isSara = m.role === 'assistant' && !isDoctor
+  const displayText = isDoctor ? m.content.replace(/^\[Doctor\]:\s*/, '') : m.content
+
+  if (m.role === 'user') {
+    return (
+      <div className="flex gap-2 justify-start">
+        <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-tl-sm text-xs leading-relaxed whitespace-pre-wrap break-words bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+          {displayText}
+        </div>
+      </div>
+    )
+  }
+
+  if (isDoctor) {
+    return (
+      <div className="flex gap-2 justify-end">
+        <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-tr-sm text-xs leading-relaxed whitespace-pre-wrap break-words text-white"
+          style={{ background: 'linear-gradient(135deg, #0D9488, #059669)' }}>
+          <span className="block text-[10px] font-semibold opacity-75 mb-0.5">Tú (Doctor)</span>
+          {displayText}
+        </div>
+      </div>
+    )
+  }
+
+  if (isSara) {
+    return (
+      <div className="flex gap-2 justify-end">
+        <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-tr-sm text-xs leading-relaxed whitespace-pre-wrap break-words text-white"
+          style={{ background: 'linear-gradient(135deg, #2563EB, #0D9488)' }}>
+          {displayText}
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
 export default function ConversacionesPage() {
   const [convs, setConvs] = useState<ConvSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -37,6 +78,8 @@ export default function ConversacionesPage() {
   const [toggling, setToggling] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState<Record<string, string>>({})
+  const [sending, setSending] = useState<string | null>(null)
 
   const fetchConvs = useCallback(async () => {
     try {
@@ -81,6 +124,33 @@ export default function ConversacionesPage() {
       setDeleting(null)
       setConfirmDelete(null)
     }
+  }
+
+  async function sendReply(conv: ConvSummary) {
+    const text = replyText[conv.id]?.trim()
+    if (!text) return
+    setSending(conv.id)
+    try {
+      const res = await fetch('/api/integrations/whatsapp/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: conv.id, text }),
+      })
+      if (res.ok) {
+        const newMsg: Message = { role: 'assistant', content: `[Doctor]: ${text}` }
+        setConvs(prev => prev.map(c =>
+          c.id === conv.id
+            ? {
+                ...c,
+                messages: [...c.messages, newMsg],
+                messageCount: c.messageCount + 1,
+                lastMessage: newMsg,
+              }
+            : c,
+        ))
+        setReplyText(prev => ({ ...prev, [conv.id]: '' }))
+      }
+    } finally { setSending(null) }
   }
 
   if (loading) {
@@ -162,8 +232,10 @@ export default function ConversacionesPage() {
                 </div>
                 {conv.lastMessage && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                    <span className="font-medium">{conv.lastMessage.role === 'user' ? 'Paciente' : 'Sara'}:</span>{' '}
-                    {conv.lastMessage.content}
+                    <span className="font-medium">
+                      {conv.lastMessage.content.startsWith('[Doctor]:') ? 'Tú' : conv.lastMessage.role === 'user' ? 'Paciente' : 'Sara'}:
+                    </span>{' '}
+                    {conv.lastMessage.content.replace(/^\[Doctor\]:\s*/, '')}
                   </p>
                 )}
               </div>
@@ -239,22 +311,39 @@ export default function ConversacionesPage() {
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                     {conv.messages.map((m, i) => (
-                      <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                        <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap break-words ${
-                          m.role === 'user'
-                            ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-tl-sm'
-                            : 'text-white rounded-tr-sm'
-                        }`}
-                          style={m.role !== 'user' ? { background: 'linear-gradient(135deg, #2563EB, #0D9488)' } : {}}>
-                          {m.content}
-                        </div>
-                      </div>
+                      <MessageBubble key={i} m={m} />
                     ))}
                   </div>
                 )}
                 <p className="text-center text-xs text-gray-400 mt-3">
                   {conv.messageCount} mensaje{conv.messageCount !== 1 ? 's' : ''} · iniciado {timeAgo(conv.createdAt)}
                 </p>
+
+                {/* ── Doctor reply input (solo en humanMode) ── */}
+                {conv.humanMode && (
+                  <div className="mt-3 flex gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
+                    <input
+                      value={replyText[conv.id] ?? ''}
+                      onChange={e => setReplyText(prev => ({ ...prev, [conv.id]: e.target.value }))}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(conv) }
+                      }}
+                      placeholder="Escribe tu respuesta al paciente... (Enter para enviar)"
+                      className="flex-1 text-sm px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/40 text-gray-900 dark:text-white placeholder-gray-400"
+                    />
+                    <button
+                      onClick={() => sendReply(conv)}
+                      disabled={sending === conv.id || !replyText[conv.id]?.trim()}
+                      className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+                    >
+                      {sending === conv.id
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <Send className="w-3.5 h-3.5" />
+                      }
+                      Enviar
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
