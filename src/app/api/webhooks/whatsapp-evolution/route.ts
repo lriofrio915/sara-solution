@@ -200,6 +200,11 @@ async function callSara(
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
+// Health check — Evolution may verify the URL before sending events
+export async function GET() {
+  return NextResponse.json({ ok: true, service: 'whatsapp-evolution-webhook' })
+}
+
 export async function POST(req: Request) {
   try {
     // ── Auth: verify apikey header matches EVOLUTION_API_KEY if set ──────────

@@ -51,7 +51,7 @@ export async function POST() {
         webhook: {
           enabled: true,
           url: webhookUrl,
-          byEvents: true,
+          byEvents: false,   // false = POST to root URL; true = POST to {url}/{EVENT_NAME}
           base64: false,
           events: ['MESSAGES_UPSERT'],
         },
