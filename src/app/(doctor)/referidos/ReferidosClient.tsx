@@ -199,12 +199,18 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
               Recibes el 30% del valor del plan contratado por tu referido. Pago único al momento de su suscripción.
             </p>
             <div className="mt-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl space-y-1">
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan mensual ($29) → ~$8.70</p>
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan anual ($280) → ~$84</p>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan mensual ($79) → ~$23.70 *</p>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan anual ($649) → ~$194.70 *</p>
             </div>
           </button>
         </div>
         <p className="text-xs text-gray-400 dark:text-slate-500 mt-4 flex items-start gap-1.5">
+          <Info size={12} className="flex-shrink-0 mt-0.5 text-amber-400" />
+          <span>
+            * Los valores son referenciales y están sujetos a cambios. Hotmart cobra una comisión por procesamiento de pago, por lo que el monto real recibido puede ser menor al indicado.
+          </span>
+        </p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 flex items-start gap-1.5">
           <Info size={12} className="flex-shrink-0 mt-0.5" />
           <span>
             Para canjear tu recompensa en efectivo, contáctanos en{' '}
