@@ -16,6 +16,7 @@ interface BrandProfile {
   instagramUrl: string | null
   facebookUrl: string | null
   linkedinUrl: string | null
+  tiktokUrl: string | null
   logoUrl: string | null
   images: BrandImage[]
 }
@@ -61,6 +62,7 @@ export default function BrandingPage() {
   const [instagramUrl, setInstagramUrl] = useState('')
   const [facebookUrl, setFacebookUrl] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [tiktokUrl, setTiktokUrl] = useState('')
   const [images, setImages] = useState<BrandImage[]>([])
   const [imageCategory, setImageCategory] = useState('general')
   const [imageDescription, setImageDescription] = useState('')
@@ -84,6 +86,7 @@ export default function BrandingPage() {
           setInstagramUrl(b.instagramUrl ?? '')
           setFacebookUrl(b.facebookUrl ?? '')
           setLinkedinUrl(b.linkedinUrl ?? '')
+          setTiktokUrl(b.tiktokUrl ?? '')
           setImages(b.images ?? [])
         }
       })
@@ -113,6 +116,7 @@ export default function BrandingPage() {
           instagramUrl: instagramUrl || null,
           facebookUrl: facebookUrl || null,
           linkedinUrl: linkedinUrl || null,
+          tiktokUrl: tiktokUrl || null,
         }),
       })
       if (!res.ok) throw new Error('Error al guardar')
@@ -274,6 +278,11 @@ export default function BrandingPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">LinkedIn URL</label>
               <input type="url" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)}
                 placeholder="https://linkedin.com/in/tu_perfil" className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">TikTok URL</label>
+              <input type="url" value={tiktokUrl} onChange={e => setTiktokUrl(e.target.value)}
+                placeholder="https://tiktok.com/@tu_perfil" className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
           </div>
         </div>

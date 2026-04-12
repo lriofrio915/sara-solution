@@ -20,6 +20,7 @@ type SocialAccounts = {
   instagram: SocialAccount
   facebook: SocialAccount
   linkedin: SocialAccount
+  tiktok: SocialAccount
 }
 
 const SOCIAL_CONFIG = {
@@ -59,6 +60,18 @@ const SOCIAL_CONFIG = {
       </svg>
     ),
   },
+  tiktok: {
+    label: 'TikTok',
+    desc: 'Publica videos cortos de tu consultorio y especialidad',
+    oauthPath: '/api/auth/tiktok',
+    bg: 'bg-black',
+    cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/40 dark:to-gray-800/40 border-gray-200 dark:border-gray-700/50',
+    icon: (
+      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.28 8.28 0 004.84 1.55V6.79a4.85 4.85 0 01-1.07-.1z"/>
+      </svg>
+    ),
+  },
 } as const
 
 // ── Sub-component that reads search params (must be inside Suspense) ─────────
@@ -75,11 +88,17 @@ function OAuthBannerReader({ onBanner }: { onBanner: (b: BannerMsg | null) => vo
     if (success === 'linkedin') {
       onBanner({ ok: true, text: 'LinkedIn conectado correctamente.' })
       router.replace('/integraciones')
-    } else if (err === 'linkedin_denied') {
+    } else if (success === 'tiktok') {
+      onBanner({ ok: true, text: 'TikTok conectado correctamente.' })
+      router.replace('/integraciones')
+    } else if (err === 'linkedin_denied' || err === 'tiktok_denied') {
       onBanner({ ok: false, text: 'Conexión cancelada por el usuario.' })
       router.replace('/integraciones')
     } else if (err === 'linkedin_failed') {
       onBanner({ ok: false, text: 'Error al conectar LinkedIn. Intenta de nuevo.' })
+      router.replace('/integraciones')
+    } else if (err === 'tiktok_failed') {
+      onBanner({ ok: false, text: 'Error al conectar TikTok. Intenta de nuevo.' })
       router.replace('/integraciones')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

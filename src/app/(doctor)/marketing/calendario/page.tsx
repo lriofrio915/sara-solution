@@ -142,7 +142,7 @@ export default function CalendarioPage() {
           <div className="flex rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden">
             {VIEW_OPTIONS.map(o => (
               <button key={o.value} onClick={() => setView(o.value as 'list' | 'week')}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${view === o.value ? 'bg-primary text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                className={`px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${view === o.value ? 'bg-primary text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                 {o.label}
               </button>
             ))}

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
   Users, CalendarDays, CalendarCheck2, ClipboardList,
-  FileText, FlaskConical, Pill, Bell, TrendingUp,
+  FileText, FlaskConical, Pill, AlarmClock, TrendingUp,
   TrendingDown, Minus, UserPlus, CheckCircle2, XCircle,
   Clock, AlertCircle,
 } from 'lucide-react'
@@ -255,7 +255,7 @@ export default async function DashboardPage() {
     const onboardingSteps = [
       { done: !!doctor.bio, label: 'Completa tu perfil', href: '/onboarding' },
       { done: totalPatients > 0, label: 'Agrega tu primer paciente', href: '/patients/new' },
-      { done: igConnected, label: 'Conecta Instagram', href: '/profile' },
+      { done: igConnected, label: 'Conecta tus RRSS', href: '/integraciones' },
     ]
     const onboardingDoneCount = onboardingSteps.filter(s => s.done).length
     const showChecklist = onboardingDoneCount < 3
@@ -573,7 +573,7 @@ export default async function DashboardPage() {
             </div>
             {upcomingReminders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <Bell size={28} className="text-gray-300 dark:text-gray-600 mb-2" />
+                <AlarmClock size={28} className="text-gray-300 dark:text-gray-600 mb-2" />
                 <p className="text-xs text-gray-400">Sin recordatorios pendientes</p>
               </div>
             ) : (

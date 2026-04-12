@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
-  User, Bell, BookOpen, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
+  User, Bell, AlarmClock, BookOpen, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
   ChevronsUpDown, Plug,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
@@ -44,7 +44,7 @@ const clinicalItems = [
 const adminItems = [
   { href: '/leads',      icon: UserPlus,    label: 'Leads' },
   { href: '/marketing',  icon: Megaphone,   label: 'Marketing' },
-  { href: '/reminders',  icon: Bell,        label: 'Recordatorios' },
+  { href: '/reminders',  icon: AlarmClock,  label: 'Recordatorios' },
   { href: '/billing',    icon: Receipt,     label: 'Facturación' },
 ]
 
@@ -83,16 +83,20 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   const [open, setOpen] = useState(false)
   const [gearOpen, setGearOpen] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [bellOpen, setBellOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
+  const [notifCount, setNotifCount] = useState(0)
+  const [notifItems, setNotifItems] = useState<{ type: string; label: string; href: string }[]>([])
   const pathname = usePathname()
   const router = useRouter()
   const gearRef = useRef<HTMLDivElement>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
+  const bellRef = useRef<HTMLDivElement>(null)
 
   // Close drawer on route change
   useEffect(() => { setOpen(false); setGearOpen(false); setSwitcherOpen(false) }, [pathname])
 
-  // Close gear menu on outside click
+  // Close gear/bell menus on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (gearRef.current && !gearRef.current.contains(e.target as Node)) {
@@ -101,9 +105,28 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
         setSwitcherOpen(false)
       }
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setBellOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Fetch notification count on mount + poll every 60s
+  useEffect(() => {
+    function fetchNotifs() {
+      fetch('/api/notifications/count')
+        .then(r => r.json())
+        .then(d => {
+          if (d?.count !== undefined) setNotifCount(d.count)
+          if (d?.items) setNotifItems(d.items)
+        })
+        .catch(() => {})
+    }
+    fetchNotifs()
+    const timer = setInterval(fetchNotifs, 60000)
+    return () => clearInterval(timer)
   }, [])
 
   async function handleSwitchDoctor(doctorId: string) {
@@ -135,6 +158,47 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  const BellBadge = () => (
+    <div ref={bellRef} className="relative">
+      <button
+        onClick={() => setBellOpen(prev => !prev)}
+        className="relative p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        aria-label="Notificaciones"
+      >
+        <Bell className="w-5 h-5" />
+        {notifCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none">
+            {notifCount > 99 ? '99+' : notifCount}
+          </span>
+        )}
+      </button>
+      {bellOpen && (
+        <div className="absolute right-0 top-10 z-50 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 overflow-hidden">
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-4 py-2">Notificaciones</p>
+          {notifItems.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500 px-4 py-3">Sin notificaciones pendientes</p>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              {notifItems.map((item, i) => (
+                <Link
+                  key={i}
+                  href={item.href}
+                  onClick={() => setBellOpen(false)}
+                  className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <span className="mt-0.5 text-base flex-shrink-0">
+                    {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : '💬'}
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 
   const AvatarEl = ({ size = 9 }: { size?: number }) => {
     const cls = `w-${size} h-${size} rounded-full flex-shrink-0`
@@ -388,7 +452,10 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between gap-3">
             <SaraLogo size="sm" />
-            <DarkModeToggle />
+            <div className="flex items-center gap-1">
+              <BellBadge />
+              <DarkModeToggle />
+            </div>
           </div>
         </div>
 
@@ -451,6 +518,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         <SaraLogo size="sm" />
 
         <div className="flex items-center gap-2">
+          <BellBadge />
           <DarkModeToggle />
           <Link href="/profile" aria-label="Mi perfil">
             <AvatarEl size={9} />

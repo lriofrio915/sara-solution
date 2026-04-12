@@ -31,6 +31,7 @@ export default async function ReferidosPage() {
       name: true,
       referralCode: true,
       freeMonthsBalance: true,
+      rewardPreference: true,
       plan: true,
       givenReferrals: {
         orderBy: { createdAt: 'desc' },
@@ -81,6 +82,7 @@ export default async function ReferidosPage() {
     <ReferidosClient
       referralCode={referralCode}
       freeMonthsBalance={doctor.freeMonthsBalance}
+      rewardPreference={doctor.rewardPreference ?? 'FREE_MONTH'}
       doctorName={doctor.name}
       stats={{ total, rewarded, pending }}
       referrals={referrals}

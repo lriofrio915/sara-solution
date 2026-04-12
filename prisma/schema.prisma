@@ -152,7 +152,10 @@ model Doctor {
   signatureEncPass String?  // AES-256-GCM encrypted .p12 password (hex)
 
   // Redes Sociales — tokens OAuth (AES-256-GCM encriptado)
-  socialTokens     String?  @db.Text  // JSON: {instagram:{accessToken,userId,expiresAt}, facebook:{...}, linkedin:{...}}
+  socialTokens     String?  @db.Text  // JSON: {instagram:{accessToken,userId,expiresAt}, facebook:{...}, linkedin:{...}, tiktok:{...}}
+
+  // Referidos — preferencia de recompensa
+  rewardPreference String   @default("FREE_MONTH")  // "FREE_MONTH" | "CASH"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -543,6 +546,7 @@ model BrandProfile {
   instagramUrl   String?
   facebookUrl    String?
   linkedinUrl    String?
+  tiktokUrl      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

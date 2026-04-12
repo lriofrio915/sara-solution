@@ -26,6 +26,7 @@ export async function GET() {
     instagram: { connected: !!tokens.instagram?.accessToken, userId: tokens.instagram?.userId ?? null, expiresAt: tokens.instagram?.expiresAt ?? null },
     facebook:  { connected: !!tokens.facebook?.accessToken,  userId: tokens.facebook?.userId ?? null,  expiresAt: tokens.facebook?.expiresAt ?? null },
     linkedin:  { connected: !!tokens.linkedin?.accessToken,  userId: tokens.linkedin?.userId ?? null,  expiresAt: tokens.linkedin?.expiresAt ?? null },
+    tiktok:    { connected: !!tokens.tiktok?.accessToken,    userId: tokens.tiktok?.userId ?? null,    expiresAt: tokens.tiktok?.expiresAt ?? null },
   }
 
   return NextResponse.json({ accounts })
@@ -38,7 +39,7 @@ export async function DELETE(req: Request) {
 
   const url = new URL(req.url)
   const platform = url.searchParams.get('platform')
-  if (!platform || !['instagram', 'facebook', 'linkedin'].includes(platform)) {
+  if (!platform || !['instagram', 'facebook', 'linkedin', 'tiktok'].includes(platform)) {
     return NextResponse.json({ error: 'Plataforma inválida' }, { status: 400 })
   }
 
