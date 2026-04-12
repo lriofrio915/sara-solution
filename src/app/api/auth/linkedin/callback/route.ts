@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-function appOrigin(): string {
-  const raw = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
-  return raw.replace(/^(https?:\/\/)(?!www\.)/, '$1www.')
+function originFromRequest(req: Request): string {
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || ''
+  const proto = req.headers.get('x-forwarded-proto') || 'https'
+  return `${proto}://${host}`
 }
 
 // GET /api/auth/linkedin/callback — callback OAuth de LinkedIn
 export async function GET(req: Request) {
-  const origin = appOrigin()
+  const origin = originFromRequest(req)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -26,8 +27,8 @@ export async function GET(req: Request) {
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
   const clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-  const redirectUri  = `${origin}/api/auth/linkedin/callback`
-  console.log('[LINKEDIN CB] redirect_uri usado en token exchange:', redirectUri)
+  const redirectUri = `${origin}/api/auth/linkedin/callback`
+  console.log('[LINKEDIN CB] origin:', origin, '| redirect_uri:', redirectUri)
 
   try {
     // 1. Intercambiar code por access_token

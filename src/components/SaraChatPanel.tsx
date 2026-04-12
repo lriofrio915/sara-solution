@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import DOMPurify from 'isomorphic-dompurify'
 import { X, Trash2, BookOpen, Mic, MicOff } from 'lucide-react'
 
 // Web Speech API type shim
@@ -79,10 +78,8 @@ function renderMarkdown(text: string): string {
     }
   }
   if (inList) result.push('</ul>')
-  return DOMPurify.sanitize(result.join(''), {
-    ALLOWED_TAGS: ['strong', 'em', 'code', 'h2', 'h3', 'ul', 'li', 'p', 'br'],
-    ALLOWED_ATTR: ['class'],
-  })
+  // Input is HTML-escaped before tags are added, so the output is safe without a third-party sanitizer.
+  return result.join('')
 }
 
 function SaraAvatar({ size = 8 }: { size?: number }) {
