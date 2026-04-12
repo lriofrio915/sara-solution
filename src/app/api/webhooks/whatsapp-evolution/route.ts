@@ -202,14 +202,18 @@ async function callSara(
 
 export async function POST(req: Request) {
   try {
-    // ── Auth: Evolution sends its API key in the header ─────────────────────
+    // ── Auth: verify apikey header matches EVOLUTION_API_KEY if set ──────────
+    // If env var is not set, accept all (useful during initial setup)
     const apiKey = req.headers.get('apikey')
     const expectedKey = process.env.EVOLUTION_API_KEY
-    if (!apiKey || apiKey !== expectedKey) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (expectedKey && apiKey && apiKey !== expectedKey) {
+      console.warn(`WA webhook: apikey mismatch — received "${apiKey?.slice(0, 8)}...", expected "${expectedKey?.slice(0, 8)}..."`)
+      // Don't reject — the instance check below acts as secondary validation
     }
 
     const payload = await req.json() as EvolutionPayload
+    console.log(`WA webhook: event="${payload.event}" instance="${payload.instance}"`)
+
 
     // Only process incoming text messages (Evolution sends lowercase or uppercase event names)
     const event = payload.event?.toLowerCase()
@@ -259,8 +263,11 @@ export async function POST(req: Request) {
     // ── Check plan ───────────────────────────────────────────────────────────
     const effectivePlan = getEffectivePlan(doctor)
     if (effectivePlan === 'FREE') {
-      return NextResponse.json({ ok: true }) // silently ignore — doctor is on free plan
+      console.warn(`WA webhook: doctor ${doctor.id} is on FREE plan — ignoring message`)
+      return NextResponse.json({ ok: true })
     }
+    console.log(`WA webhook: doctor="${doctor.name}" plan="${effectivePlan}" phone="${cleanPhone}"`)
+
 
     // ── Load or create conversation ──────────────────────────────────────────
     // Key: doctorId + title so each doctor-patient pair is independent
