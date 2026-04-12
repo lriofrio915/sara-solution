@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ github.run_number }}
-          path: ${{ env.BACKUP_FILE }}
+          path: "sara_backup_*.sql.gz"
           retention-days: 90
 
       - name: Notify on failure
