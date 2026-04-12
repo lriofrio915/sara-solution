@@ -34,11 +34,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Evolution API no configurada en el servidor' }, { status: 503 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.INTERNAL_APP_URL ?? ''
-    if (!appUrl) {
+    const rawUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.INTERNAL_APP_URL ?? ''
+    if (!rawUrl) {
       return NextResponse.json({ error: 'APP_URL no configurada en el servidor' }, { status: 503 })
     }
-
+    // Ensure www — Vercel redirects consultorio.site → www.consultorio.site with 307
+    // but Evolution doesn't follow POST redirects, so we must use the final URL directly
+    const appUrl = rawUrl.replace(/^https?:\/\/(?!www\.)/, (m) => m + 'www.')
     const webhookUrl = `${appUrl}/api/webhooks/whatsapp-evolution`
     const instanceName = doctor.evolutionInstance
 
