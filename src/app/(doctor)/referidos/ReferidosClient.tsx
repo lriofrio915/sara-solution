@@ -74,6 +74,18 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
     }
   }
 
+  const planPrice: Record<string, number> = {
+    PRO_MENSUAL: 79,
+    PRO_ANUAL: 649,
+    ENTERPRISE: 0,
+    FREE: 0,
+    TRIAL: 0,
+  }
+
+  const cashBalance = referrals
+    .filter(r => r.status === 'REWARDED')
+    .reduce((sum, r) => sum + (planPrice[r.referredPlan] ?? 0) * 0.3, 0)
+
   const planBadge: Record<string, string> = {
     FREE:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
     TRIAL:       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -113,7 +125,6 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
           { icon: Users, label: 'Total referidos', value: stats.total, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
           { icon: Check, label: 'Suscritos', value: stats.rewarded, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
           { icon: Clock, label: 'Pendientes', value: stats.pending, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-          { icon: Wallet, label: 'Meses acumulados', value: freeMonthsBalance, color: 'text-primary', bg: 'bg-primary/5 dark:bg-primary/10' },
         ].map(({ icon: Icon, label, value, color, bg }) => (
           <div key={label} className={`${bg} rounded-2xl p-4`}>
             <div className="flex items-center gap-2 mb-2">
@@ -123,24 +134,57 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
             <p className={`text-3xl font-bold ${color}`}>{value}</p>
           </div>
         ))}
+        {/* Dynamic 4th card: meses or cash */}
+        <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Wallet size={16} className="text-primary" />
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+              {preference === 'CASH' ? 'Comisión acumulada' : 'Meses acumulados'}
+            </p>
+          </div>
+          {preference === 'CASH' ? (
+            <p className="text-3xl font-bold text-primary">${cashBalance.toFixed(2)}</p>
+          ) : (
+            <p className="text-3xl font-bold text-primary">{freeMonthsBalance}</p>
+          )}
+        </div>
       </div>
 
-      {/* Meses acumulados banner */}
-      {freeMonthsBalance > 0 && (
-        <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-5 text-white flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <Star size={24} />
+      {/* Acumulado banner — meses o comisión según preferencia */}
+      {preference === 'FREE_MONTH' ? (
+        freeMonthsBalance > 0 && (
+          <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-5 text-white flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Star size={24} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-lg leading-tight">
+                Tienes {freeMonthsBalance} mes{freeMonthsBalance !== 1 ? 'es' : ''} gratis acumulado{freeMonthsBalance !== 1 ? 's' : ''}
+              </p>
+              <p className="text-blue-100 text-sm mt-0.5">
+                Se aplicarán como descuento en tu próxima renovación. Contáctanos para canjearlo.
+              </p>
+            </div>
+            <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-lg leading-tight">
-              Tienes {freeMonthsBalance} mes{freeMonthsBalance !== 1 ? 'es' : ''} gratis acumulado{freeMonthsBalance !== 1 ? 's' : ''}
-            </p>
-            <p className="text-blue-100 text-sm mt-0.5">
-              Se aplicarán como descuento en tu próxima renovación. Contáctanos para canjearlo.
-            </p>
+        )
+      ) : (
+        cashBalance > 0 && (
+          <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-5 text-white flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Wallet size={24} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-lg leading-tight">
+                Tienes ${cashBalance.toFixed(2)} en comisiones acumuladas
+              </p>
+              <p className="text-blue-100 text-sm mt-0.5">
+                Escríbenos a <span className="font-semibold">soporte@consultorio.site</span> para gestionar tu pago.
+              </p>
+            </div>
+            <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
           </div>
-          <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
-        </div>
+        )
       )}
 
       {/* Elige tu recompensa */}
