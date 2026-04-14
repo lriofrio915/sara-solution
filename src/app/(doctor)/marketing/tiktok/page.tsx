@@ -46,6 +46,9 @@ export default function TikTokPage() {
   const [editHashtags, setEditHashtags] = useState('')
   const [copied, setCopied] = useState(false)
   const [marked, setMarked] = useState(false)
+  const [scheduleDate, setScheduleDate] = useState('')
+  const [scheduling, setScheduling] = useState(false)
+  const [scheduled, setScheduled] = useState(false)
   const [focus, setFocus] = useState('')
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [specialtyLoading, setSpecialtyLoading] = useState(true)
@@ -132,6 +135,21 @@ export default function TikTokPage() {
       body: JSON.stringify({ status: 'PUBLISHED' }),
     })
     setMarked(true)
+  }
+
+  async function handleSchedule() {
+    if (!script || !scheduleDate) return
+    setScheduling(true)
+    try {
+      await fetch(`/api/marketing/posts/${script.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: new Date(scheduleDate).toISOString() }),
+      })
+      setScheduled(true)
+    } finally {
+      setScheduling(false)
+    }
   }
 
   return (

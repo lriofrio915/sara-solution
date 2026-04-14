@@ -50,6 +50,9 @@ export default function InstagramPage() {
   const [editHashtags, setEditHashtags] = useState('')
   const [copied, setCopied] = useState(false)
   const [marked, setMarked] = useState(false)
+  const [scheduleDate, setScheduleDate] = useState('')
+  const [scheduling, setScheduling] = useState(false)
+  const [scheduled, setScheduled] = useState(false)
   const [focus, setFocus] = useState('')
   const [showSchedule, setShowSchedule] = useState(false)
   const [scheduledAt, setScheduledAt] = useState<string | null>(null)
@@ -123,6 +126,21 @@ export default function InstagramPage() {
       body: JSON.stringify({ status: 'PUBLISHED' }),
     })
     setMarked(true)
+  }
+
+  async function handleSchedule() {
+    if (!post || !scheduleDate) return
+    setScheduling(true)
+    try {
+      await fetch(`/api/marketing/posts/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: new Date(scheduleDate).toISOString() }),
+      })
+      setScheduled(true)
+    } finally {
+      setScheduling(false)
+    }
   }
 
   const imageAspect = format === 'STORY' || format === 'REEL' ? '9/16' : '1/1'
