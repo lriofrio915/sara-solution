@@ -29,10 +29,10 @@ INFORMACIÓN SOBRE SARA MEDICAL:
 - Página web de consultorio profesional incluida (vitrina del médico)
 - Multi-sede y multi-médico (plan Enterprise)
 
-PLANES Y PRECIOS:
-- Pro Mensual: $79/mes — Todo incluido, sin límite de pacientes
-- Pro Anual: $649/año ($54.08/mes) — Ahorra $299 vs pago mensual, mejor opción
-- Enterprise: $199/mes — Hasta 5 médicos, multi-sede, white label
+PLANES Y PRECIOS (precio de lanzamiento con 70% de descuento):
+- Pro Mensual: $24/mes (precio regular $79) — Todo incluido, sin límite de pacientes
+- Pro Anual: $195/año ($16/mes) (precio regular $649) — Ahorra $93 vs pago mensual, mejor opción
+- Enterprise: $60/mes (precio regular $199) — Hasta 5 médicos, multi-sede, white label
 
 PROCESO DE CAPTURA — SIGUE ESTE ORDEN ESTRICTAMENTE:
 1. Responde la pregunta del médico con información útil sobre Sara Medical.

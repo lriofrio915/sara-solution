@@ -42,31 +42,15 @@ const tabs = [
     icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>🎨</span>,
   },
   {
-    href: '/marketing/instagram',
-    label: 'Instagram',
+    href: '/marketing/social',
+    label: 'Redes Sociales',
     icon: (active: boolean) => (
-      <InstagramIcon className={`w-4 h-4 ${active ? 'text-pink-500' : 'text-gray-400'}`} />
-    ),
-  },
-  {
-    href: '/marketing/facebook',
-    label: 'Facebook',
-    icon: (active: boolean) => (
-      <FacebookIcon className={`w-4 h-4 ${active ? 'text-blue-500' : 'text-gray-400'}`} />
-    ),
-  },
-  {
-    href: '/marketing/tiktok',
-    label: 'TikTok',
-    icon: (active: boolean) => (
-      <TikTokIcon className={`w-4 h-4 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`} />
-    ),
-  },
-  {
-    href: '/marketing/linkedin/trending',
-    label: 'LinkedIn',
-    icon: (active: boolean) => (
-      <LinkedInIcon className={`w-4 h-4 ${active ? 'text-blue-700' : 'text-gray-400'}`} />
+      <span className="flex items-center gap-0.5">
+        <InstagramIcon className={`w-3 h-3 ${active ? 'text-pink-500' : 'text-gray-400'}`} />
+        <FacebookIcon className={`w-3 h-3 ${active ? 'text-blue-500' : 'text-gray-400'}`} />
+        <TikTokIcon className={`w-3 h-3 ${active ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`} />
+        <LinkedInIcon className={`w-3 h-3 ${active ? 'text-blue-700' : 'text-gray-400'}`} />
+      </span>
     ),
   },
   {

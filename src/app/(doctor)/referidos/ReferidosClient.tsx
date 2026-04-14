@@ -243,8 +243,8 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
               Recibes el 30% del valor del plan contratado por tu referido. Pago único al momento de su suscripción.
             </p>
             <div className="mt-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl space-y-1">
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan mensual ($79) → ~$23.70 *</p>
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan anual ($649) → ~$194.70 *</p>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan mensual ($24) → ~$7.20 *</p>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Plan anual ($195) → ~$58.50 *</p>
             </div>
           </button>
         </div>

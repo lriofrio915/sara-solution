@@ -19,7 +19,7 @@ const monthlyFeatures = [
 ]
 
 const annualExtras = [
-  { icon: '💰', text: 'Equivale a $54.08/mes — ahorra $299 al año' },
+  { icon: '💰', text: 'Equivale a $16/mes — ahorras $93 al año' },
   { icon: '🎁', text: 'Onboarding personalizado incluido ($150 de valor)' },
   { icon: '⭐', text: 'Soporte VIP prioritario todo el año' },
   { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades' },
@@ -79,10 +79,14 @@ export default async function UpgradePage() {
         {/* Plan Pro Mensual */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8 flex flex-col">
           <div className="mb-6">
-            <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full mb-3">Más popular</span>
+            <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full mb-2">Más popular</span>
+            <div className="mb-2">
+              <span className="inline-block bg-green-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">🎉 70% OFF — Precio de Lanzamiento</span>
+            </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Pro Mensual</h2>
-            <div className="flex items-end gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$79</span>
+            <div className="flex items-end gap-1.5 mb-1">
+              <span className="text-xl font-medium text-gray-400 line-through">$79</span>
+              <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$24</span>
               <span className="text-gray-400 text-sm mb-1">/mes</span>
             </div>
             <p className="text-sm text-gray-500 dark:text-slate-400">Sin compromisos. Cancela cuando quieras.</p>
@@ -111,15 +115,19 @@ export default async function UpgradePage() {
           style={{ background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' }}
         >
           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-            ⭐ Mejor oferta — Ahorras $299
+            ⭐ Mejor oferta — Ahorras $93 al año
           </div>
           <div className="mb-6">
+            <div className="mb-2">
+              <span className="inline-block bg-green-400 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">🎉 70% OFF — Precio de Lanzamiento</span>
+            </div>
             <h2 className="text-xl font-bold mb-1">Pro Anual</h2>
-            <div className="flex items-end gap-1 mb-1">
-              <span className="text-4xl font-extrabold">$649</span>
+            <div className="flex items-end gap-1.5 mb-1">
+              <span className="text-xl font-medium text-blue-300 line-through">$649</span>
+              <span className="text-4xl font-extrabold">$195</span>
               <span className="text-blue-200 text-sm mb-1">/año</span>
             </div>
-            <p className="text-blue-200 text-sm">Equivale a $54.08/mes</p>
+            <p className="text-blue-200 text-sm">Equivale a $16/mes</p>
           </div>
           <ul className="space-y-2.5 mb-8 flex-1">
             <li className="flex items-start gap-2.5 text-sm text-blue-100">

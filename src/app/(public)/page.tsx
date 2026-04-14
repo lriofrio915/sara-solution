@@ -692,7 +692,8 @@ function HowItWorks() {
 const plans = [
   {
     name: 'Pro Mensual',
-    price: '$79',
+    price: '$24',
+    priceOld: '$79',
     period: '/mes',
     desc: 'Todo el poder de Sara Medical para tu consultorio, sin compromisos.',
     highlight: false,
@@ -712,10 +713,11 @@ const plans = [
   },
   {
     name: 'Pro Anual',
-    price: '$649',
-    priceMonthly: '$54.08',
+    price: '$195',
+    priceOld: '$649',
+    priceMonthly: '$16',
     period: '/año',
-    savings: 'Ahorras $299 al año',
+    savings: 'Ahorras $93 al año',
     desc: 'La forma más inteligente de crecer tu consultorio. Paga menos, obtén más.',
     highlight: true,
     badge: '⭐ Mejor oferta',
@@ -723,7 +725,7 @@ const plans = [
     checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
-      { icon: '💰', text: 'Solo $54.08/mes — ahorras $299 al año.' },
+      { icon: '💰', text: 'Solo $16/mes — ahorras $93 al año.' },
       { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido.' },
       { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades IA.' },
       { icon: '⚡', text: 'Soporte VIP con respuesta prioritaria todo el año.' },
@@ -734,10 +736,11 @@ const plans = [
   },
   {
     name: 'Enterprise',
-    price: '$199',
+    price: '$60',
+    priceOld: '$199',
     period: '/mes',
     priceSubtitle: 'hasta 5 médicos',
-    priceNote: '+$25/mes por médico adicional',
+    priceNote: '+$8/mes por médico adicional',
     desc: 'La solución completa para clínicas y grupos médicos con múltiples sedes.',
     highlight: false,
     badge: null,
@@ -795,10 +798,20 @@ function Pricing() {
               )}
 
               <div className="mb-6">
+                <div className="mb-2">
+                  <span className="inline-block bg-green-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    🎉 70% OFF — Precio de Lanzamiento
+                  </span>
+                </div>
                 <p className={`font-bold text-lg mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                   {plan.name}
                 </p>
 
+                {'priceOld' in plan && plan.priceOld && (
+                  <span className={`text-base font-medium line-through ${plan.highlight ? 'text-blue-300' : 'text-gray-400'}`}>
+                    {plan.priceOld as string}
+                  </span>
+                )}
                 <div className="flex items-end gap-1 mb-1">
                   <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                     {plan.price}
