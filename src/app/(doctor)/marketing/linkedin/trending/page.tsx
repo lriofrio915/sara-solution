@@ -58,14 +58,8 @@ export default function LinkedInTrendingPage() {
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
   const [markingPublished, setMarkingPublished] = useState(false)
-<<<<<<< HEAD
   const [showSchedule, setShowSchedule] = useState(false)
   const [scheduledAt, setScheduledAt] = useState<string | null>(null)
-=======
-  const [scheduleDate, setScheduleDate] = useState('')
-  const [scheduling, setScheduling] = useState(false)
-  const [scheduled, setScheduled] = useState(false)
->>>>>>> 9266e82 (feat(marketing): add schedule publication feature to social media pages)
 
   const [isAdmin, setIsAdmin] = useState(false)
   const [isAssistant, setIsAssistant] = useState(false)
