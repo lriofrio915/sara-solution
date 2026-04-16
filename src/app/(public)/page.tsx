@@ -692,14 +692,15 @@ function HowItWorks() {
 const plans = [
   {
     name: 'Pro Mensual',
-    price: '$24',
-    priceOld: '$79',
+    price: '$29',
+    priceOld: '$89',
     period: '/mes',
     desc: 'Todo el poder de Sara Medical para tu consultorio, sin compromisos.',
     highlight: false,
-    badge: 'Más popular',
-    badgeBg: 'bg-primary',
+    badge: '🎉 70% OFF — Precio de Lanzamiento',
+    badgeBg: 'bg-green-500',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
+    priceNormalText: 'Precio normal: $89/mes',
     features: [
       { icon: '👥', text: 'Pacientes, citas y fichas clínicas ilimitadas.' },
       { icon: '🤖', text: 'Sara IA en WhatsApp Business — atiende 24/7.' },
@@ -713,42 +714,42 @@ const plans = [
   },
   {
     name: 'Pro Anual',
-    price: '$195',
-    priceOld: '$649',
-    priceMonthly: '$16',
+    price: '$249',
+    priceOld: '$1,068',
+    priceMonthly: '$20.75',
     period: '/año',
-    savings: 'Ahorras $93 al año',
-    desc: 'La forma más inteligente de crecer tu consultorio. Paga menos, obtén más.',
+    savings: 'Ahorras $99 al año vs precio normal',
+    desc: 'La forma más inteligente de crecer tu consultorio.',
     highlight: true,
     badge: '⭐ Mejor oferta',
     badgeBg: 'bg-accent',
     checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
-      { icon: '💰', text: 'Solo $16/mes — ahorras $93 al año.' },
+      { icon: '💰', text: 'Solo $20.75/mes — ahorras $99 al año.' },
       { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido.' },
       { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades IA.' },
       { icon: '⚡', text: 'Soporte VIP con respuesta prioritaria todo el año.' },
-      { icon: '👨‍💻', text: 'Desarrollador asignado para ti: resuelve dudas técnicas, escucha tus necesidades y las convierte en mejoras reales del software.' },
+      { icon: '🎯', text: 'Canal directo de feedback que impacta el roadmap del producto.' },
     ],
     cta: 'Elegir Plan Anual',
     ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
   },
   {
     name: 'Enterprise',
-    price: '$60',
+    price: '$129',
     priceOld: '$199',
     period: '/mes',
     priceSubtitle: 'hasta 5 médicos',
-    priceNote: '+$8/mes por médico adicional',
-    desc: 'La solución completa para clínicas y grupos médicos con múltiples sedes.',
+    priceNote: '+$20/mes por médico adicional',
+    desc: 'La solución completa para clínicas y grupos médicos.',
     highlight: false,
     badge: null,
     badgeBg: '',
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
       { icon: '✔', text: 'Todo el Plan PRO para cada médico incluido.' },
-      { icon: '🏥', text: 'Hasta 5 médicos — más sedes al costo que acordemos.' },
+      { icon: '🏥', text: 'Hasta 5 médicos — sedes adicionales bajo cotización.' },
       { icon: '👥', text: 'Asistentes ilimitadas por médico.' },
       { icon: '🎨', text: 'White Label: tu marca, tu dominio personalizado.' },
       { icon: '🎁', text: 'Onboarding asistido para cada médico del equipo.' },
@@ -826,14 +827,17 @@ function Pricing() {
 
                 {/* Pro Anual: mostrar equivalente mensual + ahorro */}
                 {'priceMonthly' in plan && plan.priceMonthly && (
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="mb-2">
                     <span className="inline-flex items-center gap-1 bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                      ≈ {plan.priceMonthly as string}/mes
-                    </span>
-                    <span className="inline-flex items-center gap-1 bg-accent/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                      💰 {(plan as { savings?: string }).savings}
+                      ≈ {plan.priceMonthly as string}/mes · 💰 {(plan as { savings?: string }).savings}
                     </span>
                   </div>
+                )}
+
+                {'priceNormalText' in plan && plan.priceNormalText && (
+                  <p className={`text-xs mt-0.5 mb-1 ${plan.highlight ? 'text-blue-300' : 'text-gray-400'}`}>
+                    {plan.priceNormalText as string}
+                  </p>
                 )}
 
                 {'priceNote' in plan && plan.priceNote && (

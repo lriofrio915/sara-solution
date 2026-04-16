@@ -7,7 +7,7 @@ import { Check, X } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Precios — Sara Medical | Planes para tu consultorio',
   description:
-    'Sara Medical automatiza tu agenda, recetas digitales y marketing en redes sociales con IA. Desde $0 gratis. Plan Pro desde $24/mes. Prueba 21 días sin tarjeta.',
+    'Sara Medical automatiza tu agenda, recetas digitales y marketing en redes sociales con IA. Desde $0 gratis. Plan Pro desde $29/mes. Prueba 21 días sin tarjeta.',
   openGraph: {
     title: 'Precios — Sara Medical',
     description:
@@ -149,10 +149,11 @@ export default function PricingPage() {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-1">Pro Mensual</h2>
               <div className="flex items-end gap-1.5 mb-1">
-                <span className="text-xl font-medium text-gray-400 line-through">$79</span>
-                <span className="text-4xl font-extrabold text-gray-900">$24</span>
+                <span className="text-xl font-medium text-gray-400 line-through">$89</span>
+                <span className="text-4xl font-extrabold text-gray-900">$29</span>
                 <span className="text-gray-400 text-sm mb-1">/mes</span>
               </div>
+              <p className="text-xs text-gray-400 mb-1">Precio normal: $89/mes</p>
               <p className="text-sm text-gray-400">Sin compromisos. Cancela cuando quieras.</p>
             </div>
             <ul className="space-y-2.5 mb-8 flex-1">
@@ -179,7 +180,7 @@ export default function PricingPage() {
             style={{ background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' }}
           >
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-              ⭐ Mejor oferta — Ahorras $93 al año
+              ⭐ Mejor oferta — Ahorras $99 al año
             </div>
             <div className="mb-6">
               <div className="mb-2">
@@ -187,11 +188,11 @@ export default function PricingPage() {
               </div>
               <h2 className="text-xl font-bold mb-1">Pro Anual</h2>
               <div className="flex items-end gap-1.5 mb-1">
-                <span className="text-xl font-medium text-blue-300 line-through">$649</span>
-                <span className="text-4xl font-extrabold">$195</span>
+                <span className="text-xl font-medium text-blue-300 line-through">$1,068</span>
+                <span className="text-4xl font-extrabold">$249</span>
                 <span className="text-blue-200 text-sm mb-1">/año</span>
               </div>
-              <p className="text-blue-200 text-sm">Equivale a $16/mes</p>
+              <p className="text-blue-200 text-sm">≈ $20.75/mes · 💰 Ahorras $99 al año vs precio normal</p>
             </div>
             <ul className="space-y-2.5 mb-8 flex-1">
               <li className="flex items-start gap-2.5 text-sm text-blue-100">
