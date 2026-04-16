@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import AIImage from '../_ai-image'
+import KieImageGenerator from '@/components/marketing/KieImageGenerator'
+import KieVideoGenerator from '@/components/marketing/KieVideoGenerator'
 import SchedulePostModal from '@/components/marketing/SchedulePostModal'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -461,14 +462,22 @@ export default function SocialPage() {
                       />
                     )}
 
-                    {/* Imagen IA */}
-                    {result.post.imagePrompt && (
-                      <AIImage
-                        prompt={result.post.imagePrompt}
-                        aspect="1200/630"
-                        accentColor="blue"
-                        downloadName="post.jpg"
-                      />
+                    {/* Generación de media con kie.ai */}
+                    {(contentType as string) === 'VIDEO' ? (
+                      result.post.reelScript && (
+                        <KieVideoGenerator
+                          prompt={result.post.reelScript.slice(0, 500)}
+                          socialPostId={result.post.id}
+                        />
+                      )
+                    ) : (
+                      result.post.imagePrompt && (
+                        <KieImageGenerator
+                          prompt={result.post.imagePrompt}
+                          socialPostId={result.post.id}
+                          downloadName="post-imagen.jpg"
+                        />
+                      )
                     )}
                   </>
                 )}

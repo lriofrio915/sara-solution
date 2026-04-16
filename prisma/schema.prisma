@@ -187,6 +187,9 @@ model Doctor {
   receivedReferral       Referral?     @relation("ReceivedReferral")
   doctorMembers          DoctorMember[]
   satisfactionSurveys    SatisfactionSurvey[]
+  credit                 DoctorCredit?
+  creditTransactions     CreditTransaction[]
+  creditRecharges        CreditRecharge[]
 
   @@index([slug])
   @@index([email])
@@ -957,4 +960,46 @@ model TrendingTopic {
   @@index([category])
   @@index([expiresAt])
   @@index([relevance])
+}
+
+// ─── Sara Credits (sistema de créditos para generación IA) ──
+
+model DoctorCredit {
+  id        String   @id @default(cuid())
+  doctorId  String   @unique
+  credits   Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+}
+
+model CreditTransaction {
+  id          String   @id @default(cuid())
+  doctorId    String
+  type        String   // 'RECHARGE' | 'IMAGE' | 'VIDEO'
+  credits     Int      // positivo = recarga, negativo = gasto
+  description String
+  kieTaskId   String?
+  createdAt   DateTime @default(now())
+
+  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([doctorId, createdAt])
+}
+
+model CreditRecharge {
+  id         String   @id @default(cuid())
+  doctorId   String
+  credits    Int
+  amountUsd  Decimal  @db.Decimal(10, 2)
+  status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  notes      String?
+  approvedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId])
+  @@index([status])
 }
