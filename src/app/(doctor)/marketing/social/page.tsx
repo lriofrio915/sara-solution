@@ -53,13 +53,11 @@ interface GeneratedPost {
   reelScript?: string
 }
 
-interface PlatformResult {
-  platform: Platform
+interface SingleResult {
   post: GeneratedPost | null
   error: string | null
   loading: boolean
   copied: boolean
-  marked: boolean
   scheduledAt: string | null
   showSchedule: boolean
 }
@@ -89,15 +87,6 @@ function PlatformIcon({ platform, className }: { platform: Platform; className?:
   }
 }
 
-function platformAccentColor(platform: Platform): 'pink' | 'blue' | 'gray' | 'indigo' {
-  switch (platform) {
-    case 'INSTAGRAM': return 'pink'
-    case 'FACEBOOK':  return 'blue'
-    case 'TIKTOK':    return 'gray'
-    case 'LINKEDIN':  return 'indigo'
-  }
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SocialPage() {
@@ -107,8 +96,7 @@ export default function SocialPage() {
   const [focus, setFocus] = useState('')
   const [extra, setExtra] = useState('')
   const [generating, setGenerating] = useState(false)
-  const [results, setResults] = useState<PlatformResult[]>([])
-  const [activeTab, setActiveTab] = useState<Platform | null>(null)
+  const [result, setResult] = useState<SingleResult | null>(null)
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -140,64 +128,31 @@ export default function SocialPage() {
       extra.trim() || null,
     ].filter(Boolean).join(' ')
 
-    // Init results with loading state
-    const initResults: PlatformResult[] = selectedPlatforms.map(p => ({
-      platform: p,
-      post: null,
-      error: null,
-      loading: true,
-      copied: false,
-      marked: false,
-      scheduledAt: null,
-      showSchedule: false,
-    }))
-    setResults(initResults)
-    setActiveTab(selectedPlatforms[0])
+    setResult({ post: null, error: null, loading: true, copied: false, scheduledAt: null, showSchedule: false })
 
-    // Generate for each platform in parallel
-    const generated = await Promise.allSettled(
-      selectedPlatforms.map(platform =>
-        fetch('/api/marketing/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic, contentType, targetPlatform: platform, extraInstructions }),
-        }).then(r => r.ok ? r.json() : Promise.reject(new Error('Error al generar')))
-      )
-    )
+    try {
+      const targetPlatform = selectedPlatforms[0]
+      const data = await fetch('/api/marketing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, contentType, targetPlatform, extraInstructions }),
+      }).then(r => r.ok ? r.json() : Promise.reject(new Error('Error al generar')))
 
-    setResults(prev => prev.map((r, i) => {
-      const result = generated[i]
-      if (result.status === 'fulfilled') {
-        return { ...r, loading: false, post: result.value.post }
-      } else {
-        return { ...r, loading: false, error: 'Error al generar contenido para esta red' }
-      }
-    }))
+      setResult(prev => prev ? { ...prev, loading: false, post: data.post } : prev)
+    } catch {
+      setResult(prev => prev ? { ...prev, loading: false, error: 'Error al generar contenido. Intenta de nuevo.' } : prev)
+    }
 
     setGenerating(false)
   }
 
-  async function handleMarkPublished(platform: Platform) {
-    const r = results.find(x => x.platform === platform)
-    if (!r?.post) return
-    await fetch(`/api/marketing/posts/${r.post.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'PUBLISHED' }),
-    })
-    setResults(prev => prev.map(x => x.platform === platform ? { ...x, marked: true } : x))
-  }
-
-  async function handleCopy(platform: Platform) {
-    const r = results.find(x => x.platform === platform)
-    if (!r?.post) return
-    const text = [r.post.content, r.post.hashtags.map(h => `#${h}`).join(' ')].filter(Boolean).join('\n\n')
+  async function handleCopy() {
+    if (!result?.post) return
+    const text = [result.post.content, result.post.hashtags.map(h => `#${h}`).join(' ')].filter(Boolean).join('\n\n')
     await navigator.clipboard.writeText(text)
-    setResults(prev => prev.map(x => x.platform === platform ? { ...x, copied: true } : x))
-    setTimeout(() => setResults(prev => prev.map(x => x.platform === platform ? { ...x, copied: false } : x)), 2000)
+    setResult(prev => prev ? { ...prev, copied: true } : prev)
+    setTimeout(() => setResult(prev => prev ? { ...prev, copied: false } : prev), 2000)
   }
-
-  const activeResult = results.find(r => r.platform === activeTab)
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6">
@@ -213,7 +168,7 @@ export default function SocialPage() {
       <div className="grid lg:grid-cols-[1fr_1fr] gap-6 items-start">
 
         {/* ── Formulario ────────────────────────────────────────────── */}
-        <div className="space-y-5">
+        <div className="space-y-5 min-w-0">
 
           {/* Selector de plataformas */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
@@ -233,10 +188,10 @@ export default function SocialPage() {
                         : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
-                    <PlatformIcon platform={p.id} className={`w-4 h-4 ${selected ? p.color : 'text-gray-300 dark:text-gray-500'}`} />
+                    <PlatformIcon platform={p.id} className={`w-4 h-4 flex-shrink-0 ${selected ? p.color : 'text-gray-300 dark:text-gray-500'}`} />
                     {p.label}
                     {selected && (
-                      <span className="ml-auto w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                      <span className="ml-auto w-4 h-4 rounded-full bg-primary flex-shrink-0 flex items-center justify-center">
                         <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                       </span>
                     )}
@@ -346,20 +301,20 @@ export default function SocialPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
-                Generando para {selectedPlatforms.length} red{selectedPlatforms.length > 1 ? 'es' : ''}…
+                Generando contenido…
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Generar con IA para {selectedPlatforms.length} red{selectedPlatforms.length > 1 ? 'es' : ''}
+                Generar con IA
               </>
             )}
           </button>
         </div>
 
         {/* ── Resultados ────────────────────────────────────────────── */}
-        <div>
-          {results.length === 0 && (
+        <div className="min-w-0">
+          {!result && (
             <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-center p-8">
               <div className="flex gap-2 mb-3">
                 {PLATFORMS.map(p => (
@@ -372,62 +327,46 @@ export default function SocialPage() {
             </div>
           )}
 
-          {results.length > 0 && (
+          {result && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
 
-              {/* Tabs de plataformas */}
-              <div className="flex border-b border-gray-100 dark:border-gray-700 overflow-x-auto">
-                {results.map(r => {
-                  const pConfig = PLATFORMS.find(p => p.id === r.platform)!
-                  const isActive = activeTab === r.platform
-                  return (
-                    <button
-                      key={r.platform}
-                      onClick={() => setActiveTab(r.platform)}
-                      className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors -mb-px ${
-                        isActive
-                          ? 'border-primary text-primary'
-                          : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      {r.loading ? (
-                        <svg className="w-3.5 h-3.5 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                        </svg>
-                      ) : r.error ? (
-                        <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.293 10.293a1 1 0 011.414 0L12 10.586l.293-.293a1 1 0 011.414 1.414L13.414 12l.293.293a1 1 0 01-1.414 1.414L12 13.414l-.293.293a1 1 0 01-1.414-1.414L10.586 12l-.293-.293a1 1 0 010-1.414z" /></svg>
-                      ) : (
-                        <PlatformIcon platform={r.platform} className={`w-3.5 h-3.5 ${isActive ? pConfig.color : 'text-gray-400'}`} />
-                      )}
-                      {pConfig.label}
-                      {r.marked && <span className="ml-1 w-2 h-2 rounded-full bg-green-400 inline-block" />}
-                      {r.scheduledAt && !r.marked && <span className="ml-1 w-2 h-2 rounded-full bg-purple-400 inline-block" />}
-                    </button>
-                  )
-                })}
+              {/* Header del panel con redes seleccionadas */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-1.5">
+                  {selectedPlatforms.map(pid => {
+                    const pConfig = PLATFORMS.find(p => p.id === pid)!
+                    return (
+                      <PlatformIcon key={pid} platform={pid} className={`w-4 h-4 ${pConfig.color}`} />
+                    )
+                  })}
+                </div>
+                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                  {selectedPlatforms.length === 1
+                    ? PLATFORMS.find(p => p.id === selectedPlatforms[0])?.label
+                    : `${selectedPlatforms.length} redes`}
+                </span>
               </div>
 
-              {/* Contenido del tab activo */}
+              {/* Contenido */}
               <div className="p-4 space-y-4">
-                {activeResult?.loading && (
+                {result.loading && (
                   <div className="flex flex-col items-center justify-center py-12">
                     <svg className="w-8 h-8 animate-spin text-primary mb-3" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
-                    <p className="text-sm text-gray-400">Generando contenido para {PLATFORMS.find(p => p.id === activeTab)?.label}…</p>
+                    <p className="text-sm text-gray-400">Generando contenido…</p>
                   </div>
                 )}
 
-                {activeResult?.error && (
+                {result.error && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01" /></svg>
-                    {activeResult.error}
+                    {result.error}
                   </div>
                 )}
 
-                {activeResult?.post && !activeResult.loading && (
+                {result.post && !result.loading && (
                   <>
                     {/* Contenido editable */}
                     <div>
@@ -435,30 +374,30 @@ export default function SocialPage() {
                         Contenido del post
                       </label>
                       <textarea
-                        defaultValue={activeResult.post.content}
+                        defaultValue={result.post.content}
                         rows={6}
-                        className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        className="w-full max-w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
                       />
                     </div>
 
                     {/* Hashtags */}
-                    {activeResult.post.hashtags.length > 0 && (
+                    {result.post.hashtags.length > 0 && (
                       <div>
                         <label className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide block mb-1">
                           Hashtags
                         </label>
-                        <p className="text-sm text-primary dark:text-primary/80 font-medium">
-                          {activeResult.post.hashtags.map(h => `#${h}`).join(' ')}
+                        <p className="text-sm text-primary dark:text-primary/80 font-medium break-words">
+                          {result.post.hashtags.map(h => `#${h}`).join(' ')}
                         </p>
                       </div>
                     )}
 
                     {/* Carousel slides */}
-                    {activeResult.post.carouselSlides && activeResult.post.carouselSlides.length > 0 && (
+                    {result.post.carouselSlides && result.post.carouselSlides.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Slides del carrusel</p>
                         <div className="space-y-2">
-                          {activeResult.post.carouselSlides.map((s, i) => (
+                          {result.post.carouselSlides.map((s, i) => (
                             <div key={i} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600">
                               <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-0.5">Slide {i + 1}: {s.title}</p>
                               <p className="text-xs text-gray-500 dark:text-slate-400">{s.body}</p>
@@ -469,73 +408,66 @@ export default function SocialPage() {
                     )}
 
                     {/* Reel script */}
-                    {activeResult.post.reelScript && (
+                    {result.post.reelScript && (
                       <div>
                         <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Guion del video</p>
-                        <pre className="text-xs text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 whitespace-pre-wrap leading-relaxed border border-gray-100 dark:border-gray-600">{activeResult.post.reelScript}</pre>
+                        <pre className="text-xs text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 whitespace-pre-wrap leading-relaxed border border-gray-100 dark:border-gray-600 overflow-x-auto">{result.post.reelScript}</pre>
                       </div>
                     )}
 
                     {/* Hora sugerida */}
-                    {activeResult.post.suggestedTime && (
+                    {result.post.suggestedTime && (
                       <p className="text-xs text-gray-400 flex items-center gap-1.5">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2"/></svg>
-                        Mejor hora para publicar: <span className="font-semibold text-gray-600 dark:text-gray-300">{activeResult.post.suggestedTime}</span>
+                        <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2"/></svg>
+                        Mejor hora para publicar: <span className="font-semibold text-gray-600 dark:text-gray-300">{result.post.suggestedTime}</span>
                       </p>
                     )}
 
-                    {/* Acciones */}
-                    {activeResult.scheduledAt && (
+                    {/* Programación activa */}
+                    {result.scheduledAt && (
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
                         <svg className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         <p className="text-xs text-purple-700 dark:text-purple-400 font-medium">
-                          Programado para {new Date(activeResult.scheduledAt).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          Programado para {new Date(result.scheduledAt).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     )}
 
+                    {/* Acciones */}
                     <div className="flex gap-2 flex-wrap">
                       <button
-                        onClick={() => handleCopy(activeResult.platform)}
-                        className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${activeResult.copied ? 'bg-green-600 text-white' : 'bg-primary text-white hover:bg-primary/90'}`}
+                        onClick={handleCopy}
+                        className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${result.copied ? 'bg-green-600 text-white' : 'bg-primary text-white hover:bg-primary/90'}`}
                       >
-                        {activeResult.copied ? '✓ Copiado' : 'Copiar texto + hashtags'}
+                        {result.copied ? '✓ Copiado' : 'Copiar texto + hashtags'}
                       </button>
-                      {!activeResult.marked && !activeResult.scheduledAt && (
+                      {!result.scheduledAt && (
                         <button
-                          onClick={() => setResults(prev => prev.map(r => r.platform === activeResult.platform ? { ...r, showSchedule: true } : r))}
+                          onClick={() => setResult(prev => prev ? { ...prev, showSchedule: true } : prev)}
                           className="px-3 py-2 rounded-xl text-sm font-medium border border-purple-300 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-1.5"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                           Programar
                         </button>
                       )}
-                      {!activeResult.marked && (
-                        <button
-                          onClick={() => handleMarkPublished(activeResult.platform)}
-                          className="px-3 py-2 rounded-xl text-sm font-medium border border-green-300 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
-                        >
-                          {activeResult.marked ? '✓ Publicado' : 'Marcar publicado'}
-                        </button>
-                      )}
                     </div>
 
-                    {activeResult.showSchedule && activeResult.post && (
+                    {result.showSchedule && result.post && (
                       <SchedulePostModal
-                        postId={activeResult.post.id}
-                        accentColor={platformAccentColor(activeResult.platform)}
-                        onScheduled={(at) => setResults(prev => prev.map(r => r.platform === activeResult.platform ? { ...r, scheduledAt: at, showSchedule: false } : r))}
-                        onClose={() => setResults(prev => prev.map(r => r.platform === activeResult.platform ? { ...r, showSchedule: false } : r))}
+                        postId={result.post.id}
+                        accentColor="blue"
+                        onScheduled={(at) => setResult(prev => prev ? { ...prev, scheduledAt: at, showSchedule: false } : prev)}
+                        onClose={() => setResult(prev => prev ? { ...prev, showSchedule: false } : prev)}
                       />
                     )}
 
                     {/* Imagen IA */}
-                    {activeResult.post.imagePrompt && (
+                    {result.post.imagePrompt && (
                       <AIImage
-                        prompt={activeResult.post.imagePrompt}
+                        prompt={result.post.imagePrompt}
                         aspect="1200/630"
-                        accentColor={activeResult.platform === 'INSTAGRAM' ? 'pink' : activeResult.platform === 'TIKTOK' ? 'gray' : 'blue'}
-                        downloadName={`${activeResult.platform.toLowerCase()}-post.jpg`}
+                        accentColor="blue"
+                        downloadName="post.jpg"
                       />
                     )}
                   </>
