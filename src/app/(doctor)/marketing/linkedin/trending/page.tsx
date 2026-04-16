@@ -177,22 +177,6 @@ export default function LinkedInTrendingPage() {
     }
   }
 
-  async function handleSchedule() {
-    if (!savedPost || !scheduleDate) return
-    setScheduling(true)
-    try {
-      await fetch('/api/marketing/linkedin/posts', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: savedPost.id, status: 'SCHEDULED', scheduledAt: new Date(scheduleDate).toISOString() }),
-      })
-      setScheduled(true)
-      setSavedPost(p => p ? { ...p, status: 'SCHEDULED' } : p)
-    } finally {
-      setScheduling(false)
-    }
-  }
-
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
 
