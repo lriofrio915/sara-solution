@@ -1,0 +1,21 @@
+name: Publish Scheduled Posts
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # cada hora en punto (UTC)
+  workflow_dispatch:       # permite ejecución manual desde GitHub UI
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger publish endpoint
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/publish-scheduled")
+          echo "Response status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Warning: endpoint returned $STATUS"
+            exit 1
+          fi
