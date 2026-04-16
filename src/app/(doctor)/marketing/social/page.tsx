@@ -210,7 +210,7 @@ export default function SocialPage() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_1.4fr] gap-6 items-start">
+      <div className="grid lg:grid-cols-[1fr_1fr] gap-6 items-start">
 
         {/* ── Formulario ────────────────────────────────────────────── */}
         <div className="space-y-5">
@@ -227,7 +227,7 @@ export default function SocialPage() {
                   <button
                     key={p.id}
                     onClick={() => togglePlatform(p.id)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all whitespace-nowrap ${
                       selected
                         ? 'border-primary bg-primary/5 dark:bg-primary/10 text-gray-900 dark:text-white'
                         : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
@@ -283,12 +283,12 @@ export default function SocialPage() {
           {/* Tipo de contenido */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Tipo de contenido</p>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {(['POST', 'CAROUSEL', 'VIDEO'] as ContentType[]).map(ct => (
                 <button
                   key={ct}
                   onClick={() => setContentType(ct)}
-                  className={`flex-1 py-2 text-xs font-semibold rounded-xl border-2 transition-colors ${
+                  className={`py-2 px-1 text-xs font-semibold rounded-xl border-2 transition-colors text-center whitespace-nowrap ${
                     contentType === ct
                       ? 'border-primary text-primary bg-primary/5 dark:bg-primary/10'
                       : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300'
@@ -308,7 +308,7 @@ export default function SocialPage() {
                 <button
                   key={f.value}
                   onClick={() => setFocus(prev => prev === f.value ? '' : f.value)}
-                  className={`text-xs px-3 py-2 rounded-xl border-2 text-left transition-colors ${
+                  className={`text-xs px-3 py-2 rounded-xl border-2 text-left transition-colors whitespace-nowrap overflow-hidden text-ellipsis ${
                     focus === f.value
                       ? 'border-primary bg-primary/5 dark:bg-primary/10 text-primary font-semibold'
                       : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-400 hover:border-gray-300'

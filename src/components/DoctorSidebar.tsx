@@ -174,7 +174,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         )}
       </button>
       {bellOpen && (
-        <div className="fixed left-2 right-2 top-16 z-50 md:absolute md:left-auto md:right-0 md:w-80 md:top-10 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 overflow-hidden">
+        <div className="fixed left-2 right-2 top-16 z-50 md:absolute md:left-0 md:right-auto md:w-80 md:top-10 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 overflow-hidden">
           <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-4 py-2">Notificaciones</p>
           {notifItems.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500 px-4 py-3">Sin notificaciones pendientes</p>
