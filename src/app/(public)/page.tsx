@@ -697,8 +697,8 @@ const plans = [
     period: '/mes',
     desc: 'Todo el poder de Sara Medical para tu consultorio, sin compromisos.',
     highlight: false,
-    badge: '🎉 70% OFF — Precio de Lanzamiento',
-    badgeBg: 'bg-green-500',
+    badge: null,
+    badgeBg: '',
     checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
     priceNormalText: 'Precio normal: $89/mes',
     features: [
