@@ -67,7 +67,7 @@ export default async function UpgradePage() {
               Reactiva Sara Medical
             </h1>
             <p className="text-gray-500 dark:text-slate-300 max-w-lg mx-auto">
-              Tu trial de 14 días ha concluido. Suscríbete al Plan Pro para recuperar acceso completo a todas las funcionalidades.
+              Tu trial de 21 días ha concluido. Suscríbete al Plan Pro para recuperar acceso completo a todas las funcionalidades.
             </p>
           </>
         )}

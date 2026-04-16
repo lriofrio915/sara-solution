@@ -7,7 +7,7 @@ import { Check, X } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Precios — Sara Medical | Planes para tu consultorio',
   description:
-    'Sara Medical automatiza tu agenda, recetas digitales y marketing en redes sociales con IA. Desde $0 gratis. Plan Pro desde $79/mes. Prueba 21 días sin tarjeta.',
+    'Sara Medical automatiza tu agenda, recetas digitales y marketing en redes sociales con IA. Desde $0 gratis. Plan Pro desde $24/mes. Prueba 21 días sin tarjeta.',
   openGraph: {
     title: 'Precios — Sara Medical',
     description:
