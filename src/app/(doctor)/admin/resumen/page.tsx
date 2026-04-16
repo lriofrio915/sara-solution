@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Users, UserPlus, CalendarDays, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Users, UserPlus, CalendarDays, AlertTriangle, TrendingUp, Globe, MessageCircle, UserCheck, GitBranch } from 'lucide-react'
 
 interface StatsData {
   totalDoctors: number
@@ -11,6 +11,8 @@ interface StatsData {
   appointmentsThisMonth: number
   newDoctorsLast30d: number
   planBreakdown: Record<string, number>
+  leadsBySource: Record<string, number>
+  totalLeads: number
   recentDoctors: {
     id: string
     name: string
@@ -228,6 +230,130 @@ export default function AdminResumenPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* ── Fuentes de captación de leads ── */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-900 dark:text-white text-sm">Fuentes de captación de leads</h2>
+          <Link href="/admin/leads" className="text-xs text-primary hover:underline">Ver todos</Link>
+        </div>
+
+        {/* Canales activos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <a
+            href="https://consultorio.site"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+              <Globe size={16} className="text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-800 dark:text-white">Landing Page</p>
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">https://consultorio.site</p>
+            </div>
+          </a>
+
+          <a
+            href="https://wa.me/593996691586"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+              <MessageCircle size={16} className="text-green-600 dark:text-green-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-800 dark:text-white">WhatsApp</p>
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">https://wa.me/593996691586</p>
+            </div>
+          </a>
+        </div>
+
+        {/* Distribución por origen */}
+        <div>
+          <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-3">Distribución por origen</p>
+          {stats.totalLeads === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-slate-500 py-1">No hay leads registrados aún</p>
+          ) : (
+            <div className="space-y-2">
+              {(
+                [
+                  { key: 'FORMULARIO', label: 'Formulario web', color: 'bg-blue-500',    text: 'text-blue-600 dark:text-blue-400' },
+                  { key: 'WHATSAPP',   label: 'WhatsApp',       color: 'bg-green-500',   text: 'text-green-600 dark:text-green-400' },
+                  { key: 'CHAT',       label: 'Chat',           color: 'bg-violet-500',  text: 'text-violet-600 dark:text-violet-400' },
+                  { key: 'REFERIDO',   label: 'Referido',       color: 'bg-amber-400',   text: 'text-amber-600 dark:text-amber-400' },
+                  { key: 'OTRO',       label: 'Otro',           color: 'bg-gray-400',    text: 'text-gray-500 dark:text-slate-400' },
+                ] as const
+              )
+                .filter(({ key }) => (stats.leadsBySource[key] ?? 0) > 0)
+                .map(({ key, label, color, text }) => {
+                  const count = stats.leadsBySource[key] ?? 0
+                  const pct = Math.round((count / stats.totalLeads) * 100)
+                  return (
+                    <div key={key}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className={`font-medium ${text}`}>{label}</span>
+                        <span className="text-gray-500 dark:text-slate-400">{count} · {pct}%</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Herramientas de administración ── */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+        <h2 className="font-semibold text-gray-900 dark:text-white text-sm mb-4">Herramientas de administración</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            {
+              href: '/admin/doctors',
+              icon: UserCheck,
+              label: 'Gestionar médicos',
+              desc: 'Cambiar planes, eliminar cuentas',
+              color: 'text-blue-600 dark:text-blue-400',
+              bg: 'bg-blue-50 dark:bg-blue-900/20',
+            },
+            {
+              href: '/admin/leads',
+              icon: Users,
+              label: 'Leads',
+              desc: 'Contactos y fuentes de captación',
+              color: 'text-green-600 dark:text-green-400',
+              bg: 'bg-green-50 dark:bg-green-900/20',
+            },
+            {
+              href: '/admin/referidos',
+              icon: GitBranch,
+              label: 'Sistema de referidos',
+              desc: 'Seguimiento de referidos',
+              color: 'text-violet-600 dark:text-violet-400',
+              bg: 'bg-violet-50 dark:bg-violet-900/20',
+            },
+          ].map(({ href, icon: Icon, label, desc, color, bg }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+            >
+              <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
+                <Icon size={16} className={color} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-800 dark:text-white">{label}</p>
+                <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
     </div>

@@ -28,6 +28,8 @@ export async function GET() {
     newDoctorsLast30d,
     recentDoctors,
     expiringTrials,
+    leadSourceCounts,
+    totalLeads,
   ] = await Promise.all([
     prisma.doctor.count(),
 
@@ -78,6 +80,13 @@ export async function GET() {
         _count: { select: { patients: true } },
       },
     }),
+
+    prisma.lead.groupBy({
+      by: ['source'],
+      _count: { id: true },
+    }),
+
+    prisma.lead.count(),
   ])
 
   // Build plan breakdown map
@@ -85,6 +94,11 @@ export async function GET() {
   for (const row of planCounts) {
     const key = row.plan ?? 'FREE'
     planMap[key] = (planMap[key] ?? 0) + row._count.id
+  }
+
+  const leadsBySource: Record<string, number> = {}
+  for (const row of leadSourceCounts) {
+    leadsBySource[row.source] = row._count.id
   }
 
   return NextResponse.json({
@@ -96,5 +110,7 @@ export async function GET() {
     planBreakdown: planMap,
     recentDoctors,
     expiringTrials,
+    leadsBySource,
+    totalLeads,
   })
 }
