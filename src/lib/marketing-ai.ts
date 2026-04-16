@@ -72,18 +72,21 @@ REGLAS:
 }
 
 function buildUserPrompt(opts: GeneratePostOptions): string {
+  const extra = opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''
+
   // TikTok tiene su propio formato de guión de video
   if (opts.targetPlatform === 'TIKTOK') {
-    return `Crea un guión de video de TikTok para un médico sobre: "${opts.topic}"
-${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+    return `Crea un guión de video de TikTok para un médico sobre el tema: "${opts.topic}"${extra}
 
-El video debe durar entre 30-60 segundos. Responde con este JSON:
+El video debe durar entre 30-60 segundos. Genera el contenido REAL y completo (no uses placeholders ni ejemplos).
+
+Devuelve SOLO este JSON con los valores reales generados:
 {
-  "content": "guión completo del video con indicaciones de cada segmento (separa secciones con saltos de línea)",
-  "reelScript": "🎬 GANCHO (0-3 seg): [texto en pantalla]\n\n📱 DESARROLLO (3-45 seg): [contenido principal paso a paso]\n\n✅ CTA (últimos 5 seg): [llamada a la acción]",
-  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"],
-  "imagePrompt": "descripción del thumbnail ideal para el video de TikTok, formato vertical 9:16, llamativo",
-  "suggestedTime": "Ej: Martes 7pm o Viernes 9pm"
+  "content": "<guión completo del video con indicaciones de cada segmento>",
+  "reelScript": "<guión estructurado con: GANCHO (0-3 seg), DESARROLLO (3-45 seg), CTA (últimos 5 seg)>",
+  "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>", "<hashtag_real_3>", "<hashtag_real_4>", "<hashtag_real_5>"],
+  "imagePrompt": "<descripción en inglés del thumbnail ideal, formato vertical 9:16>",
+  "suggestedTime": "<día y hora recomendada, ej: Martes 7pm>"
 }`
   }
 
@@ -92,83 +95,129 @@ El video debe durar entre 30-60 segundos. Responde con este JSON:
     : `para ${opts.targetPlatform}`
 
   if (opts.contentType === 'POST') {
-    return `Crea un post ${platformNote} sobre: "${opts.topic}"
-${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+    return `Crea un post ${platformNote} sobre el tema: "${opts.topic}"${extra}
 
-Responde con este JSON:
+Genera el contenido REAL y completo (no uses placeholders ni ejemplos genéricos). El texto debe estar listo para publicar.
+
+Devuelve SOLO este JSON con los valores reales generados:
 {
-  "content": "texto del post (máximo 2200 caracteres, con emojis si aplica)",
-  "hashtags": ["hashtag1", "hashtag2"],
-  "imagePrompt": "descripción en inglés de la imagen ideal para este post",
-  "suggestedTime": "Ej: Martes 9am"
+  "content": "<texto real del post, máximo 2200 caracteres, con emojis apropiados>",
+  "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>", "<hashtag_real_3>", "<hashtag_real_4>", "<hashtag_real_5>"],
+  "imagePrompt": "<descripción en inglés de la imagen ideal para ilustrar este post>",
+  "suggestedTime": "<mejor día y hora para publicar, ej: Martes 9am>"
 }`
   }
 
   if (opts.contentType === 'CAROUSEL') {
-    return `Crea un carrusel ${platformNote} sobre: "${opts.topic}" (5-7 diapositivas)
-${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+    return `Crea un carrusel ${platformNote} sobre el tema: "${opts.topic}" (5-7 diapositivas)${extra}
 
-Responde con este JSON:
+Genera el contenido REAL y completo para cada diapositiva (no uses placeholders).
+
+Devuelve SOLO este JSON con los valores reales generados:
 {
-  "content": "caption principal del carrusel",
-  "hashtags": ["hashtag1", "hashtag2"],
-  "imagePrompt": "estilo visual general del carrusel",
-  "suggestedTime": "Ej: Miércoles 7pm",
+  "content": "<caption principal real del carrusel>",
+  "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>", "<hashtag_real_3>"],
+  "imagePrompt": "<descripción en inglés del estilo visual del carrusel>",
+  "suggestedTime": "<mejor día y hora, ej: Miércoles 7pm>",
   "carouselSlides": [
-    { "title": "Título slide 1", "body": "Texto breve slide 1" }
+    { "title": "<título real de la diapositiva>", "body": "<texto breve real de la diapositiva>" }
   ]
 }`
   }
 
   if (opts.contentType === 'REEL') {
-    return `Crea el guión de un Reel ${platformNote} sobre: "${opts.topic}" (duración ~30-60 segundos)
-${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+    return `Crea el guión de un Reel ${platformNote} sobre el tema: "${opts.topic}" (duración ~30-60 segundos)${extra}
 
-Responde con este JSON:
+Genera el contenido REAL y completo (no uses placeholders).
+
+Devuelve SOLO este JSON con los valores reales generados:
 {
-  "content": "caption del reel",
-  "hashtags": ["hashtag1", "hashtag2"],
-  "imagePrompt": "escena o thumbnail ideal para el reel",
-  "suggestedTime": "Ej: Viernes 6pm",
-  "reelScript": "guión completo del reel con indicaciones de escena"
+  "content": "<caption real del reel>",
+  "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>", "<hashtag_real_3>"],
+  "imagePrompt": "<descripción en inglés de la escena o thumbnail ideal>",
+  "suggestedTime": "<mejor día y hora, ej: Viernes 6pm>",
+  "reelScript": "<guión completo real del reel con indicaciones de escena>"
 }`
   }
 
   // STORY
-  return `Crea una historia (Story) ${platformNote} sobre: "${opts.topic}"
-${opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''}
+  return `Crea una historia (Story) ${platformNote} sobre el tema: "${opts.topic}"${extra}
 
-Responde con este JSON:
+Genera el contenido REAL (no uses placeholders).
+
+Devuelve SOLO este JSON con los valores reales generados:
 {
-  "content": "texto de la story (muy breve, máximo 150 caracteres)",
-  "hashtags": ["hashtag1"],
-  "imagePrompt": "descripción de la imagen o video de fondo",
-  "suggestedTime": "Ej: Lunes 8am"
+  "content": "<texto real de la story, máximo 150 caracteres>",
+  "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>"],
+  "imagePrompt": "<descripción en inglés de la imagen o video de fondo ideal>",
+  "suggestedTime": "<mejor día y hora, ej: Lunes 8am>"
 }`
+}
+
+function isTemplatePlaceholder(value: string): boolean {
+  // Detect if the model returned the schema template instead of real content
+  const templateMarkers = [
+    '<hashtag_real', '<texto real', '<caption real', '<guión', '<descripción',
+    '<mejor día', '<título real', '<texto breve real', '<mejor', '<escena',
+    'hashtag1', 'hashtag2', 'hashtag_real_1',
+    'texto del post (máximo', 'caption principal del carrusel',
+    'guión completo del video', 'caption del reel',
+  ]
+  const lower = value.toLowerCase()
+  return templateMarkers.some(m => lower.includes(m.toLowerCase()))
+}
+
+async function callModel(client: OpenAI, systemPrompt: string, userPrompt: string): Promise<GeneratedContent> {
+  const completion = await client.chat.completions.create({
+    model: 'deepseek/deepseek-chat',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.8,
+    max_tokens: 2000,
+    response_format: { type: 'json_object' },
+  })
+
+  const raw = completion.choices[0]?.message?.content ?? '{}'
+  const clean = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
+
+  let parsed: GeneratedContent
+  try {
+    parsed = JSON.parse(clean) as GeneratedContent
+  } catch {
+    throw new Error('JSON inválido en respuesta del modelo')
+  }
+
+  // Validate that the model returned real content, not the template
+  if (!parsed.content || isTemplatePlaceholder(parsed.content)) {
+    throw new Error('El modelo devolvió el template sin generar contenido real')
+  }
+
+  // Clean placeholder hashtags
+  if (parsed.hashtags) {
+    parsed.hashtags = parsed.hashtags.filter(h => !isTemplatePlaceholder(h))
+  }
+
+  return parsed
 }
 
 export async function generateMarketingContent(opts: GeneratePostOptions): Promise<GeneratedContent> {
   const client = getClient()
+  const systemPrompt = buildSystemPrompt(opts.brand)
+  const userPrompt = buildUserPrompt(opts)
 
-  const completion = await client.chat.completions.create({
-    model: 'deepseek/deepseek-chat',
-    messages: [
-      { role: 'system', content: buildSystemPrompt(opts.brand) },
-      { role: 'user', content: buildUserPrompt(opts) },
-    ],
-    temperature: 0.8,
-    max_tokens: 2000,
-  })
-
-  const raw = completion.choices[0]?.message?.content ?? '{}'
-  // Strip markdown code fences if present
-  const clean = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
-
+  // Try up to 2 times in case the model returns template text
   try {
-    return JSON.parse(clean) as GeneratedContent
-  } catch {
-    // Return raw content as text if JSON parsing fails
-    return { content: raw, hashtags: [] }
+    return await callModel(client, systemPrompt, userPrompt)
+  } catch (firstErr) {
+    console.warn('Marketing AI first attempt failed, retrying:', firstErr)
+    try {
+      return await callModel(client, systemPrompt, userPrompt)
+    } catch (secondErr) {
+      console.error('Marketing AI both attempts failed:', secondErr)
+      throw secondErr
+    }
   }
 }
 
