@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { CREDIT_PACKAGES, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
+import { createClient } from '@/lib/supabase/client'
+
+type PayMethod = 'TRANSFER' | 'CRYPTO' | 'CARD'
 
 interface Props {
   currentCredits: number
@@ -10,21 +13,76 @@ interface Props {
 }
 
 export default function RechargeModal({ currentCredits, onClose, onSuccess }: Props) {
-  const [selectedPkg, setSelectedPkg] = useState(1) // default: 250 cr / $10
+  const [step, setStep] = useState<1 | 2>(1)
+  const [selectedPkg, setSelectedPkg] = useState(1)
+  const [payMethod, setPayMethod] = useState<PayMethod>('TRANSFER')
+  const [proofFile, setProofFile] = useState<File | null>(null)
+  const [proofUrl, setProofUrl] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const pkg = CREDIT_PACKAGES[selectedPkg]
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setProofFile(file)
+    setUploading(true)
+    setError('')
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No autenticado')
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `proofs/${user.id}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(path)
+      setProofUrl(publicUrl)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al subir comprobante')
+      setProofFile(null)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleCardPayment() {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/marketing/credits/payment/card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageIndex: selectedPkg }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar pago')
+      if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error desconocido')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleSubmit() {
+    if (payMethod !== 'CARD' && !proofUrl) {
+      setError('Sube el comprobante de pago antes de enviar.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/marketing/credits/recharge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageIndex: selectedPkg }),
+        body: JSON.stringify({ packageIndex: selectedPkg, proofUrl, payMethod }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al enviar solicitud')
@@ -36,9 +94,13 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
     }
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {})
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50">
+      <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
 
         {sent ? (
           <div className="p-8 text-center space-y-4">
@@ -52,10 +114,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
               Tu solicitud de <strong>{pkg.credits} créditos</strong> por <strong>${pkg.priceUsd} USD</strong> fue registrada.
               El admin activará tus créditos en menos de 24h tras confirmar el pago.
             </p>
-            <button
-              onClick={onSuccess}
-              className="w-full py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors"
-            >
+            <button onClick={onSuccess} className="w-full py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors">
               Entendido
             </button>
           </div>
@@ -74,88 +133,192 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
               </button>
             </div>
 
+            {/* Step indicator */}
+            <div className="flex items-center gap-2 px-6 pt-4">
+              {[1, 2].map(s => (
+                <div key={s} className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step >= s ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
+                    {s}
+                  </div>
+                  <span className={`text-xs ${step >= s ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400'}`}>
+                    {s === 1 ? 'Paquete' : 'Pago'}
+                  </span>
+                  {s === 1 && <div className="w-8 h-px bg-gray-200 dark:bg-gray-600 mx-1" />}
+                </div>
+              ))}
+            </div>
+
             <div className="p-6 space-y-5">
-              {/* Price info */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">
-                  ¿Qué puedes generar?
-                </p>
-                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                  <span>🖼️</span>
-                  <span>Imagen IA profesional (Flux-2 Pro)</span>
-                  <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                  <span>🎬</span>
-                  <span>Video corto 5 seg (Kling AI)</span>
-                  <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.VIDEO} cr.</span>
-                </div>
-              </div>
 
-              {/* Package selector */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">
-                  Elige un paquete
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {CREDIT_PACKAGES.map((p, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedPkg(i)}
-                      className={`flex flex-col items-center gap-0.5 p-3 rounded-xl border-2 transition-all ${
-                        selectedPkg === i
-                          ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                          : 'border-gray-200 dark:border-gray-600 hover:border-primary/40'
-                      }`}
-                    >
-                      <span className={`text-lg font-black ${selectedPkg === i ? 'text-primary' : 'text-gray-700 dark:text-gray-200'}`}>
-                        {p.credits}
-                      </span>
-                      <span className="text-xs text-gray-400">créditos</span>
-                      <span className={`text-sm font-bold mt-1 ${selectedPkg === i ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>
-                        ${p.priceUsd} USD
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* ── STEP 1: Package selection ── */}
+              {step === 1 && (
+                <>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">¿Qué puedes generar?</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                      <span>🖼️</span><span>Imagen IA (Flux-2 Pro)</span>
+                      <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                      <span>🎬</span><span>Video 5 seg (Kling AI)</span>
+                      <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.VIDEO} cr.</span>
+                    </div>
+                  </div>
 
-              {/* Payment info */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 space-y-2">
-                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                  📲 Instrucciones de pago
-                </p>
-                <p className="text-sm text-blue-800 dark:text-blue-300">
-                  Transfiere <strong>${pkg.priceUsd} USD</strong> a la siguiente cuenta y luego envía la solicitud:
-                </p>
-                <div className="text-sm text-blue-900 dark:text-blue-200 font-mono bg-blue-100 dark:bg-blue-900/40 rounded-lg px-3 py-2 select-all">
-                  WhatsApp: +593 98 765 4321
-                </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  El admin activará tus <strong>{pkg.credits} créditos</strong> en menos de 24h.
-                </p>
-              </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Elige un paquete</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {CREDIT_PACKAGES.map((p, i) => (
+                        <button key={i} onClick={() => setSelectedPkg(i)}
+                          className={`flex flex-col items-center gap-0.5 p-3 rounded-xl border-2 transition-all ${selectedPkg === i ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-600 hover:border-primary/40'}`}>
+                          <span className={`text-lg font-black ${selectedPkg === i ? 'text-primary' : 'text-gray-700 dark:text-gray-200'}`}>{p.credits}</span>
+                          <span className="text-xs text-gray-400">créditos</span>
+                          <span className={`text-sm font-bold mt-1 ${selectedPkg === i ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}>${p.priceUsd} USD</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-colors">
+                    Continuar → Método de pago
+                  </button>
+                </>
               )}
 
-              {/* Actions */}
-              <div className="flex gap-2">
-                <button
-                  onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                >
-                  {loading ? 'Enviando…' : 'Enviar solicitud →'}
-                </button>
-              </div>
+              {/* ── STEP 2: Payment method ── */}
+              {step === 2 && (
+                <>
+                  {/* Summary */}
+                  <div className="flex items-center justify-between bg-primary/5 dark:bg-primary/10 rounded-xl px-4 py-3">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Paquete seleccionado</span>
+                    <span className="font-bold text-primary">{pkg.credits} cr. · ${pkg.priceUsd} USD</span>
+                  </div>
+
+                  {/* Payment method tabs */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Método de pago</p>
+                    <div className="flex gap-1.5 mb-4">
+                      {(['TRANSFER', 'CRYPTO', 'CARD'] as PayMethod[]).map(m => (
+                        <button key={m} onClick={() => { setPayMethod(m); setError('') }}
+                          className={`flex-1 py-2 text-xs font-semibold rounded-xl border-2 transition-all ${payMethod === m ? 'border-primary bg-primary/5 dark:bg-primary/10 text-primary' : 'border-gray-200 dark:border-gray-600 text-gray-500 hover:border-primary/40'}`}>
+                          {m === 'TRANSFER' ? '🏦 Banco' : m === 'CRYPTO' ? '₿ Cripto' : '💳 Tarjeta'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* TRANSFER */}
+                    {payMethod === 'TRANSFER' && (
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 space-y-2 text-sm">
+                          <p className="font-semibold text-blue-700 dark:text-blue-400">Banco de Guayaquil</p>
+                          <div className="space-y-1 text-blue-800 dark:text-blue-300">
+                            <div className="flex justify-between">
+                              <span className="text-blue-600 dark:text-blue-400">Cuenta corriente:</span>
+                              <button onClick={() => copyToClipboard('0053466219')} className="font-mono font-bold hover:text-blue-600 transition-colors">0053466219 📋</button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-blue-600 dark:text-blue-400">Titular:</span>
+                              <span className="font-medium">Luis Riofrio Lopez</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-blue-600 dark:text-blue-400">Cédula:</span>
+                              <span className="font-mono">1500760895</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-blue-600 dark:text-blue-400">Email:</span>
+                              <span className="font-mono text-xs">lriofrio915@gmail.com</span>
+                            </div>
+                          </div>
+                          <div className="pt-1 border-t border-blue-200 dark:border-blue-700/50">
+                            <p className="text-blue-600 dark:text-blue-400 font-bold">Monto a transferir: ${pkg.priceUsd} USD</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">📎 Subir comprobante de pago</p>
+                          <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="hidden" />
+                          <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                            className={`w-full py-2.5 rounded-xl border-2 border-dashed text-sm font-medium transition-colors ${proofUrl ? 'border-green-400 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'border-gray-300 dark:border-gray-600 text-gray-500 hover:border-primary/50 hover:text-primary'}`}>
+                            {uploading ? 'Subiendo…' : proofUrl ? `✓ ${proofFile?.name ?? 'Comprobante subido'}` : 'Seleccionar archivo'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CRYPTO */}
+                    {payMethod === 'CRYPTO' && (
+                      <div className="space-y-3">
+                        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/50 rounded-xl p-4 space-y-2 text-sm">
+                          <p className="font-semibold text-orange-700 dark:text-orange-400">Red: BNB Smart Chain (BEP20)</p>
+                          <div className="space-y-1 text-orange-800 dark:text-orange-300">
+                            <p className="text-orange-600 dark:text-orange-400 text-xs">Wallet:</p>
+                            <button onClick={() => copyToClipboard('0x92C2d11FA0C6e1d319c737149951081f0063E67E')}
+                              className="w-full text-left font-mono text-xs bg-orange-100 dark:bg-orange-900/40 rounded-lg px-3 py-2 break-all hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors">
+                              0x92C2d11FA0C6e1d319c737149951081f0063E67E 📋
+                            </button>
+                            <p className="font-bold">Monto: ${pkg.priceUsd} USD en USDT/BNB</p>
+                          </div>
+                          <div className="pt-1 border-t border-orange-200 dark:border-orange-700/50">
+                            <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">⚠️ Solo enviar en red BEP20 — otros tokens se perderán</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">📎 Subir comprobante / captura de tx</p>
+                          <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="hidden" />
+                          <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                            className={`w-full py-2.5 rounded-xl border-2 border-dashed text-sm font-medium transition-colors ${proofUrl ? 'border-green-400 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'border-gray-300 dark:border-gray-600 text-gray-500 hover:border-primary/50 hover:text-primary'}`}>
+                            {uploading ? 'Subiendo…' : proofUrl ? `✓ ${proofFile?.name ?? 'Comprobante subido'}` : 'Seleccionar archivo'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CARD */}
+                    {payMethod === 'CARD' && (
+                      <div className="space-y-3">
+                        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4 space-y-2 text-sm">
+                          <p className="font-semibold text-purple-700 dark:text-purple-400">💳 Pago con Visa / Mastercard</p>
+                          <p className="text-purple-600 dark:text-purple-300 text-xs">
+                            Procesado por NOWPayments — el admin recibe en criptomoneda automáticamente.
+                            Tus créditos se activan en minutos tras confirmarse el pago.
+                          </p>
+                          <p className="font-bold text-purple-800 dark:text-purple-200">Monto: ${pkg.priceUsd} USD</p>
+                        </div>
+
+                        {process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true' && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
+                            ⚙️ Pago con tarjeta en configuración. Usa transferencia o cripto por ahora.
+                          </p>
+                        )}
+
+                        <button
+                          onClick={handleCardPayment}
+                          disabled={loading || process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true'}
+                          className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                        >
+                          {loading ? 'Redirigiendo…' : `💳 Pagar $${pkg.priceUsd} USD →`}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => setStep(1)}
+                      className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      ← Atrás
+                    </button>
+                    {payMethod !== 'CARD' && (
+                      <button onClick={handleSubmit} disabled={loading || uploading || !proofUrl}
+                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                        {loading ? 'Enviando…' : 'Enviar solicitud →'}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}

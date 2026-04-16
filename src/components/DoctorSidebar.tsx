@@ -188,7 +188,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                   className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <span className="mt-0.5 text-base flex-shrink-0">
-                    {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : '💬'}
+                    {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : item.type === 'credit_recharge' ? '💳' : '💬'}
                   </span>
                   <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.label}</span>
                 </Link>
@@ -523,6 +523,17 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
           <Link href="/profile" aria-label="Mi perfil">
             <AvatarEl size={9} />
           </Link>
+          <button
+            onClick={handleLogout}
+            aria-label="Cerrar sesión"
+            className="p-2 rounded-xl text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors touch-manipulation"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
         </div>
       </header>
 

@@ -23,7 +23,7 @@ function headers() {
 
 export const SARA_CREDIT_COSTS = {
   IMAGE: 5,   // credits per image (Flux-2 Pro)
-  VIDEO: 50,  // credits per video (Kling 5s)
+  VIDEO: 20,  // credits per video (Kling 5s)
 } as const
 
 // ─── Recharge packages available to doctors ──────────────────

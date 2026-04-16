@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 type NotificationItem = {
-  type: 'appointment' | 'reminder' | 'whatsapp'
+  type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge'
   label: string
   href: string
 }
@@ -77,7 +77,20 @@ export async function GET() {
     items.push({ type: 'whatsapp', label: `WhatsApp esperando respuesta: ${phone}`, href: '/integraciones/conversaciones' })
   }
 
-  const count = appointments.length + reminders.length + conversations.length
+  let creditRecharges: { id: string; credits: number; doctor: { name: string } }[] = []
+  if (user.email === 'lriofrio915@gmail.com') {
+    creditRecharges = await prisma.creditRecharge.findMany({
+      where: { status: 'PENDING' },
+      include: { doctor: { select: { name: true } } },
+      take: 5,
+      orderBy: { createdAt: 'asc' },
+    })
+    for (const r of creditRecharges) {
+      items.push({ type: 'credit_recharge', label: `Recarga pendiente: ${r.doctor.name} — ${r.credits} cr.`, href: '/admin/credits' })
+    }
+  }
+
+  const count = appointments.length + reminders.length + conversations.length + creditRecharges.length
 
   return NextResponse.json({ count, items: items.slice(0, 5) })
 }

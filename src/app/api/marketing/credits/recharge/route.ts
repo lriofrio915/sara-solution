@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { CREDIT_PACKAGES } from '@/lib/kie-ai'
+import { sendWA } from '@/lib/whatsapp'
 
 async function getDoctor() {
   const supabase = await createClient()
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
   const doctor = await getDoctor()
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { packageIndex, notes } = await req.json()
+  const { packageIndex, notes, proofUrl, payMethod } = await req.json()
   const pkg = CREDIT_PACKAGES[packageIndex as number]
   if (!pkg) return NextResponse.json({ error: 'Paquete inválido' }, { status: 400 })
 
@@ -28,8 +29,14 @@ export async function POST(req: Request) {
       amountUsd: pkg.priceUsd,
       status: 'PENDING',
       notes: notes ?? null,
+      proofUrl: proofUrl ?? null,
+      payMethod: payMethod ?? null,
     },
   })
+
+  const methodLabel = payMethod === 'TRANSFER' ? 'Transferencia bancaria' : payMethod === 'CRYPTO' ? 'Cripto BEP20' : payMethod === 'CARD' ? 'Tarjeta' : 'No especificado'
+  const msg = `💳 *Nueva solicitud de créditos Sara*\n\n👤 Dr. ${doctor.name}\n📦 ${pkg.credits} créditos — $${pkg.priceUsd} USD\n💳 Método: ${methodLabel}${proofUrl ? '\n📎 Comprobante adjunto' : ''}\n\nRevisa: https://medsara.app/admin/credits`
+  sendWA('593996691586', msg).catch(() => {})
 
   return NextResponse.json({
     rechargeId: recharge.id,

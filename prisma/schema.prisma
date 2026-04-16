@@ -995,6 +995,8 @@ model CreditRecharge {
   amountUsd  Decimal  @db.Decimal(10, 2)
   status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
   notes      String?
+  proofUrl   String?   // URL del comprobante en Supabase Storage
+  payMethod  String?   // 'TRANSFER' | 'CRYPTO' | 'CARD'
   approvedAt DateTime?
   createdAt  DateTime @default(now())
 
