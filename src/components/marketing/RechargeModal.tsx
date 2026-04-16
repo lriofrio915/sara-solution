@@ -16,6 +16,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedPkg, setSelectedPkg] = useState(1)
   const [payMethod, setPayMethod] = useState<PayMethod>('TRANSFER')
+  const [copied, setCopied] = useState(false)
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofUrl, setProofUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -96,6 +97,12 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).catch(() => {})
+  }
+
+  function copyWallet() {
+    navigator.clipboard.writeText('0x92C2d11FA0C6e1d319c737149951081f0063E67E').catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -213,7 +220,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                           <p className="font-semibold text-blue-700 dark:text-blue-400">Banco de Guayaquil</p>
                           <div className="space-y-1 text-blue-800 dark:text-blue-300">
                             <div className="flex justify-between">
-                              <span className="text-blue-600 dark:text-blue-400">Cuenta corriente:</span>
+                              <span className="text-blue-600 dark:text-blue-400">Cuenta de ahorros:</span>
                               <button onClick={() => copyToClipboard('0053466219')} className="font-mono font-bold hover:text-blue-600 transition-colors">0053466219 📋</button>
                             </div>
                             <div className="flex justify-between">
@@ -252,11 +259,11 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                           <p className="font-semibold text-orange-700 dark:text-orange-400">Red: BNB Smart Chain (BEP20)</p>
                           <div className="space-y-1 text-orange-800 dark:text-orange-300">
                             <p className="text-orange-600 dark:text-orange-400 text-xs">Wallet:</p>
-                            <button onClick={() => copyToClipboard('0x92C2d11FA0C6e1d319c737149951081f0063E67E')}
-                              className="w-full text-left font-mono text-xs bg-orange-100 dark:bg-orange-900/40 rounded-lg px-3 py-2 break-all hover:bg-orange-200 dark:hover:bg-orange-900/60 transition-colors">
-                              0x92C2d11FA0C6e1d319c737149951081f0063E67E 📋
+                            <button onClick={copyWallet}
+                              className={`w-full text-left font-mono text-xs rounded-lg px-3 py-2 break-all transition-colors ${copied ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/40 hover:bg-orange-200 dark:hover:bg-orange-900/60'}`}>
+                              {copied ? '✓ Copiado!' : '0x92C2d11FA0C6e1d319c737149951081f0063E67E 📋'}
                             </button>
-                            <p className="font-bold">Monto: ${pkg.priceUsd} USD en USDT/BNB</p>
+                            <p className="font-bold">Monto: ${pkg.priceUsd} USD en USDT</p>
                           </div>
                           <div className="pt-1 border-t border-orange-200 dark:border-orange-700/50">
                             <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">⚠️ Solo enviar en red BEP20 — otros tokens se perderán</p>
