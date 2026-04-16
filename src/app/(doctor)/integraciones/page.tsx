@@ -581,7 +581,7 @@ export default function IntegracionesPage() {
 
         <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
           Una vez conectadas, puedes publicar directamente desde la sección{' '}
-          <Link href="/marketing/linkedin/trending" className="text-primary hover:underline">Marketing → Redes Sociales</Link>.
+          <Link href="/marketing/linkedin/library" className="text-primary hover:underline">Marketing → Redes Sociales</Link>.
         </p>
       </div>
 

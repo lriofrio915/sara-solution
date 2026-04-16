@@ -178,12 +178,7 @@ export default function LinkedInLibraryPage() {
         <div className="text-center py-16">
           <LinkedInIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-gray-500 dark:text-slate-400">No hay posts LinkedIn todavia</p>
-          <a
-            href="/marketing/linkedin/trending"
-            className="mt-4 inline-block px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Generar primer post
-          </a>
+          <p className="mt-4 text-sm text-gray-400">Usa la sección de Marketing para generar tu primer post.</p>
         </div>
       ) : (
         <div className="space-y-3">
