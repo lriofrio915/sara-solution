@@ -86,7 +86,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   const [bellOpen, setBellOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const [notifCount, setNotifCount] = useState(0)
-  const [notifItems, setNotifItems] = useState<{ type: string; label: string; href: string }[]>([])
+  const [notifItems, setNotifItems] = useState<{ type: string; label: string; href: string; createdAt?: string }[]>([])
   const pathname = usePathname()
   const router = useRouter()
   const gearRef = useRef<HTMLDivElement>(null)
@@ -193,7 +193,14 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                   <span className="mt-0.5 text-base flex-shrink-0">
                     {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : item.type === 'credit_recharge' ? '💳' : '💬'}
                   </span>
-                  <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.label}</span>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.label}</span>
+                    {item.createdAt && (
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                        {new Date(item.createdAt).toLocaleString('es-EC', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               ))}
             </div>

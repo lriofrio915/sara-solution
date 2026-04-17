@@ -35,7 +35,8 @@ export async function POST(req: Request) {
   })
 
   const methodLabel = payMethod === 'TRANSFER' ? 'Transferencia bancaria' : payMethod === 'CRYPTO' ? 'Cripto BEP20' : payMethod === 'CARD' ? 'Tarjeta' : 'No especificado'
-  const msg = `💳 *Nueva solicitud de créditos Sara*\n\n👤 Dr. ${doctor.name}\n📦 ${pkg.credits} créditos — $${pkg.priceUsd} USD\n💳 Método: ${methodLabel}${proofUrl ? '\n📎 Comprobante adjunto' : ''}\n\nRevisa: https://medsara.app/admin/credits`
+  const fechaHora = new Date().toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const msg = `💳 *Nueva solicitud de créditos Sara*\n\n👤 Dr. ${doctor.name}\n📦 ${pkg.credits} créditos — $${pkg.priceUsd} USD\n💳 Método: ${methodLabel}${proofUrl ? '\n📎 Comprobante adjunto' : '\n⚠️ Sin comprobante'}${notes ? `\n📝 Nota: ${notes}` : ''}\n🕐 ${fechaHora}\n\n🔗 https://medsara.app/admin/credits`
   sendWA('593996691586', msg).catch(() => {})
 
   return NextResponse.json({

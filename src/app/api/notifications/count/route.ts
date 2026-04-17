@@ -6,6 +6,7 @@ type NotificationItem = {
   type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge'
   label: string
   href: string
+  createdAt: string
 }
 
 // GET /api/notifications/count — returns unread notification count + top 5 items
@@ -44,7 +45,7 @@ export async function GET() {
         completed: false,
         dueDate: { lte: now },
       },
-      select: { id: true, title: true },
+      select: { id: true, title: true, dueDate: true },
       orderBy: { dueDate: 'asc' },
       take: 5,
     }),
@@ -54,7 +55,7 @@ export async function GET() {
         doctorId: doctor.id,
         humanMode: true,
       },
-      select: { id: true, title: true },
+      select: { id: true, title: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 5,
     }),
@@ -64,29 +65,28 @@ export async function GET() {
 
   for (const appt of appointments) {
     const d = new Date(appt.date)
-    const label = `Cita sin confirmar: ${d.toLocaleDateString('es-EC', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-    items.push({ type: 'appointment', label, href: '/appointments' })
+    items.push({ type: 'appointment', label: `Cita sin confirmar: ${d.toLocaleDateString('es-EC', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`, href: '/appointments', createdAt: d.toISOString() })
   }
 
   for (const rem of reminders) {
-    items.push({ type: 'reminder', label: `Recordatorio vencido: ${rem.title}`, href: '/reminders' })
+    items.push({ type: 'reminder', label: `Recordatorio vencido: ${rem.title}`, href: '/reminders', createdAt: new Date(rem.dueDate).toISOString() })
   }
 
   for (const conv of conversations) {
     const phone = conv.title ?? 'Paciente'
-    items.push({ type: 'whatsapp', label: `WhatsApp esperando respuesta: ${phone}`, href: '/integraciones/conversaciones' })
+    items.push({ type: 'whatsapp', label: `WhatsApp esperando respuesta: ${phone}`, href: '/integraciones/conversaciones', createdAt: new Date(conv.updatedAt).toISOString() })
   }
 
-  let creditRecharges: { id: string; credits: number; doctor: { name: string } }[] = []
+  let creditRecharges: { id: string; credits: number; createdAt: Date; doctor: { name: string } }[] = []
   if (user.email === 'lriofrio915@gmail.com') {
     creditRecharges = await prisma.creditRecharge.findMany({
       where: { status: 'PENDING' },
-      include: { doctor: { select: { name: true } } },
+      select: { id: true, credits: true, createdAt: true, doctor: { select: { name: true } } },
       take: 5,
       orderBy: { createdAt: 'asc' },
     })
     for (const r of creditRecharges) {
-      items.push({ type: 'credit_recharge', label: `Recarga pendiente: ${r.doctor.name} — ${r.credits} cr.`, href: '/admin/credits' })
+      items.push({ type: 'credit_recharge', label: `Recarga pendiente: ${r.doctor.name} — ${r.credits} cr.`, href: '/admin/credits', createdAt: r.createdAt.toISOString() })
     }
   }
 
