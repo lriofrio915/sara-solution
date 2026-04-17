@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+
 interface Recharge {
   id: string
   credits: number
@@ -23,15 +25,24 @@ export default function AdminCreditsPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [kieBalance, setKieBalance] = useState<number | null>(null)
+  const [kieError, setKieError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/credits')
-      if (!res.ok) { setError('No autorizado'); return }
-      const data = await res.json()
+      const [credRes, kieRes] = await Promise.all([
+        fetch('/api/admin/credits'),
+        fetch('/api/admin/kie-balance'),
+      ])
+      if (!credRes.ok) { setError('No autorizado'); return }
+      const data = await credRes.json()
       setPending(data.pending)
       setAllCredits(data.allCredits)
+
+      const kieData = await kieRes.json()
+      if (kieData.error) setKieError(kieData.error)
+      else setKieBalance(kieData.balance)
     } catch {
       setError('Error al cargar datos')
     } finally {
@@ -73,6 +84,23 @@ export default function AdminCreditsPage() {
       <div>
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Administrar Créditos Sara</h2>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Aprueba o rechaza solicitudes de recarga de médicos</p>
+      </div>
+
+      {/* Kie.AI pool balance */}
+      <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 p-5 text-white shadow-lg">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-lg">🤖</span>
+          <span className="text-sm font-semibold opacity-90">Pool de créditos Kie.AI (disponibles para distribuir)</span>
+        </div>
+        {kieError ? (
+          <div className="mt-2 rounded-xl bg-amber-500/20 border border-amber-400/30 p-3 text-xs text-amber-200">
+            <span className="font-semibold">⚠️ Sin acceso: </span>{kieError}
+          </div>
+        ) : (
+          <p className="text-4xl font-extrabold tracking-tight mt-1">
+            {kieBalance === null ? '…' : kieBalance.toLocaleString()} <span className="text-xl font-medium opacity-75">cr.</span>
+          </p>
+        )}
       </div>
 
       {/* Pending recharges */}
@@ -142,19 +170,26 @@ export default function AdminCreditsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {allCredits.map(c => (
-                  <tr key={c.doctorId} className="bg-white dark:bg-gray-800">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-900 dark:text-white">{c.doctor.name}</p>
-                      <p className="text-xs text-gray-400">{c.doctor.email}</p>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`font-bold ${c.credits > 0 ? 'text-primary' : 'text-gray-400'}`}>
-                        {c.credits}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {allCredits.map(c => {
+                  const isAdmin = c.doctor.email === SUPERADMIN_EMAIL
+                  const displayCredits = isAdmin && kieBalance !== null ? kieBalance : c.credits
+                  return (
+                    <tr key={c.doctorId} className="bg-white dark:bg-gray-800">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {c.doctor.name}
+                          {isAdmin && <span className="ml-2 text-xs text-violet-500 font-semibold">(pool kie.ai)</span>}
+                        </p>
+                        <p className="text-xs text-gray-400">{c.doctor.email}</p>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`font-bold ${displayCredits > 0 ? 'text-primary' : 'text-gray-400'}`}>
+                          {displayCredits}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
