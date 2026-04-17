@@ -2,21 +2,42 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-async function getDoctor() {
+const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+
+async function getUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  return prisma.doctor.findFirst({
-    where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true },
-  })
+  return user
 }
 
 export async function GET() {
-  const doctor = await getDoctor()
+  const user = await getUser()
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  // Superadmin: return real kie.ai pool balance
+  if (user.email === SUPERADMIN_EMAIL) {
+    const apiKey = process.env.KIE_AI_API_KEY
+    if (!apiKey) return NextResponse.json({ credits: 0, transactions: [] })
+    try {
+      const res = await fetch('https://api.kie.ai/api/v1/chat/credit', {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        cache: 'no-store',
+      })
+      const data = await res.json()
+      const balance = (data?.code === 200 && typeof data?.data === 'number') ? data.data : 0
+      return NextResponse.json({ credits: balance, transactions: [] })
+    } catch {
+      return NextResponse.json({ credits: 0, transactions: [] })
+    }
+  }
+
+  // Regular doctor: read from DB
+  const doctor = await prisma.doctor.findFirst({
+    where: { OR: [{ id: user.id }, { email: user.email! }] },
+    select: { id: true },
+  })
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  // Upsert credit record (create if not exists)
   const credit = await prisma.doctorCredit.upsert({
     where: { doctorId: doctor.id },
     update: {},
