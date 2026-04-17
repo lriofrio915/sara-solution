@@ -23,6 +23,16 @@ export async function POST(req: Request) {
   const pkg = CREDIT_PACKAGES[packageIndex as number]
   if (!pkg) return NextResponse.json({ error: 'Paquete inválido' }, { status: 400 })
 
+  // NOWPayments account minimum is ~$12 USD per payment (account-level setting).
+  // Packages below this will always fail with AMOUNT_MINIMAL_ERROR on the hosted page.
+  const NOWPAYMENTS_MIN_USD = 12
+  if (pkg.priceUsd < NOWPAYMENTS_MIN_USD) {
+    return NextResponse.json({
+      error: `El pago con tarjeta requiere un mínimo de $${NOWPAYMENTS_MIN_USD} USD. Usa Transferencia o Cripto para este paquete.`,
+      minUsd: NOWPAYMENTS_MIN_USD,
+    }, { status: 400 })
+  }
+
   // Pre-create recharge record so we have the ID for order_id
   const recharge = await prisma.creditRecharge.create({
     data: {

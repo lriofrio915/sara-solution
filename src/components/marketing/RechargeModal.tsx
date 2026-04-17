@@ -282,37 +282,50 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                     )}
 
                     {/* CARD */}
-                    {payMethod === 'CARD' && (
-                      <div className="space-y-3">
-                        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4 space-y-2 text-sm">
-                          <p className="font-semibold text-purple-700 dark:text-purple-400">💳 Pago con Visa / Mastercard</p>
-                          <p className="text-purple-600 dark:text-purple-300 text-xs">
-                            Procesado de forma segura vía NOWPayments.
-                            Tus créditos se activan en minutos tras confirmarse el pago.
-                          </p>
-                          <div className="pt-1 border-t border-purple-200 dark:border-purple-700/50 space-y-1">
-                            <p className="text-xs text-purple-500 dark:text-purple-400">Moneda de pago</p>
-                            <p className="font-bold text-purple-800 dark:text-purple-200 text-base">
-                              ${pkg.priceUsd} USD · USDT (BEP20)
-                            </p>
-                          </div>
+                    {payMethod === 'CARD' && (() => {
+                      const CARD_MIN_USD = 12
+                      const eligible = pkg.priceUsd >= CARD_MIN_USD
+                      return (
+                        <div className="space-y-3">
+                          {!eligible ? (
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-600/50 rounded-xl p-4 text-sm space-y-2">
+                              <p className="font-semibold text-amber-700 dark:text-amber-400">💳 Pago con tarjeta no disponible</p>
+                              <p className="text-amber-700 dark:text-amber-300 text-xs">
+                                El procesador de pagos requiere un mínimo de <strong>${CARD_MIN_USD} USD</strong> por transacción.
+                                El paquete seleccionado es de <strong>${pkg.priceUsd} USD</strong>.
+                              </p>
+                              <p className="text-amber-600 dark:text-amber-400 text-xs">
+                                Usa <strong>Transferencia Bancaria</strong> o <strong>Cripto (USDT BEP20)</strong> para este paquete, o selecciona el paquete de ${CREDIT_PACKAGES.find(p => p.priceUsd >= CARD_MIN_USD)?.priceUsd} USD o más.
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4 space-y-2 text-sm">
+                                <p className="font-semibold text-purple-700 dark:text-purple-400">💳 Pago con Visa / Mastercard</p>
+                                <p className="text-purple-600 dark:text-purple-300 text-xs">
+                                  Procesado de forma segura vía NOWPayments.
+                                  Tus créditos se activan en minutos tras confirmarse el pago.
+                                </p>
+                                <div className="pt-1 border-t border-purple-200 dark:border-purple-700/50 space-y-1">
+                                  <p className="text-xs text-purple-500 dark:text-purple-400">Moneda de pago</p>
+                                  <p className="font-bold text-purple-800 dark:text-purple-200 text-base">
+                                    ${pkg.priceUsd} USD · USDT (BEP20)
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={handleCardPayment}
+                                disabled={loading}
+                                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                              >
+                                {loading ? 'Redirigiendo…' : 'Siguiente paso →'}
+                              </button>
+                            </>
+                          )}
                         </div>
-
-                        {process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true' && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
-                            ⚙️ Pago con tarjeta en configuración. Usa transferencia o cripto por ahora.
-                          </p>
-                        )}
-
-                        <button
-                          onClick={handleCardPayment}
-                          disabled={loading || process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true'}
-                          className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
-                        >
-                          {loading ? 'Redirigiendo…' : 'Siguiente paso →'}
-                        </button>
-                      </div>
-                    )}
+                      )
+                    })()}
                   </div>
 
                   {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
