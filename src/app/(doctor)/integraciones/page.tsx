@@ -174,10 +174,11 @@ export default function IntegracionesPage() {
       const res = await fetch('/api/integrations/whatsapp/qr')
       const data = await res.json() as { connected?: boolean; qr?: string | null; error?: string }
       if (data.connected) {
-        // Connected! Stop polling, refresh status
+        // Connected! Stop polling, refresh status, and auto-activate webhook
         if (pollRef.current) clearInterval(pollRef.current)
         setQr(null)
         await fetchStatus()
+        fetch('/api/integrations/whatsapp/setup-webhook', { method: 'POST' }).catch(() => {})
       } else if (data.qr) {
         setQr(data.qr)
       }
@@ -359,26 +360,26 @@ export default function IntegracionesPage() {
                 </p>
               </div>
 
-              {/* Webhook setup */}
-              <div className="space-y-2">
-                <button
-                  onClick={handleSetupWebhook}
-                  disabled={settingWebhook}
-                  className="flex items-center gap-2 text-sm text-primary font-semibold hover:opacity-80 disabled:opacity-50 transition-opacity"
-                >
-                  {settingWebhook
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <RefreshCw className="w-4 h-4" />}
-                  Activar / sincronizar agente Sara
-                </button>
-                {webhookMsg && (
+              {/* Re-sync (fallback — hidden unless there's an error message) */}
+              {webhookMsg && (
+                <div className="space-y-2">
                   <p className={`text-xs rounded-lg px-3 py-2 ${webhookMsg.ok
                     ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                     : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
                     {webhookMsg.text}
                   </p>
-                )}
-              </div>
+                </div>
+              )}
+              {!webhookMsg && (
+                <button
+                  onClick={handleSetupWebhook}
+                  disabled={settingWebhook}
+                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary disabled:opacity-50 transition-colors"
+                >
+                  {settingWebhook ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                  ¿Problemas? Re-sincronizar agente
+                </button>
+              )}
 
               <Link
                 href="/integraciones/conversaciones"
@@ -473,8 +474,8 @@ export default function IntegracionesPage() {
               <div className="border-t border-gray-100 dark:border-gray-700 pt-5 space-y-3">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cómo funciona</p>
                 {[
-                  { step: '1', text: 'Escribe un nombre para tu instancia y haz clic en "Conectar"' },
-                  { step: '2', text: 'Aparece un código QR — escanéalo con tu WhatsApp Business' },
+                  { step: '1', text: 'Haz clic en "Conectar WhatsApp"' },
+                  { step: '2', text: 'Escanea el código QR con tu WhatsApp Business' },
                   { step: '3', text: 'Sara empieza a responder a tus pacientes automáticamente' },
                 ].map(({ step, text }) => (
                   <div key={step} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
