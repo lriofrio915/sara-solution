@@ -91,7 +91,6 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   const router = useRouter()
   const gearRef = useRef<HTMLDivElement>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
-  const bellRef = useRef<HTMLDivElement>(null)
 
   // Close drawer on route change
   useEffect(() => { setOpen(false); setGearOpen(false); setSwitcherOpen(false) }, [pathname])
@@ -105,7 +104,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
         setSwitcherOpen(false)
       }
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+      if (!(e.target as Element).closest?.('[data-bell]')) {
         setBellOpen(false)
       }
     }
@@ -160,7 +159,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   }
 
   const BellBadge = () => (
-    <div ref={bellRef} className="relative">
+    <div data-bell="" className="relative">
       <button
         onClick={() => setBellOpen(prev => !prev)}
         className="relative p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
