@@ -53,6 +53,25 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
     }
   }
 
+  async function handleCardPayment() {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/marketing/credits/payment/mp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageIndex: selectedPkg }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar pago')
+      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error desconocido')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleSubmit() {
     if (payMethod !== 'CARD' && !proofUrl) {
       setError('Sube el comprobante de pago antes de enviar.')
@@ -264,11 +283,24 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
 
                     {/* CARD */}
                     {payMethod === 'CARD' && (
-                      <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl p-4 text-sm space-y-2">
-                        <p className="font-semibold text-gray-700 dark:text-gray-200">💳 Pago con tarjeta</p>
-                        <p className="text-gray-500 dark:text-slate-400 text-xs">
-                          Esta opción estará disponible próximamente. Por ahora usa <strong>Transferencia Bancaria</strong> o <strong>Cripto (USDT TRC20)</strong>.
-                        </p>
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 space-y-2 text-sm">
+                          <p className="font-semibold text-blue-700 dark:text-blue-400">💳 Pago con Visa / Mastercard</p>
+                          <p className="text-blue-600 dark:text-blue-300 text-xs">
+                            Serás redirigido a MercadoPago para completar el pago de forma segura.
+                            Tus créditos se activan automáticamente al confirmarse el pago.
+                          </p>
+                          <div className="pt-1 border-t border-blue-200 dark:border-blue-700/50">
+                            <p className="font-bold text-blue-800 dark:text-blue-200">${pkg.priceUsd} USD · {pkg.credits} créditos</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleCardPayment}
+                          disabled={loading}
+                          className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                          {loading ? 'Redirigiendo…' : 'Pagar con tarjeta →'}
+                        </button>
                       </div>
                     )}
                   </div>
