@@ -53,25 +53,6 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
     }
   }
 
-  async function handleCardPayment() {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/marketing/credits/payment/card', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageIndex: selectedPkg }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar pago')
-      if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error desconocido')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   async function handleSubmit() {
     if (payMethod !== 'CARD' && !proofUrl) {
       setError('Sube el comprobante de pago antes de enviar.')
@@ -100,7 +81,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
   }
 
   function copyWallet() {
-    navigator.clipboard.writeText('0x92C2d11FA0C6e1d319c737149951081f0063E67E').catch(() => {})
+    navigator.clipboard.writeText('TNJ8XKBVv6GRFJzLxVsTQLBSqRUh8f9VZD').catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -256,17 +237,17 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                     {payMethod === 'CRYPTO' && (
                       <div className="space-y-3">
                         <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/50 rounded-xl p-4 space-y-2 text-sm">
-                          <p className="font-semibold text-orange-700 dark:text-orange-400">Red: BNB Smart Chain (BEP20)</p>
+                          <p className="font-semibold text-orange-700 dark:text-orange-400">Red: Tron (TRC20)</p>
                           <div className="space-y-1 text-orange-800 dark:text-orange-300">
-                            <p className="text-orange-600 dark:text-orange-400 text-xs">Wallet:</p>
+                            <p className="text-orange-600 dark:text-orange-400 text-xs">Wallet USDT TRC20:</p>
                             <button onClick={copyWallet}
                               className={`w-full text-left font-mono text-xs rounded-lg px-3 py-2 break-all transition-colors ${copied ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/40 hover:bg-orange-200 dark:hover:bg-orange-900/60'}`}>
-                              {copied ? '✓ Copiado!' : '0x92C2d11FA0C6e1d319c737149951081f0063E67E 📋'}
+                              {copied ? '✓ Copiado!' : 'TNJ8XKBVv6GRFJzLxVsTQLBSqRUh8f9VZD 📋'}
                             </button>
                             <p className="font-bold">Monto: ${pkg.priceUsd} USD en USDT</p>
                           </div>
                           <div className="pt-1 border-t border-orange-200 dark:border-orange-700/50">
-                            <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">⚠️ Solo enviar en red BEP20 — otros tokens se perderán</p>
+                            <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">⚠️ Solo enviar USDT en red TRC20 (Tron) — otros tokens se perderán</p>
                           </div>
                         </div>
 
@@ -282,50 +263,14 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                     )}
 
                     {/* CARD */}
-                    {payMethod === 'CARD' && (() => {
-                      const CARD_MIN_USD = 12
-                      const eligible = pkg.priceUsd >= CARD_MIN_USD
-                      return (
-                        <div className="space-y-3">
-                          {!eligible ? (
-                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-600/50 rounded-xl p-4 text-sm space-y-2">
-                              <p className="font-semibold text-amber-700 dark:text-amber-400">💳 Pago con tarjeta no disponible</p>
-                              <p className="text-amber-700 dark:text-amber-300 text-xs">
-                                El procesador de pagos requiere un mínimo de <strong>${CARD_MIN_USD} USD</strong> por transacción.
-                                El paquete seleccionado es de <strong>${pkg.priceUsd} USD</strong>.
-                              </p>
-                              <p className="text-amber-600 dark:text-amber-400 text-xs">
-                                Usa <strong>Transferencia Bancaria</strong> o <strong>Cripto (USDT BEP20)</strong> para este paquete, o selecciona el paquete de ${CREDIT_PACKAGES.find(p => p.priceUsd >= CARD_MIN_USD)?.priceUsd} USD o más.
-                              </p>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4 space-y-2 text-sm">
-                                <p className="font-semibold text-purple-700 dark:text-purple-400">💳 Pago con Visa / Mastercard</p>
-                                <p className="text-purple-600 dark:text-purple-300 text-xs">
-                                  Procesado de forma segura vía NOWPayments.
-                                  Tus créditos se activan en minutos tras confirmarse el pago.
-                                </p>
-                                <div className="pt-1 border-t border-purple-200 dark:border-purple-700/50 space-y-1">
-                                  <p className="text-xs text-purple-500 dark:text-purple-400">Moneda de pago</p>
-                                  <p className="font-bold text-purple-800 dark:text-purple-200 text-base">
-                                    ${pkg.priceUsd} USD · USDT (BEP20)
-                                  </p>
-                                </div>
-                              </div>
-
-                              <button
-                                onClick={handleCardPayment}
-                                disabled={loading}
-                                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
-                              >
-                                {loading ? 'Redirigiendo…' : 'Siguiente paso →'}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )
-                    })()}
+                    {payMethod === 'CARD' && (
+                      <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl p-4 text-sm space-y-2">
+                        <p className="font-semibold text-gray-700 dark:text-gray-200">💳 Pago con tarjeta</p>
+                        <p className="text-gray-500 dark:text-slate-400 text-xs">
+                          Esta opción estará disponible próximamente. Por ahora usa <strong>Transferencia Bancaria</strong> o <strong>Cripto (USDT TRC20)</strong>.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
