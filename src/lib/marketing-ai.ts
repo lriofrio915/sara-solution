@@ -18,6 +18,7 @@ export interface BrandContext {
 
 export interface GeneratePostOptions {
   topic: string
+  goal?: string
   contentType: 'POST' | 'CAROUSEL' | 'REEL' | 'STORY'
   targetPlatform: 'INSTAGRAM' | 'FACEBOOK' | 'TIKTOK' | 'BOTH'
   brand: BrandContext
@@ -72,11 +73,12 @@ REGLAS:
 }
 
 function buildUserPrompt(opts: GeneratePostOptions): string {
-  const extra = opts.extraInstructions ? `\nInstrucciones adicionales: ${opts.extraInstructions}` : ''
+  const goalNote = opts.goal ? `\nObjetivo del post: ${opts.goal}` : ''
+  const extra = opts.extraInstructions ? `\nDetalles adicionales para fotos/videos: ${opts.extraInstructions}` : ''
 
   // TikTok tiene su propio formato de guión de video
   if (opts.targetPlatform === 'TIKTOK') {
-    return `Crea un guión de video de TikTok para un médico sobre el tema: "${opts.topic}"${extra}
+    return `Crea un guión de video de TikTok para un médico sobre el tema: "${opts.topic}"${goalNote}${extra}
 
 El video debe durar entre 30-60 segundos. Genera el contenido REAL y completo (no uses placeholders ni ejemplos).
 
@@ -95,7 +97,7 @@ Devuelve SOLO este JSON con los valores reales generados:
     : `para ${opts.targetPlatform}`
 
   if (opts.contentType === 'POST') {
-    return `Crea un post ${platformNote} sobre el tema: "${opts.topic}"${extra}
+    return `Crea un post ${platformNote} sobre el tema: "${opts.topic}"${goalNote}${extra}
 
 Genera el contenido REAL y completo (no uses placeholders ni ejemplos genéricos). El texto debe estar listo para publicar.
 
@@ -109,7 +111,7 @@ Devuelve SOLO este JSON con los valores reales generados:
   }
 
   if (opts.contentType === 'CAROUSEL') {
-    return `Crea un carrusel ${platformNote} sobre el tema: "${opts.topic}" (5-7 diapositivas)${extra}
+    return `Crea un carrusel ${platformNote} sobre el tema: "${opts.topic}" (5-7 diapositivas)${goalNote}${extra}
 
 Genera el contenido REAL y completo para cada diapositiva (no uses placeholders).
 
@@ -126,7 +128,7 @@ Devuelve SOLO este JSON con los valores reales generados:
   }
 
   if (opts.contentType === 'REEL') {
-    return `Crea el guión de un Reel ${platformNote} sobre el tema: "${opts.topic}" (duración ~30-60 segundos)${extra}
+    return `Crea el guión de un Reel ${platformNote} sobre el tema: "${opts.topic}" (duración ~30-60 segundos)${goalNote}${extra}
 
 Genera el contenido REAL y completo (no uses placeholders).
 
@@ -141,7 +143,7 @@ Devuelve SOLO este JSON con los valores reales generados:
   }
 
   // STORY
-  return `Crea una historia (Story) ${platformNote} sobre el tema: "${opts.topic}"${extra}
+  return `Crea una historia (Story) ${platformNote} sobre el tema: "${opts.topic}"${goalNote}${extra}
 
 Genera el contenido REAL (no uses placeholders).
 

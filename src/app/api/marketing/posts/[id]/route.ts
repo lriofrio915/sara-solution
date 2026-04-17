@@ -37,12 +37,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const {
     content, hashtags, status, scheduledAt,
     contentType, targetPlatform, topic,
-    carouselSlides, reelScript, imagePrompt, suggestedTime,
+    carouselSlides, reelScript, imagePrompt, suggestedTime, imageUrl,
   } = body
 
   const update: Record<string, unknown> = {}
   if (content !== undefined) update.content = content
   if (hashtags !== undefined) update.hashtags = hashtags
+  if (imageUrl !== undefined) update.imageUrl = imageUrl
   if (status !== undefined) {
     update.status = status
     if (status === 'APPROVED') update.approvedAt = new Date()

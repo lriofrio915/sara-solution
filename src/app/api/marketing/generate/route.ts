@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { topic, contentType, targetPlatform, extraInstructions } = body
+  const { topic, goal, contentType, targetPlatform, extraInstructions } = body
 
   if (!topic?.trim()) return NextResponse.json({ error: 'El tema es requerido' }, { status: 400 })
 
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
   try {
     const generated = await generateMarketingContent({
       topic,
+      goal,
       contentType: contentType ?? 'POST',
       targetPlatform: targetPlatform ?? 'INSTAGRAM',
       brand: brandContext,

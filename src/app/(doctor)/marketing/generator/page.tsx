@@ -2,12 +2,21 @@
 
 import { useState } from 'react'
 
-function AIImage({ prompt }: { prompt: string }) {
+function AIImage({ prompt, postId }: { prompt: string; postId: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
   const encoded = encodeURIComponent(
     `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
   )
   const src = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
+
+  function handleLoad() {
+    setStatus('ok')
+    fetch(`/api/marketing/posts/${postId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: src }),
+    }).catch(() => {})
+  }
 
   return (
     <div className="space-y-2">
@@ -29,7 +38,7 @@ function AIImage({ prompt }: { prompt: string }) {
           src={src}
           alt={prompt}
           className={`w-full h-full object-cover transition-opacity ${status === 'ok' ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setStatus('ok')}
+          onLoad={handleLoad}
           onError={() => setStatus('error')}
         />
       </div>
@@ -92,6 +101,7 @@ export default function GeneratorPage() {
   const [topic, setTopic] = useState('')
   const [contentType, setContentType] = useState<ContentType>('POST')
   const [platform, setPlatform] = useState<Platform>('INSTAGRAM')
+  const [goal, setGoal] = useState('')
   const [extraInstructions, setExtraInstructions] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -110,7 +120,7 @@ export default function GeneratorPage() {
       const res = await fetch('/api/marketing/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, contentType, targetPlatform: platform, extraInstructions }),
+        body: JSON.stringify({ topic, goal, contentType, targetPlatform: platform, extraInstructions }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al generar')
@@ -208,13 +218,23 @@ export default function GeneratorPage() {
               </div>
             </div>
 
+            {/* Objetivo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Objetivo del post <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <input type="text" value={goal} onChange={e => setGoal(e.target.value)}
+                placeholder="Ej: conseguir más citas, educar sobre prevención, aumentar seguidores"
+                className="input dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+            </div>
+
             {/* Extra */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Instrucciones adicionales <span className="text-gray-400 font-normal">(opcional)</span>
+                Agrega más detalles para tus fotos/videos <span className="text-gray-400 font-normal">(opcional)</span>
               </label>
               <textarea value={extraInstructions} onChange={e => setExtraInstructions(e.target.value)} rows={3}
-                placeholder="Ej: menciona que tenemos citas disponibles esta semana, incluye estadística sobre la enfermedad..."
+                placeholder="Ej: usa colores azules, incluye una persona sonriendo, muestra el consultorio, menciona que hay citas disponibles..."
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none" />
             </div>
           </div>
@@ -323,7 +343,7 @@ export default function GeneratorPage() {
 
                 {/* AI Image */}
                 {result.imagePrompt && (
-                  <AIImage prompt={result.imagePrompt} />
+                  <AIImage prompt={result.imagePrompt} postId={result.id} />
                 )}
 
                 {/* Suggested time */}
