@@ -15,6 +15,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendNexusWA } from '@/lib/whatsapp'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,6 +107,10 @@ export async function POST(req: NextRequest) {
           }),
         ])
         console.log(`Hotmart: ${creditPkg.credits} créditos activados para ${email}`)
+        const fechaCredits = new Date().toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        sendNexusWA('593996691586',
+          `💳 *Compra de créditos vía Hotmart*\n\n📧 ${email}\n📦 ${creditPkg.credits} créditos activados\n🕐 ${fechaCredits}`,
+        ).catch(() => {})
         return NextResponse.json({ ok: true, credits: creditPkg.credits })
       }
 
@@ -128,6 +133,10 @@ export async function POST(req: NextRequest) {
       }
 
       console.log(`Hotmart: plan ${plan} activado para ${email}`)
+      const fechaPlan = new Date().toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      sendNexusWA('593996691586',
+        `⭐ *Nueva membresía activada (Hotmart)*\n\n📧 ${email}\n📋 Plan: ${plan}\n🕐 ${fechaPlan}\n\n🔗 https://medsara.app/admin`,
+      ).catch(() => {})
       return NextResponse.json({ ok: true, plan })
     }
 

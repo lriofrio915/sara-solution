@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 type NotificationItem = {
-  type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge'
+  type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge' | 'credit_approved'
   label: string
   href: string
   createdAt: string
@@ -90,7 +90,27 @@ export async function GET() {
     }
   }
 
-  const count = appointments.length + reminders.length + conversations.length + creditRecharges.length
+  // Créditos aprobados en las últimas 24h (solo para médicos no-admin)
+  let approvedRecharges: { id: string; credits: number; approvedAt: Date | null }[] = []
+  if (user.email !== 'lriofrio915@gmail.com') {
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    approvedRecharges = await prisma.creditRecharge.findMany({
+      where: { doctorId: doctor.id, status: 'APPROVED', approvedAt: { gte: since24h } },
+      select: { id: true, credits: true, approvedAt: true },
+      orderBy: { approvedAt: 'desc' },
+      take: 3,
+    })
+    for (const r of approvedRecharges) {
+      items.push({
+        type: 'credit_approved',
+        label: `¡${r.credits} créditos acreditados en tu cuenta!`,
+        href: '/marketing',
+        createdAt: r.approvedAt!.toISOString(),
+      })
+    }
+  }
+
+  const count = appointments.length + reminders.length + conversations.length + creditRecharges.length + approvedRecharges.length
 
   return NextResponse.json({ count, items: items.slice(0, 5) })
 }

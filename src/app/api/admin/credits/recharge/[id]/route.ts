@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { sendWA } from '@/lib/whatsapp'
 
 const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
@@ -38,6 +39,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       }),
     ])
+    // Notificar al médico por WhatsApp
+    const doctor = await prisma.doctor.findUnique({
+      where: { id: recharge.doctorId },
+      select: { name: true, whatsapp: true, phone: true },
+    })
+    const waPhone = doctor?.whatsapp ?? doctor?.phone
+    if (waPhone) {
+      const msg = `✅ *¡Tus créditos Sara han sido acreditados!*\n\n👤 Dr. ${doctor!.name}\n📦 *${recharge.credits} créditos* añadidos a tu cuenta\n\n🚀 Ya puedes usar Sara IA para marketing\n🔗 https://medsara.app/marketing`
+      sendWA(waPhone, msg).catch(() => {})
+    }
   } else {
     await prisma.creditRecharge.update({
       where: { id },

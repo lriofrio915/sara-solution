@@ -8,6 +8,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendNexusWA } from '@/lib/whatsapp'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,8 +84,12 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Fire-and-forget WhatsApp notification via n8n
+    // Fire-and-forget notifications
     void notifyN8n(lead)
+    const fechaLead = new Date(lead.createdAt).toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    void sendNexusWA('593996691586',
+      `🎯 *Nuevo lead*\n\n👤 ${lead.name}\n📧 ${lead.email ?? '—'}\n📱 ${lead.phone ?? '—'}\n🏥 ${lead.specialty ?? '—'}\n📍 ${lead.city ?? '—'}\n🔗 Fuente: ${lead.source}\n🕐 ${fechaLead}`,
+    )
 
     return NextResponse.json({ ok: true, id: lead.id }, { status: 201 })
   } catch (err) {

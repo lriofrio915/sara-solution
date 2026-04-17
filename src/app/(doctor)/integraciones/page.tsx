@@ -112,7 +112,6 @@ function OAuthBannerReader({ onBanner }: { onBanner: (b: BannerMsg | null) => vo
 export default function IntegracionesPage() {
   const [status, setStatus] = useState<Status | null>(null)
   const [loading, setLoading] = useState(true)
-  const [instanceInput, setInstanceInput] = useState('')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [qr, setQr] = useState<string | null>(null)
@@ -207,7 +206,7 @@ export default function IntegracionesPage() {
       const res = await fetch('/api/integrations/whatsapp/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instanceName: instanceInput.trim() }),
+        body: JSON.stringify({}),
       })
       const data = await res.json() as { ok?: boolean; error?: string }
       if (!res.ok || data.error) {
@@ -453,31 +452,15 @@ export default function IntegracionesPage() {
           {!hasInstance && (
             <div className="space-y-5">
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Nombre de la instancia
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  Elige un identificador único para tu instancia. Solo letras minúsculas, números y guiones.
-                  Ejemplo: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">dr-garcia-consultorio</span>
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={instanceInput}
-                    onChange={(e) => setInstanceInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                    placeholder="ej: dr-garcia-consultorio"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  />
-                  <button
-                    onClick={handleCreate}
-                    disabled={creating || instanceInput.trim().length < 3}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all hover:opacity-90"
-                    style={{ background: '#25D366' }}
-                  >
-                    {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    {creating ? 'Creando...' : 'Conectar'}
-                  </button>
-                </div>
+                <button
+                  onClick={handleCreate}
+                  disabled={creating}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all hover:opacity-90"
+                  style={{ background: '#25D366' }}
+                >
+                  {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {creating ? 'Conectando...' : 'Conectar WhatsApp'}
+                </button>
 
                 {error && (
                   <p className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">

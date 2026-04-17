@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendWelcomeEmail } from '@/lib/email'
 import { TRIAL_DAYS } from '@/lib/plan'
+import { sendNexusWA } from '@/lib/whatsapp'
 
 /** Genera un código de referido legible: primeras 5 letras del nombre + 5 últimos chars del ID. */
 function generateReferralCode(name: string, id: string): string {
@@ -88,10 +89,16 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Send welcome email (non-blocking — don't fail registration if email fails)
+    // Send welcome email (non-blocking)
     sendWelcomeEmail(doctor.email, doctor.name).catch((err) =>
       console.error('Welcome email error:', err),
     )
+
+    // Notify admin via Nexus WhatsApp
+    const fechaHora = new Date().toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    sendNexusWA('593996691586',
+      `🆕 *Nuevo médico registrado en Sara*\n\n👤 ${doctor.name}\n📧 ${doctor.email}\n🏥 ${doctor.specialty ?? 'No indicada'}\n🕐 ${fechaHora}\n\n🔗 https://medsara.app/admin`,
+    ).catch(() => {})
 
     return NextResponse.json({ doctor }, { status: 201 })
   } catch (error) {

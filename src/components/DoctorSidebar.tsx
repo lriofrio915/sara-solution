@@ -191,7 +191,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                   className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <span className="mt-0.5 text-base flex-shrink-0">
-                    {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : item.type === 'credit_recharge' ? '💳' : '💬'}
+                    {item.type === 'appointment' ? '📅' : item.type === 'reminder' ? '⏰' : item.type === 'credit_approved' ? '✅' : item.type === 'credit_recharge' ? '💳' : '💬'}
                   </span>
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.label}</span>

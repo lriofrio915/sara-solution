@@ -31,11 +31,11 @@ export async function POST(req: Request) {
     })
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
-    const body = await req.json() as { instanceName?: string }
-    const instanceName = body.instanceName?.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
-    if (!instanceName || instanceName.length < 3) {
-      return NextResponse.json({ error: 'Nombre de instancia inválido (mínimo 3 caracteres, solo letras, números y guiones)' }, { status: 400 })
-    }
+    const body = await req.json().catch(() => ({})) as { instanceName?: string }
+    const raw = body.instanceName?.trim()
+    const instanceName = raw
+      ? raw.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+      : `dr-${doctor.id.replace(/[^a-z0-9]/g, '').slice(0, 10)}`
 
     if (!process.env.EVOLUTION_API_URL || !process.env.EVOLUTION_API_KEY) {
       return NextResponse.json({ error: 'Evolution API no configurada en el servidor' }, { status: 503 })
@@ -88,7 +88,8 @@ export async function POST(req: Request) {
     // ── 3. Auto-configure webhook ────────────────────────────────────────────
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.INTERNAL_APP_URL ?? ''
     if (appUrl) {
-      const webhookUrl = `${appUrl}/api/webhooks/whatsapp-evolution`
+      const isAdmin = user.email === 'lriofrio915@gmail.com'
+      const webhookUrl = `${appUrl}/api/webhooks/${isAdmin ? 'nexus' : 'whatsapp-evolution'}`
       fetch(evolutionUrl(`/webhook/set/${instanceName}`), {
         method: 'POST',
         headers: evolutionHeaders(),

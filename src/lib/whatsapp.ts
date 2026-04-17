@@ -24,3 +24,12 @@ export async function sendWA(to: string, text: string, instance?: string): Promi
     return false
   }
 }
+
+/**
+ * Sends a WhatsApp message via the Nexus admin instance.
+ * Uses NEXUS_INSTANCE_NAME if set, falls back to EVOLUTION_INSTANCE_NAME.
+ */
+export async function sendNexusWA(to: string, text: string): Promise<boolean> {
+  const instance = process.env.NEXUS_INSTANCE_NAME ?? process.env.EVOLUTION_INSTANCE_NAME
+  return sendWA(to, text, instance)
+}

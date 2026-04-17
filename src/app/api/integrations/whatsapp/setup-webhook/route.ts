@@ -41,7 +41,8 @@ export async function POST() {
     // Ensure www — Vercel redirects consultorio.site → www.consultorio.site with 307
     // but Evolution doesn't follow POST redirects, so we must use the final URL directly
     const appUrl = rawUrl.replace(/^https?:\/\/(?!www\.)/, (m) => m + 'www.')
-    const webhookUrl = `${appUrl}/api/webhooks/whatsapp-evolution`
+    const isAdmin = user.email === 'lriofrio915@gmail.com'
+    const webhookUrl = `${appUrl}/api/webhooks/${isAdmin ? 'nexus' : 'whatsapp-evolution'}`
     const instanceName = doctor.evolutionInstance
 
     const res = await fetch(evolutionUrl(`/webhook/set/${instanceName}`), {
