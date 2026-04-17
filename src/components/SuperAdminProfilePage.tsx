@@ -51,6 +51,15 @@ interface ExpiringTrial {
   _count: { patients: number }
 }
 
+interface PendingRecharge {
+  id: string
+  credits: number
+  amountUsd: number
+  payMethod: string | null
+  createdAt: string
+  doctor: { name: string; email: string }
+}
+
 interface Stats {
   totalDoctors: number
   totalPatients: number
@@ -126,6 +135,15 @@ export default function SuperAdminProfilePage() {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Kie.ai balance
+  const [kieBalance, setKieBalance] = useState<number | null>(null)
+  const [kieBalanceLoading, setKieBalanceLoading] = useState(true)
+
+  // Pending recharges
+  const [pendingRecharges, setPendingRecharges] = useState<PendingRecharge[]>([])
+  const [rechargesLoading, setRechargesLoading] = useState(true)
+  const [approvingId, setApprovingId] = useState<string | null>(null)
+
   // Lead sources
   const [leadSources, setLeadSources] = useState<Record<string, number>>({})
   const [leadSourcesLoading, setLeadSourcesLoading] = useState(true)
@@ -151,6 +169,21 @@ export default function SuperAdminProfilePage() {
       .then(r => r.ok ? r.json() : null)
       .then(d => { setStats(d); setLoading(false) })
       .catch(() => setLoading(false))
+
+    // Load kie.ai balance
+    fetch('/api/admin/kie-balance')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setKieBalance(d?.balance ?? null); setKieBalanceLoading(false) })
+      .catch(() => setKieBalanceLoading(false))
+
+    // Load pending recharges
+    fetch('/api/admin/credits')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.pending) setPendingRecharges(d.pending)
+        setRechargesLoading(false)
+      })
+      .catch(() => setRechargesLoading(false))
 
     // Load lead sources
     fetch('/api/admin/leads')
@@ -222,6 +255,20 @@ export default function SuperAdminProfilePage() {
       setCopiedKey(key)
       setTimeout(() => setCopiedKey(null), 2000)
     })
+  }
+
+  async function handleRecharge(id: string, approved: boolean) {
+    setApprovingId(id)
+    try {
+      await fetch(`/api/admin/credits/recharge/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved }),
+      })
+      setPendingRecharges(prev => prev.filter(r => r.id !== id))
+    } finally {
+      setApprovingId(null)
+    }
   }
 
   const displayName = profile?.name ?? 'Luis Riofrio'
@@ -383,6 +430,101 @@ export default function SuperAdminProfilePage() {
           </div>
         </div>
       )}
+
+      {/* ── Kie.AI balance + Pending recharges ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {/* Kie.ai balance card */}
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-2xl border border-violet-200 dark:border-violet-700/50 p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-2">
+              <span className="text-base">🤖</span>
+              Créditos Kie.AI disponibles
+            </h2>
+            <Link href="/admin/credits" className="text-xs text-violet-500 hover:underline flex items-center gap-1">
+              Admin <ChevronRight size={12} />
+            </Link>
+          </div>
+          {kieBalanceLoading ? (
+            <div className="h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl animate-pulse" />
+          ) : kieBalance === null ? (
+            <p className="text-sm text-gray-400 dark:text-slate-400">No disponible</p>
+          ) : (
+            <div>
+              <p className="text-4xl font-bold text-violet-700 dark:text-violet-300">
+                {kieBalance.toLocaleString('es-EC')}
+              </p>
+              <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">
+                créditos · pool compartido de generación IA
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Pending recharges */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <span className="text-base">💳</span>
+              Solicitudes pendientes
+              {pendingRecharges.length > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold">
+                  {pendingRecharges.length}
+                </span>
+              )}
+            </h2>
+            <Link href="/admin/credits" className="text-xs text-primary hover:underline flex items-center gap-1">
+              Ver todos <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-50 dark:divide-gray-700/50 max-h-52 overflow-y-auto">
+            {rechargesLoading ? (
+              <div className="space-y-2 p-3">
+                {[1, 2].map(i => <div key={i} className="h-10 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />)}
+              </div>
+            ) : pendingRecharges.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-slate-500">
+                <CheckCircle size={24} className="mb-1.5 opacity-40" />
+                <p className="text-xs">No hay solicitudes pendientes</p>
+              </div>
+            ) : (
+              pendingRecharges.map(r => {
+                const methodLabel = r.payMethod === 'TRANSFER' ? 'Banco' : r.payMethod === 'CRYPTO' ? 'Cripto' : r.payMethod === 'CARD' ? 'Tarjeta' : '—'
+                return (
+                  <div key={r.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-800 dark:text-white truncate">{r.doctor.name}</p>
+                      <p className="text-xs text-gray-400 dark:text-slate-400">{r.credits} cr · ${Number(r.amountUsd).toFixed(0)} · {methodLabel}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => handleRecharge(r.id, true)}
+                        disabled={approvingId === r.id}
+                        className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 flex items-center justify-center transition-colors disabled:opacity-50"
+                        title="Aprobar"
+                      >
+                        {approvingId === r.id ? (
+                          <span className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <CheckCircle size={14} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleRecharge(r.id, false)}
+                        disabled={approvingId === r.id}
+                        className="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/60 flex items-center justify-center transition-colors disabled:opacity-50"
+                        title="Rechazar"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* ── Stat cards ── */}
       <div>

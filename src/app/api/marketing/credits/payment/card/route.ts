@@ -43,7 +43,6 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       price_amount: pkg.priceUsd,
       price_currency: 'USD',
-      pay_currency: 'USDTBSC',
       ipn_callback_url: `${APP_URL}/api/webhooks/nowpayments`,
       order_id: recharge.id,
       order_description: `${pkg.credits} créditos Sara — Dr. ${doctor.name}`,
