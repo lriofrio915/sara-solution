@@ -34,6 +34,8 @@ export async function POST(req: Request) {
     },
   })
 
+  // Use usdtbsc (USDT BEP20) as both price and pay currency to avoid
+  // USD→USDT conversion that triggers NOWPayments "less than minimal" error
   const res = await fetch('https://api.nowpayments.io/v1/invoice', {
     method: 'POST',
     headers: {
@@ -42,7 +44,8 @@ export async function POST(req: Request) {
     },
     body: JSON.stringify({
       price_amount: pkg.priceUsd,
-      price_currency: 'USD',
+      price_currency: 'usdtbsc',
+      pay_currency: 'usdtbsc',
       ipn_callback_url: `${APP_URL}/api/webhooks/nowpayments`,
       order_id: recharge.id,
       order_description: `${pkg.credits} créditos Sara — Dr. ${doctor.name}`,

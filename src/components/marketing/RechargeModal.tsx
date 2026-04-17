@@ -287,10 +287,15 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                         <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4 space-y-2 text-sm">
                           <p className="font-semibold text-purple-700 dark:text-purple-400">💳 Pago con Visa / Mastercard</p>
                           <p className="text-purple-600 dark:text-purple-300 text-xs">
-                            Procesado por NOWPayments — el admin recibe en criptomoneda automáticamente.
+                            Procesado de forma segura vía NOWPayments.
                             Tus créditos se activan en minutos tras confirmarse el pago.
                           </p>
-                          <p className="font-bold text-purple-800 dark:text-purple-200">Monto: ${pkg.priceUsd} USD</p>
+                          <div className="pt-1 border-t border-purple-200 dark:border-purple-700/50 space-y-1">
+                            <p className="text-xs text-purple-500 dark:text-purple-400">Moneda de pago</p>
+                            <p className="font-bold text-purple-800 dark:text-purple-200 text-base">
+                              ${pkg.priceUsd} USD · USDT (BEP20)
+                            </p>
+                          </div>
                         </div>
 
                         {process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true' && (
@@ -304,7 +309,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                           disabled={loading || process.env.NEXT_PUBLIC_NOWPAYMENTS_ENABLED !== 'true'}
                           className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 disabled:opacity-50 transition-colors"
                         >
-                          {loading ? 'Redirigiendo…' : `💳 Pagar $${pkg.priceUsd} USD →`}
+                          {loading ? 'Redirigiendo…' : 'Siguiente paso →'}
                         </button>
                       </div>
                     )}
