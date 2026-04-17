@@ -31,7 +31,6 @@ export const SARA_CREDIT_COSTS = {
 export const CREDIT_PACKAGES = [
   { credits: 100, priceUsd: 5  },
   { credits: 250, priceUsd: 10 },
-  { credits: 600, priceUsd: 20 },
 ] as const
 
 // ─── API calls ───────────────────────────────────────────────

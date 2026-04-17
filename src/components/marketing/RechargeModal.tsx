@@ -53,23 +53,14 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
     }
   }
 
-  async function handleCardPayment() {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/marketing/credits/payment/mp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageIndex: selectedPkg }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar pago')
-      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error desconocido')
-    } finally {
-      setLoading(false)
-    }
+  const HOTMART_LINKS: Record<number, string> = {
+    0: 'https://pay.hotmart.com/X105434245R?checkoutMode=2',
+    1: 'https://pay.hotmart.com/Y105434146U?checkoutMode=2',
+  }
+
+  function handleCardPayment() {
+    const url = HOTMART_LINKS[selectedPkg]
+    if (url) window.open(url, '_blank')
   }
 
   async function handleSubmit() {
@@ -174,7 +165,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
 
                   <div>
                     <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Elige un paquete</p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {CREDIT_PACKAGES.map((p, i) => (
                         <button key={i} onClick={() => setSelectedPkg(i)}
                           className={`flex flex-col items-center gap-0.5 p-3 rounded-xl border-2 transition-all ${selectedPkg === i ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-600 hover:border-primary/40'}`}>
@@ -287,7 +278,7 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4 space-y-2 text-sm">
                           <p className="font-semibold text-blue-700 dark:text-blue-400">💳 Pago con Visa / Mastercard</p>
                           <p className="text-blue-600 dark:text-blue-300 text-xs">
-                            Serás redirigido a MercadoPago para completar el pago de forma segura.
+                            Serás redirigido a Hotmart para completar el pago de forma segura.
                             Tus créditos se activan automáticamente al confirmarse el pago.
                           </p>
                           <div className="pt-1 border-t border-blue-200 dark:border-blue-700/50">
@@ -296,10 +287,9 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                         </div>
                         <button
                           onClick={handleCardPayment}
-                          disabled={loading}
-                          className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                          className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors"
                         >
-                          {loading ? 'Redirigiendo…' : 'Pagar con tarjeta →'}
+                          Pagar con Hotmart →
                         </button>
                       </div>
                     )}

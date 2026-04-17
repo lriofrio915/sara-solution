@@ -24,6 +24,13 @@ function validateHottok(req: NextRequest): boolean {
   return hottok === process.env.HOTMART_HOTTOK
 }
 
+function creditsFromProductId(productId: number | string): { credits: number } | null {
+  const id = String(productId)
+  if (process.env.HOTMART_PRODUCT_ID_CREDITS_5  && id === process.env.HOTMART_PRODUCT_ID_CREDITS_5)  return { credits: 100 }
+  if (process.env.HOTMART_PRODUCT_ID_CREDITS_10 && id === process.env.HOTMART_PRODUCT_ID_CREDITS_10) return { credits: 250 }
+  return null
+}
+
 function planFromProductId(productId: number | string): 'PRO_MENSUAL' | 'PRO_ANUAL' | 'ENTERPRISE' | null {
   const id = String(productId)
   if (process.env.HOTMART_PRODUCT_ID_MONTHLY && id === process.env.HOTMART_PRODUCT_ID_MONTHLY) {
@@ -77,6 +84,31 @@ export async function POST(req: NextRequest) {
   switch (event) {
     case 'PURCHASE_COMPLETE':
     case 'PURCHASE_APPROVED': {
+      // Credits recharge takes priority over plan products
+      const creditPkg = creditsFromProductId(productId as number | string)
+      if (creditPkg) {
+        const doctor = await prisma.doctor.findFirst({ where: { email }, select: { id: true } })
+        if (!doctor) {
+          console.warn(`Hotmart webhook (credits): médico no encontrado para email ${email}`)
+          return NextResponse.json({ ok: true, skipped: 'doctor_not_found' })
+        }
+        await prisma.$transaction([
+          prisma.creditRecharge.create({
+            data: { doctorId: doctor.id, credits: creditPkg.credits, amountUsd: 0, status: 'APPROVED', payMethod: 'CARD', approvedAt: new Date() },
+          }),
+          prisma.doctorCredit.upsert({
+            where: { doctorId: doctor.id },
+            create: { doctorId: doctor.id, credits: creditPkg.credits },
+            update: { credits: { increment: creditPkg.credits } },
+          }),
+          prisma.creditTransaction.create({
+            data: { doctorId: doctor.id, type: 'RECHARGE', credits: creditPkg.credits, description: `Recarga ${creditPkg.credits} cr. (Hotmart)` },
+          }),
+        ])
+        console.log(`Hotmart: ${creditPkg.credits} créditos activados para ${email}`)
+        return NextResponse.json({ ok: true, credits: creditPkg.credits })
+      }
+
       const plan = planFromProductId(productId as number | string)
       if (!plan) {
         console.warn(`Hotmart webhook: product ID desconocido: ${productId} (email: ${email})`)
