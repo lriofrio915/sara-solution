@@ -184,7 +184,11 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                 <Link
                   key={i}
                   href={item.href}
-                  onClick={() => setBellOpen(false)}
+                  onClick={() => {
+                    setNotifItems(prev => prev.filter((_, idx) => idx !== i))
+                    setNotifCount(prev => Math.max(0, prev - 1))
+                    setBellOpen(false)
+                  }}
                   className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <span className="mt-0.5 text-base flex-shrink-0">

@@ -18,6 +18,6 @@ export async function GET() {
   if (!res.ok) return NextResponse.json({ balance: null, error: 'Error al consultar kie.ai' })
 
   const data = await res.json()
-  const balance = data?.data?.credit ?? data?.credit ?? 0
+  const balance = data?.data ?? data?.credit ?? 0
   return NextResponse.json({ balance })
 }

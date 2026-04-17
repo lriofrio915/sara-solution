@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Users, UserPlus, CalendarDays, AlertTriangle, TrendingUp, Globe, MessageCircle, UserCheck, GitBranch } from 'lucide-react'
+import { Users, UserPlus, CalendarDays, AlertTriangle, TrendingUp, Globe, MessageCircle, UserCheck, GitBranch, CheckCircle, X } from 'lucide-react'
+
+interface PendingRecharge {
+  id: string
+  credits: number
+  amountUsd: number
+  payMethod: string | null
+  createdAt: string
+  doctor: { name: string; email: string }
+}
 
 interface StatsData {
   totalDoctors: number
@@ -68,13 +77,40 @@ function fmtDate(d: string) {
 export default function AdminResumenPage() {
   const [stats, setStats] = useState<StatsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [kieBalance, setKieBalance] = useState<number | null>(null)
+  const [pendingRecharges, setPendingRecharges] = useState<PendingRecharge[]>([])
+  const [approvingId, setApprovingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/stats')
       .then(r => r.json())
       .then(d => { setStats(d); setLoading(false) })
       .catch(() => setLoading(false))
+
+    fetch('/api/admin/kie-balance')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.balance != null) setKieBalance(d.balance) })
+      .catch(() => {})
+
+    fetch('/api/admin/credits')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.pending) setPendingRecharges(d.pending) })
+      .catch(() => {})
   }, [])
+
+  async function handleRecharge(id: string, approved: boolean) {
+    setApprovingId(id)
+    try {
+      await fetch(`/api/admin/credits/recharge/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved }),
+      })
+      setPendingRecharges(prev => prev.filter(r => r.id !== id))
+    } finally {
+      setApprovingId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -139,6 +175,81 @@ export default function AdminResumenPage() {
             <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* ── Kie.AI balance + Solicitudes pendientes ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        {/* Kie.ai balance */}
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-2xl border border-violet-200 dark:border-violet-700/50 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-2">
+              <span>🤖</span> Créditos Kie.AI disponibles
+            </p>
+            <Link href="/admin/credits" className="text-xs text-violet-500 hover:underline">Admin</Link>
+          </div>
+          {kieBalance === null ? (
+            <div className="h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl animate-pulse" />
+          ) : (
+            <>
+              <p className="text-4xl font-bold text-violet-700 dark:text-violet-300">{kieBalance.toLocaleString('es-EC')}</p>
+              <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">pool compartido de generación IA</p>
+            </>
+          )}
+        </div>
+
+        {/* Solicitudes pendientes */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <span>💳</span> Solicitudes pendientes
+              {pendingRecharges.length > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold">
+                  {pendingRecharges.length}
+                </span>
+              )}
+            </p>
+            <Link href="/admin/credits" className="text-xs text-primary hover:underline">Ver todos</Link>
+          </div>
+          <div className="divide-y divide-gray-50 dark:divide-gray-700/50 max-h-48 overflow-y-auto">
+            {pendingRecharges.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-gray-400 dark:text-slate-500">
+                <CheckCircle size={22} className="mb-1 opacity-40" />
+                <p className="text-xs">Sin solicitudes pendientes</p>
+              </div>
+            ) : pendingRecharges.map(r => {
+              const methodLabel = r.payMethod === 'TRANSFER' ? 'Banco' : r.payMethod === 'CRYPTO' ? 'Cripto' : r.payMethod === 'CARD' ? 'Tarjeta' : '—'
+              return (
+                <div key={r.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-800 dark:text-white truncate">{r.doctor.name}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-slate-400">{r.credits} cr · ${Number(r.amountUsd).toFixed(0)} · {methodLabel}</p>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => handleRecharge(r.id, true)}
+                      disabled={approvingId === r.id}
+                      className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 flex items-center justify-center transition-colors disabled:opacity-50"
+                      title="Aprobar"
+                    >
+                      {approvingId === r.id
+                        ? <span className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                        : <CheckCircle size={14} />}
+                    </button>
+                    <button
+                      onClick={() => handleRecharge(r.id, false)}
+                      disabled={approvingId === r.id}
+                      className="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/60 flex items-center justify-center transition-colors disabled:opacity-50"
+                      title="Rechazar"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {/* ── Fila media: distribución + registros recientes ── */}
