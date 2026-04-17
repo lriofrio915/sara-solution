@@ -78,6 +78,7 @@ export default function AdminResumenPage() {
   const [stats, setStats] = useState<StatsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [kieBalance, setKieBalance] = useState<number | null>(null)
+  const [kieBalanceError, setKieBalanceError] = useState<string | null>(null)
   const [pendingRecharges, setPendingRecharges] = useState<PendingRecharge[]>([])
   const [approvingId, setApprovingId] = useState<string | null>(null)
 
@@ -88,8 +89,11 @@ export default function AdminResumenPage() {
       .catch(() => setLoading(false))
 
     fetch('/api/admin/kie-balance')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.balance != null) setKieBalance(d.balance) })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.error) setKieBalanceError(d.error)
+        else if (d?.balance != null) setKieBalance(d.balance)
+      })
       .catch(() => {})
 
     fetch('/api/admin/credits')
@@ -188,7 +192,13 @@ export default function AdminResumenPage() {
             </p>
             <Link href="/admin/credits" className="text-xs text-violet-500 hover:underline">Admin</Link>
           </div>
-          {kieBalance === null ? (
+          {kieBalanceError ? (
+            <div>
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-400">⚠️ Sin acceso</p>
+              <p className="text-xs text-amber-500 mt-1 leading-relaxed">{kieBalanceError}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Desactiva el whitelist de IP en kie.ai → API Settings</p>
+            </div>
+          ) : kieBalance === null ? (
             <div className="h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl animate-pulse" />
           ) : (
             <>

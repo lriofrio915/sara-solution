@@ -137,6 +137,7 @@ export default function SuperAdminProfilePage() {
 
   // Kie.ai balance
   const [kieBalance, setKieBalance] = useState<number | null>(null)
+  const [kieBalanceError, setKieBalanceError] = useState<string | null>(null)
   const [kieBalanceLoading, setKieBalanceLoading] = useState(true)
 
   // Pending recharges
@@ -172,8 +173,12 @@ export default function SuperAdminProfilePage() {
 
     // Load kie.ai balance
     fetch('/api/admin/kie-balance')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { setKieBalance(d?.balance ?? null); setKieBalanceLoading(false) })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.error) setKieBalanceError(d.error)
+        else setKieBalance(d?.balance ?? null)
+        setKieBalanceLoading(false)
+      })
       .catch(() => setKieBalanceLoading(false))
 
     // Load pending recharges
@@ -447,6 +452,12 @@ export default function SuperAdminProfilePage() {
           </div>
           {kieBalanceLoading ? (
             <div className="h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl animate-pulse" />
+          ) : kieBalanceError ? (
+            <div>
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-400">⚠️ Sin acceso</p>
+              <p className="text-xs text-amber-500 dark:text-amber-500 mt-1 leading-relaxed">{kieBalanceError}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Desactiva el whitelist de IP en tu cuenta kie.ai → API Settings</p>
+            </div>
           ) : kieBalance === null ? (
             <p className="text-sm text-gray-400 dark:text-slate-400">No disponible</p>
           ) : (

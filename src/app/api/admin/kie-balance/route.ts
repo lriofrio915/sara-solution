@@ -15,9 +15,18 @@ export async function GET() {
     cache: 'no-store',
   })
 
-  if (!res.ok) return NextResponse.json({ balance: null, error: 'Error al consultar kie.ai' })
-
   const data = await res.json()
-  const balance = data?.data ?? data?.credit ?? 0
+
+  // kie.ai returns HTTP 200 even for auth/config errors — check the code field
+  if (data?.code !== undefined && data.code !== 200) {
+    return NextResponse.json({ balance: null, error: data.msg ?? `kie.ai error ${data.code}` })
+  }
+
+  if (!res.ok) {
+    return NextResponse.json({ balance: null, error: `HTTP ${res.status}` })
+  }
+
+  // Success: { code: 200, data: <number> }
+  const balance = typeof data?.data === 'number' ? data.data : 0
   return NextResponse.json({ balance })
 }
