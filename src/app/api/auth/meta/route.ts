@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const appId     = process.env.META_APP_ID
-  const redirectUri = 'https://www.consultorio.site/api/auth/meta/callback'
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/meta/callback`
 
   if (!appId) {
     return NextResponse.json({ error: 'META_APP_ID no configurado' }, { status: 500 })
