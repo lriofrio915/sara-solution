@@ -2,14 +2,18 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-async function getDoctor() {
+const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+
+async function getAuth() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  return prisma.doctor.findFirst({
+  const doctor = await prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
     select: { id: true, socialTokens: true },
   })
+  if (!doctor) return null
+  return { doctor, isAdmin: user.email === SUPERADMIN_EMAIL }
 }
 
 interface SocialTokens {
@@ -99,8 +103,10 @@ async function publishLinkedIn(token: string, userId: string, content: string) {
 
 // ─── POST /api/marketing/publish/[id] ─────────────────────────────────────
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const doctor = await getDoctor()
-  if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  const auth = await getAuth()
+  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { doctor, isAdmin } = auth
 
   const post = await prisma.socialPost.findFirst({
     where: { id: params.id, doctorId: doctor.id },
@@ -110,6 +116,22 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   let tokens: SocialTokens = {}
   if (doctor.socialTokens) {
     try { tokens = JSON.parse(doctor.socialTokens) } catch { /* ignore */ }
+  }
+
+  // Admin fallback: use env var tokens if DB tokens are missing
+  if (isAdmin) {
+    if (!tokens.instagram?.accessToken && process.env.META_INSTAGRAM_ACCESS_TOKEN) {
+      tokens.instagram = {
+        accessToken: process.env.META_INSTAGRAM_ACCESS_TOKEN,
+        userId: process.env.META_INSTAGRAM_USER_ID!,
+      }
+    }
+    if (!tokens.facebook?.accessToken && process.env.META_INSTAGRAM_ACCESS_TOKEN) {
+      tokens.facebook = {
+        accessToken: process.env.META_INSTAGRAM_ACCESS_TOKEN,
+        userId: process.env.META_INSTAGRAM_USER_ID!,
+      }
+    }
   }
 
   const platform = post.targetPlatform
