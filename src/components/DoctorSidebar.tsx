@@ -376,7 +376,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
 
   // ── Shared nav content (used in both desktop sidebar and mobile drawer) ──────
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
-    <nav className={`flex-1 overflow-y-auto ${mobile ? 'p-4' : 'p-4'}`}>
+    <nav className={`flex-1 min-h-0 overflow-y-auto ${mobile ? 'p-4' : 'p-4'}`}>
       {/* Recepción — solo visible para ASSISTANT, va primero */}
       {role === 'ASSISTANT' && (
         <>
@@ -458,7 +458,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   return (
     <>
       {/* ── DESKTOP SIDEBAR ── */}
-      <aside className="hidden md:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 shadow-sm flex-col flex-shrink-0 h-screen sticky top-0">
+      <aside className="hidden md:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 shadow-sm flex-col flex-shrink-0 h-[100dvh] sticky top-0">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between gap-3">
             <SaraLogo size="sm" />
@@ -554,10 +554,10 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       )}
 
       {/* ── MOBILE DRAWER ── */}
-      <div className={`md:hidden fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-gray-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+      <div className={`md:hidden fixed top-0 left-0 z-50 h-[100dvh] w-72 bg-white dark:bg-gray-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
         open ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex-shrink-0 flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
           <SaraLogo size="sm" />
           <button onClick={() => setOpen(false)} aria-label="Cerrar menú"
             className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -577,7 +577,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
         )}
 
         {/* User + logout */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex-shrink-0 p-4 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <Link href="/profile" onClick={() => setOpen(false)} aria-label="Mi perfil">
               <AvatarEl size={9} />

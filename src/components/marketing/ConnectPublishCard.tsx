@@ -73,6 +73,33 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
       .catch(() => setConnected(false))
   }, [platform])
 
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return
+      if (e.data?.type === 'oauth_success' && e.data?.platform === platform) {
+        fetch('/api/marketing/accounts')
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (d?.accounts) {
+              setConnected(!!d.accounts[platform]?.connected)
+              setExpiresAt(d.accounts[platform]?.expiresAt ?? null)
+            }
+          })
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [platform])
+
+  function handleConnect() {
+    if (platform === 'linkedin') {
+      const popup = window.open(cfg.oauthPath, 'oauth_linkedin', 'width=500,height=650,scrollbars=yes')
+      if (!popup) window.location.href = cfg.oauthPath
+    } else {
+      window.location.href = cfg.oauthPath
+    }
+  }
+
   const tokenDaysLeft = expiresAt
     ? Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
@@ -128,10 +155,10 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
         )}
 
         {(connected === false || tokenExpired) && (
-          <a href={cfg.oauthPath}
+          <button onClick={handleConnect}
             className={`text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-all flex-shrink-0 ${cfg.connectBtnClass}`}>
             {tokenExpired ? 'Reconectar' : 'Conectar'}
-          </a>
+          </button>
         )}
 
         {connected === true && !tokenExpired && !postId && (
