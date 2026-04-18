@@ -16,12 +16,12 @@ export async function GET(req: Request) {
   const error = url.searchParams.get('error')
 
   if (error || !code) {
-    return NextResponse.redirect(`${origin}/integraciones?error=linkedin_denied`)
+    return NextResponse.redirect(`${origin}/oauth-callback?platform=linkedin&status=error`)
   }
 
   const clientId     = process.env.LINKEDIN_CLIENT_ID!
   const clientSecret = process.env.LINKEDIN_CLIENT_SECRET!
-  const redirectUri = 'https://www.consultorio.site/api/auth/linkedin/callback'
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/linkedin/callback`
   console.log('[LINKEDIN CB] origin:', origin, '| redirect_uri:', redirectUri)
 
   try {
@@ -73,9 +73,9 @@ export async function GET(req: Request) {
       data: { socialTokens: JSON.stringify(tokens) },
     })
 
-    return NextResponse.redirect(`${origin}/integraciones?success=linkedin`)
+    return NextResponse.redirect(`${origin}/oauth-callback?platform=linkedin&status=success`)
   } catch (err) {
     console.error('[LINKEDIN OAUTH]', err)
-    return NextResponse.redirect(`${origin}/integraciones?error=linkedin_failed`)
+    return NextResponse.redirect(`${origin}/oauth-callback?platform=linkedin&status=error`)
   }
 }
