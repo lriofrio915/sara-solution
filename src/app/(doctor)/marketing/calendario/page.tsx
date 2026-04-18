@@ -222,6 +222,72 @@ export default function CalendarioPage() {
     }
   }
 
+  function pollinationsUrl(prompt: string) {
+    const encoded = encodeURIComponent(
+      `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
+    )
+    return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
+  }
+
+  function ImagePreview({ post }: { post: SocialPost }) {
+    const [imgStatus, setImgStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+    const fallbackSrc = post.imagePrompt ? pollinationsUrl(post.imagePrompt) : null
+    const src = editImageUrl || fallbackSrc
+
+    function handleLoad() {
+      setImgStatus('ok')
+      if (!editImageUrl && src) {
+        setEditImageUrl(src)
+        fetch(`/api/marketing/posts/${post.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: src }),
+        }).catch(() => {})
+      }
+    }
+
+    if (generatingImage && generatingPostId === post.id) {
+      return (
+        <div className="w-48 h-48 rounded-xl border-2 border-dashed border-primary/30 flex flex-col items-center justify-center gap-2 mb-2">
+          <span className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+          <p className="text-xs text-primary">Generando imagen...</p>
+        </div>
+      )
+    }
+
+    if (!src) {
+      return (
+        <div className="w-48 h-48 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 flex items-center justify-center mb-2">
+          <p className="text-xs text-gray-400">Sin imagen</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="relative w-48 h-48 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 mb-2 bg-gray-100 dark:bg-gray-700">
+        {imgStatus === 'loading' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <span className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+            <p className="text-[10px] text-gray-400">Cargando imagen...</p>
+          </div>
+        )}
+        {imgStatus === 'error' && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-xs text-gray-400 text-center px-2">No se pudo cargar la imagen</p>
+          </div>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt="Post"
+          className={`w-full h-full object-cover transition-opacity ${imgStatus === 'ok' ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={handleLoad}
+          onError={() => setImgStatus('error')}
+        />
+      </div>
+    )
+  }
+
   function ExpandedPanel({ post }: { post: SocialPost }) {
     return (
       <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4 space-y-4">
@@ -241,21 +307,15 @@ export default function CalendarioPage() {
         {/* Imagen */}
         <div>
           <label className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2 block">
-            Imagen
+            Imagen del post
           </label>
-          {editImageUrl ? (
-            <img src={editImageUrl} alt="Post" className="w-48 h-48 object-cover rounded-xl border border-gray-200 dark:border-gray-600 mb-2" />
-          ) : (
-            <div className="w-48 h-48 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-600 flex items-center justify-center mb-2">
-              <p className="text-xs text-gray-400">Sin imagen</p>
-            </div>
-          )}
+          <ImagePreview post={post} />
 
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowImageInput(v => !v)}
               className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-              {showImageInput ? 'Cancelar URL' : 'Cambiar URL'}
+              {showImageInput ? 'Cerrar' : '🔗 Pegar enlace de imagen'}
             </button>
             {post.imagePrompt && (
               <button
@@ -269,26 +329,29 @@ export default function CalendarioPage() {
                       Generando...
                     </>
                   )
-                  : '✨ Regenerar IA (5 créditos)'}
+                  : '✨ Nueva imagen con IA (5 créditos)'}
               </button>
             )}
           </div>
 
           {showImageInput && (
-            <div className="flex gap-2 mt-2">
-              <input
-                type="url"
-                value={editImageInput}
-                onChange={e => setEditImageInput(e.target.value)}
-                placeholder="https://..."
-                className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary/40"
-              />
-              <button
-                onClick={() => { setEditImageUrl(editImageInput); setShowImageInput(false); setEditImageInput('') }}
-                disabled={!editImageInput.trim()}
-                className="text-xs px-3 py-1.5 rounded-lg bg-primary text-white disabled:opacity-50">
-                Aplicar
-              </button>
+            <div className="mt-2 space-y-1.5">
+              <p className="text-xs text-gray-400">Pega aquí el enlace (URL) de la imagen que quieres usar:</p>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={editImageInput}
+                  onChange={e => setEditImageInput(e.target.value)}
+                  placeholder="https://ejemplo.com/mi-imagen.jpg"
+                  className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+                <button
+                  onClick={() => { setEditImageUrl(editImageInput); setShowImageInput(false); setEditImageInput('') }}
+                  disabled={!editImageInput.trim()}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-primary text-white disabled:opacity-50">
+                  Aplicar
+                </button>
+              </div>
             </div>
           )}
         </div>
