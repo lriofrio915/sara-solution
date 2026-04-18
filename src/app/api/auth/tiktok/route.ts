@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const clientKey = process.env.TIKTOK_CLIENT_KEY
+  const clientKey = process.env.TIKTOK_CLIENT_KEY?.trim()
   if (!clientKey) {
     return NextResponse.json({ error: 'TIKTOK_CLIENT_KEY no configurado' }, { status: 500 })
   }
