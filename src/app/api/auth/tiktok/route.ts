@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { randomBytes } from 'crypto'
 
 // GET /api/auth/tiktok — inicia el flujo OAuth de TikTok
-export async function GET() {
+// Agrega ?debug=1 para ver la URL generada sin redirigir
+export async function GET(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
@@ -14,10 +15,16 @@ export async function GET() {
   }
 
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/tiktok/callback`
-  // PKCE code verifier
   const codeVerifier = randomBytes(32).toString('base64url')
-  // Store verifier in cookie for callback
-  const response = NextResponse.redirect(buildAuthUrl(clientKey, redirectUri, codeVerifier))
+  const authUrl = buildAuthUrl(clientKey, redirectUri, codeVerifier)
+
+  // Debug mode — visita /api/auth/tiktok?debug=1 para ver la URL exacta
+  const { searchParams } = new URL(req.url)
+  if (searchParams.get('debug') === '1') {
+    return NextResponse.json({ authUrl, clientKey, redirectUri })
+  }
+
+  const response = NextResponse.redirect(authUrl)
   response.cookies.set('tiktok_cv', codeVerifier, { httpOnly: true, sameSite: 'lax', maxAge: 600, path: '/' })
   return response
 }
