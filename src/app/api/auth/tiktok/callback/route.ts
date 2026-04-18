@@ -2,19 +2,13 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-function originFromRequest(req: Request): string {
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || ''
-  const proto = req.headers.get('x-forwarded-proto') || 'https'
-  return `${proto}://${host}`
-}
-
 // GET /api/auth/tiktok/callback — callback OAuth de TikTok
 export async function GET(req: Request) {
-  const origin = originFromRequest(req)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=no_auth`)
+    return NextResponse.redirect(`${appUrl}/login?error=no_auth`)
   }
 
   const url = new URL(req.url)
@@ -22,12 +16,12 @@ export async function GET(req: Request) {
   const error = url.searchParams.get('error')
 
   if (error || !code) {
-    return NextResponse.redirect(`${origin}/integraciones?error=tiktok_denied`)
+    return NextResponse.redirect(`${appUrl}/integraciones?error=tiktok_denied`)
   }
 
-  const clientKey    = process.env.TIKTOK_CLIENT_KEY!
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET!
-  const redirectUri  = `${origin}/api/auth/tiktok/callback`
+  const clientKey    = process.env.TIKTOK_CLIENT_KEY!.trim()
+  const clientSecret = process.env.TIKTOK_CLIENT_SECRET!.trim()
+  const redirectUri  = `${appUrl}/api/auth/tiktok/callback`
 
   // Retrieve PKCE code verifier from cookie
   const codeVerifier = req.headers.get('cookie')
@@ -86,11 +80,11 @@ export async function GET(req: Request) {
       data: { socialTokens: JSON.stringify(tokens) },
     })
 
-    const res = NextResponse.redirect(`${origin}/integraciones?success=tiktok`)
+    const res = NextResponse.redirect(`${appUrl}/integraciones?success=tiktok`)
     res.cookies.delete('tiktok_cv')
     return res
   } catch (err) {
     console.error('[TIKTOK OAUTH]', err)
-    return NextResponse.redirect(`${origin}/integraciones?error=tiktok_failed`)
+    return NextResponse.redirect(`${appUrl}/integraciones?error=tiktok_failed`)
   }
 }
