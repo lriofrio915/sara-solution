@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'TIKTOK_CLIENT_KEY no configurado' }, { status: 500 })
   }
 
-  const redirectUri = `${originFromRequest(req)}/api/auth/tiktok/callback`
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/tiktok/callback`
   // PKCE code verifier
   const codeVerifier = randomBytes(32).toString('base64url')
   // Store verifier in cookie for callback
