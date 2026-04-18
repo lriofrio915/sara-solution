@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   try {
     // 1. Intercambiar code por short-lived token
     const tokenRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?` +
+      `https://graph.facebook.com/v22.0/oauth/access_token?` +
       `client_id=${appId}&client_secret=${appSecret}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`
     )
     const tokenData = await tokenRes.json()
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
     // 2. Extender a long-lived token (60 días)
     const longRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?` +
+      `https://graph.facebook.com/v22.0/oauth/access_token?` +
       `grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${tokenData.access_token}`
     )
     const longData = await longRes.json()
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     const expiresIn = longData.expires_in ?? 5184000 // 60 días default
 
     // 3. Obtener user ID de Facebook
-    const meRes = await fetch(`https://graph.facebook.com/v19.0/me?access_token=${longToken}`)
+    const meRes = await fetch(`https://graph.facebook.com/v22.0/me?access_token=${longToken}`)
     const meData = await meRes.json()
     const fbUserId = meData.id ?? null
 
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     let igUserId: string | null = null
     try {
       const pagesRes = await fetch(
-        `https://graph.facebook.com/v19.0/${fbUserId}/accounts?access_token=${longToken}`
+        `https://graph.facebook.com/v22.0/${fbUserId}/accounts?access_token=${longToken}`
       )
       const pagesData = await pagesRes.json()
       const page = pagesData.data?.[0]
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
         pageId = page.id
         pageAccessToken = page.access_token
         const igRes = await fetch(
-          `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+          `https://graph.facebook.com/v22.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
         )
         const igData = await igRes.json()
         igUserId = igData.instagram_business_account?.id ?? null

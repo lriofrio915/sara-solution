@@ -16,17 +16,17 @@ export async function GET(req: Request) {
 
   // Scopes necesarios: pages_manage_posts (Facebook pages), instagram_basic, instagram_content_publish
   const scope = [
+    'pages_show_list',
     'pages_manage_posts',
     'pages_read_engagement',
-    'instagram_basic',
-    'instagram_content_publish',
-    'business_management',
+    'instagram_business_basic',
+    'instagram_business_content_publish',
   ].join(',')
 
   const url = new URL(req.url)
   const state = url.searchParams.get('state') ?? 'meta_connect'
 
-  const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth')
+  const authUrl = new URL('https://www.facebook.com/v22.0/dialog/oauth')
   authUrl.searchParams.set('client_id', appId)
   authUrl.searchParams.set('redirect_uri', redirectUri)
   authUrl.searchParams.set('scope', scope)
