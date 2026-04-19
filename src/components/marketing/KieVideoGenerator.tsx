@@ -82,7 +82,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-        Video IA (Kling · 5 seg)
+        Video IA (Kling v2.1 · 5 seg)
       </p>
 
       {/* Video preview area */}

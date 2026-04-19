@@ -75,10 +75,9 @@ export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'kling-2.6/text-to-video',
+      model: 'kling/v2-1-standard',
       input: {
         prompt,
-        sound: false,
         aspect_ratio: '9:16',
         duration: '5',
       },

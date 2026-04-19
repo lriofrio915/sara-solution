@@ -52,7 +52,7 @@ export async function POST(req: Request) {
           doctorId: doctor.id,
           type: 'VIDEO',
           credits: -cost,
-          description: `Video IA generado (Kling 5s)`,
+          description: `Video IA generado (Kling v2.1 Standard 5s)`,
           kieTaskId: taskId,
         },
       })
