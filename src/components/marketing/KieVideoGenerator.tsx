@@ -92,11 +92,11 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
 
       // Poll base clip
       setStatus('polling')
-      const baseUrl = await pollTaskForUrl(taskId)
-      if (!baseUrl) return
+      const baseResult = await pollTaskForUrl(taskId)
+      if (!baseResult) return
 
-      // Chain extensions sequentially
-      let currentTaskId = taskId
+      // Chain extensions sequentially using recordTaskId (task_grok_XXX format)
+      let prevRecordTaskId = baseResult.recordTaskId ?? taskId
       for (let i = 0; i < totalExtensions; i++) {
         setExtendStep(i + 1)
         setStatus('extending')
@@ -105,7 +105,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         const extRes = await fetch('/api/marketing/kie/video/extend', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prevTaskId: currentTaskId, prompt }),
+          body: JSON.stringify({ prevTaskId: prevRecordTaskId, prompt }),
         })
         const extData = await extRes.json()
         if (!extRes.ok) {
@@ -114,14 +114,14 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
           return
         }
 
-        currentTaskId = extData.taskId
-        const extUrl = await pollTaskForUrl(currentTaskId)
-        if (!extUrl) return
+        const extResult = await pollTaskForUrl(extData.taskId)
+        if (!extResult) return
 
-        setVideoUrl(extUrl)
+        prevRecordTaskId = extResult.recordTaskId ?? extData.taskId
+        setVideoUrl(extResult.url)
       }
 
-      if (totalExtensions === 0) setVideoUrl(baseUrl)
+      if (totalExtensions === 0) setVideoUrl(baseResult.url)
       setStatus('done')
       refresh()
     } catch {
@@ -130,7 +130,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     }
   }
 
-  async function pollTaskForUrl(taskId: string, attempt = 0): Promise<string | null> {
+  async function pollTaskForUrl(taskId: string, attempt = 0): Promise<{ url: string; recordTaskId?: string } | null> {
     if (attempt > 40) {
       setErrorMsg('La generación tardó demasiado. Tus créditos serán reembolsados.')
       setStatus('error')
@@ -143,7 +143,9 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       const res = await fetch(`/api/marketing/kie/task?taskId=${encodeURIComponent(taskId)}&type=VIDEO&refundCredits=${cost}`)
       const data = await res.json()
 
-      if (data.state === 'success' && data.resultUrl) return data.resultUrl
+      if (data.state === 'success' && data.resultUrl) {
+        return { url: data.resultUrl, recordTaskId: data.recordTaskId }
+      }
       if (data.state === 'fail') {
         setErrorMsg('La generación falló. Tus créditos fueron reembolsados.')
         setStatus('error')

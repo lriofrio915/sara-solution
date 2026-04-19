@@ -44,7 +44,7 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json(result)
+    return NextResponse.json({ state: result.state, resultUrl: result.resultUrl, recordTaskId: result.recordTaskId })
   } catch (err) {
     console.error('KIE task error:', err)
     return NextResponse.json({ error: 'Error al consultar tarea' }, { status: 500 })

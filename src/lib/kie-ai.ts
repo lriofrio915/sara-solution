@@ -54,6 +54,7 @@ export interface KieTaskResult {
 export interface KieTaskStatus {
   state: 'waiting' | 'queuing' | 'generating' | 'success' | 'fail'
   resultUrl?: string
+  recordTaskId?: string  // task_grok_XXXX format from recordInfo, required by extend API
 }
 
 export async function createImageTask(
@@ -118,7 +119,7 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
 
-  const { state, resultJson } = data.data
+  const { state, resultJson, taskId: recordTaskId } = data.data
 
   let resultUrl: string | undefined
   if (state === 'success' && resultJson) {
@@ -130,7 +131,7 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     }
   }
 
-  return { state, resultUrl }
+  return { state, resultUrl, recordTaskId }
 }
 
 export async function uploadImageToKie(base64Data: string, fileName: string): Promise<string> {
