@@ -12,7 +12,7 @@ interface Props {
 export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
   const { credits, refresh } = useCreditBalance()
   const [mode, setMode] = useState<'text' | 'image'>('text')
-  const [clips, setClips] = useState<VideoDurationClips>(1)
+  const [clips, setClips] = useState<VideoDurationClips>(3)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'extending' | 'done' | 'error'>('idle')
@@ -267,7 +267,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             </svg>
             <p className="text-xs text-gray-500 dark:text-slate-400">{progressLabel()}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-              {clips === 1 ? 'Los videos tardan ~30-90 segundos' : `Generación encadenada · ~30-90s por segmento`}
+              {'Generación encadenada · ~30-90s por segmento'}
             </p>
             {clips > 1 && (
               <div className="flex gap-1 justify-center mt-2">

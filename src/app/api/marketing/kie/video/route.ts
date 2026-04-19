@@ -17,7 +17,7 @@ async function getAuth() {
   return { doctor, isAdmin: user.email === SUPERADMIN_EMAIL }
 }
 
-const VALID_CLIPS: VideoDurationClips[] = [1, 3, 5, 8]
+const VALID_CLIPS: VideoDurationClips[] = [3, 5, 8]
 
 export async function POST(req: Request) {
   const auth = await getAuth()
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   const { prompt, socialPostId, imageBase64, clips: rawClips = 1 } = await req.json()
   if (!prompt?.trim()) return NextResponse.json({ error: 'Prompt requerido' }, { status: 400 })
 
-  const clips: VideoDurationClips = VALID_CLIPS.includes(rawClips) ? rawClips : 1
+  const clips: VideoDurationClips = VALID_CLIPS.includes(rawClips) ? rawClips : 3
   const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[clips]
 
   // Regular doctor: check DB balance
