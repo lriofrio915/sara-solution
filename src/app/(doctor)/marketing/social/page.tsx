@@ -50,7 +50,7 @@ interface GeneratedPost {
   hashtags: string[]
   imagePrompt?: string
   suggestedTime?: string
-  carouselSlides?: { title: string; body: string }[]
+  carouselSlides?: { title: string; body: string; imagePrompt?: string }[]
   reelScript?: string
 }
 
