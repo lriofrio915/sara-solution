@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+interface CarouselSlide {
+  title: string
+  body: string
+  imagePrompt?: string
+}
+
 interface SocialPost {
   id: string
   content: string
@@ -16,6 +22,8 @@ interface SocialPost {
   createdAt: string
   imageUrl: string | null
   imagePrompt: string | null
+  carouselSlides: CarouselSlide[] | null
+  reelScript: string | null
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -467,6 +475,38 @@ export default function CalendarioPage() {
             </div>
           </div>
         </div>
+
+        {/* Slides del carrusel */}
+        {post.contentType === 'CAROUSEL' && post.carouselSlides && post.carouselSlides.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+              🎠 Slides del carrusel ({post.carouselSlides.length} slides)
+            </p>
+            <div className="space-y-2">
+              {post.carouselSlides.map((slide, i) => (
+                <div key={i} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600">
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300">Slide {i + 1}: {slide.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{slide.body}</p>
+                  {slide.imagePrompt && (
+                    <p className="text-xs text-blue-500 dark:text-blue-400 italic mt-1">🖼️ {slide.imagePrompt}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Guion del reel */}
+        {post.contentType === 'REEL' && post.reelScript && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+              🎬 Guion del video
+            </p>
+            <pre className="text-xs text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-gray-700 rounded-xl p-3 whitespace-pre-wrap leading-relaxed border border-gray-100 dark:border-gray-600 overflow-x-auto">
+              {post.reelScript}
+            </pre>
+          </div>
+        )}
 
         {/* Acciones guardar/cancelar */}
         <div className="flex gap-2 pt-1">

@@ -32,7 +32,8 @@ export async function GET(req: Request) {
   const contentType = upstream.headers.get('content-type') ?? 'application/octet-stream'
   const ext = contentType.includes('video') ? 'mp4' : 'jpg'
 
-  return new NextResponse(upstream.body, {
+  const buffer = await upstream.arrayBuffer()
+  return new NextResponse(buffer, {
     headers: {
       'Content-Type': contentType,
       'Content-Disposition': `attachment; filename="${filename}.${ext}"`,

@@ -470,13 +470,36 @@ export default function SocialPage() {
                     )}
 
                     {/* Generación de media con kie.ai */}
-                    {(contentType as string) === 'VIDEO' ? (
+                    {contentType === 'REEL' ? (
                       result.post.reelScript && (
                         <KieVideoGenerator
                           prompt={result.post.reelScript.slice(0, 500)}
                           socialPostId={result.post.id}
                         />
                       )
+                    ) : contentType === 'CAROUSEL' && result.post.carouselSlides && result.post.carouselSlides.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
+                            Imágenes por slide
+                          </p>
+                          <span className="text-xs text-gray-400 dark:text-slate-500">
+                            {result.post.carouselSlides.length} slides × 5 cr. c/u
+                          </span>
+                        </div>
+                        {result.post.carouselSlides.map((slide, i) => (
+                          <div key={i} className="border border-gray-100 dark:border-gray-700 rounded-xl p-3 space-y-2">
+                            <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                              Slide {i + 1}: {slide.title}
+                            </p>
+                            <KieImageGenerator
+                              prompt={slide.imagePrompt ?? slide.title}
+                              socialPostId={result.post!.id}
+                              downloadName={`slide-${i + 1}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       result.post.imagePrompt && (
                         <KieImageGenerator
