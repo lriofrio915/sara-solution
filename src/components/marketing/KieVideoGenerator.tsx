@@ -140,7 +140,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     await new Promise(r => setTimeout(r, 3000))
 
     try {
-      const res = await fetch(`/api/marketing/kie/task?taskId=${encodeURIComponent(taskId)}&type=VIDEO`)
+      const res = await fetch(`/api/marketing/kie/task?taskId=${encodeURIComponent(taskId)}&type=VIDEO&refundCredits=${cost}`)
       const data = await res.json()
 
       if (data.state === 'success' && data.resultUrl) return data.resultUrl

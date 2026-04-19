@@ -178,9 +178,6 @@ export async function createVideoExtendTask(prevTaskId: string, prompt: string):
       prompt,
       extend_at: 0,
       extend_times: '6',
-      mode: 'normal',
-      resolution: '480p',
-      aspect_ratio: '9:16',
     },
   }
   console.log('KIE extend request:', JSON.stringify(body))

@@ -24,7 +24,10 @@ export async function GET(req: Request) {
         select: { id: true },
       })
       if (doctor) {
-        const cost = type === 'VIDEO' ? SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1] : SARA_CREDIT_COSTS.IMAGE
+        const refundCreditsParam = parseInt(searchParams.get('refundCredits') ?? '0')
+        const cost = type === 'VIDEO'
+          ? (refundCreditsParam > 0 ? refundCreditsParam : SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1])
+          : SARA_CREDIT_COSTS.IMAGE
         await prisma.doctorCredit.update({
           where: { doctorId: doctor.id },
           data: { credits: { increment: cost } },
