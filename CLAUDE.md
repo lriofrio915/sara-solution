@@ -35,14 +35,27 @@ Esta fue una pérdida catastrófica e irrecuperable de datos de médicos reales.
 - Next.js 14 App Router, TypeScript, Tailwind CSS
 - Prisma ORM + PostgreSQL (Supabase)
 - Supabase Auth
-- PM2 para producción (puerto 3001)
-- Después de cambios: `npm run build && pm2 restart medsara --update-env`
+- **Deploy en Vercel** — push a `main` dispara deploy automático
 
 ## Flujo de deploy
 1. Editar archivos
 2. `npm run build` — verificar que compile sin errores
-3. `pm2 restart medsara --update-env`
-4. `git add ... && git commit && git push origin main`
+3. `git add ... && git commit && git push origin main` → Vercel deploya automáticamente
+
+## Crons (GitHub Actions)
+Los crons se configuran en `.github/workflows/`. Cada workflow hace `curl` al endpoint
+con `x-cron-secret` header. Secrets requeridos en GitHub → Settings → Secrets:
+- `APP_URL` — URL de producción (ej. `https://www.consultorio.site`)
+- `CRON_SECRET` — mismo valor que en `.env`
+
+Workflows activos:
+- `appointment-reminders.yml` — 8am EC, recordatorios de citas 24h y 2h antes
+- `birthday-reminders.yml` — 7am EC, felicitaciones de cumpleaños
+- `manual-reminders.yml` — cada 15 min, recordatorios manuales del médico vía WhatsApp
+- `trial-expiry.yml` — 6am EC, downgrade TRIAL → FREE
+- `token-expiry.yml` — 10am EC, limpieza de tokens expirados
+- `publish-scheduled.yml` — cada hora, publicación de posts programados
+- `satisfaction-surveys.yml` — encuestas de satisfacción
 
 ## Planes
 - FREE: acceso básico (post-trial)

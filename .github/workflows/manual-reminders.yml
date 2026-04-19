@@ -1,0 +1,28 @@
+name: Manual Reminders (WhatsApp)
+
+# Requiere secrets en GitHub → Settings → Secrets and variables → Actions:
+#   APP_URL     = https://www.consultorio.site
+#   CRON_SECRET = (valor del .env CRON_SECRET)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Cada 15 minutos
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger manual-reminders endpoint
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/manual-reminders")
+          HTTP_BODY=$(echo "$RESPONSE" | head -n -1)
+          STATUS=$(echo "$RESPONSE" | tail -n1)
+          echo "Response status: $STATUS"
+          echo "Response body: $HTTP_BODY"
+          if [ "$STATUS" != "200" ]; then
+            echo "ERROR: endpoint returned $STATUS"
+            exit 1
+          fi
