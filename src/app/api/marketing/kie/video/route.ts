@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { createVideoTask, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
+import { createVideoTask, createVideoFromImageTask, uploadImageToKie, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 
 const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { doctor, isAdmin } = auth
-  const { prompt, socialPostId } = await req.json()
+  const { prompt, socialPostId, imageBase64 } = await req.json()
   if (!prompt?.trim()) return NextResponse.json({ error: 'Prompt requerido' }, { status: 400 })
 
   const cost = SARA_CREDIT_COSTS.VIDEO
@@ -40,7 +40,19 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { taskId } = await createVideoTask(prompt)
+    let taskId: string
+    let description: string
+
+    if (imageBase64) {
+      const imageUrl = await uploadImageToKie(imageBase64, 'video-frame.jpg')
+      const result = await createVideoFromImageTask(imageUrl, prompt)
+      taskId = result.taskId
+      description = 'Video IA generado (Kling v2.1 Img→Video 5s)'
+    } else {
+      const result = await createVideoTask(prompt)
+      taskId = result.taskId
+      description = 'Video IA generado (Kling v2.1 Master 5s)'
+    }
 
     if (!isAdmin) {
       await prisma.doctorCredit.update({
@@ -52,7 +64,7 @@ export async function POST(req: Request) {
           doctorId: doctor.id,
           type: 'VIDEO',
           credits: -cost,
-          description: `Video IA generado (Kling v2.1 Master 5s)`,
+          description,
           kieTaskId: taskId,
         },
       })

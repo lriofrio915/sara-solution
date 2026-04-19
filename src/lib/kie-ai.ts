@@ -5,6 +5,7 @@
  */
 
 const KIE_BASE_URL = 'https://api.kie.ai'
+const KIE_UPLOAD_URL = 'https://kieai.redpandaai.co'
 
 function getApiKey(): string {
   const key = process.env.KIE_AI_API_KEY
@@ -119,6 +120,42 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
   }
 
   return { state, resultUrl }
+}
+
+export async function uploadImageToKie(base64Data: string, fileName: string): Promise<string> {
+  const res = await fetch(`${KIE_UPLOAD_URL}/api/file-base64-upload`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ base64Data, uploadPath: 'sara-videos', fileName }),
+  })
+  const data = await res.json()
+  if (!res.ok || !data.data?.downloadUrl) {
+    throw new Error(data.msg ?? 'Error subiendo imagen a KIE')
+  }
+  return data.data.downloadUrl
+}
+
+export async function createVideoFromImageTask(imageUrl: string, prompt: string): Promise<KieTaskResult> {
+  const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      model: 'kling/v2-1-standard',
+      input: {
+        prompt,
+        image_url: imageUrl,
+        negative_prompt: '',
+        duration: '5',
+        cfg_scale: 0.5,
+      },
+    }),
+  })
+  const data = await res.json()
+  if (!res.ok || data.code !== 200) {
+    console.error('KIE image-to-video raw response:', JSON.stringify(data))
+    throw new Error(data.msg ?? `KIE error ${res.status}`)
+  }
+  return { taskId: data.data.taskId }
 }
 
 export async function getAdminCredits(): Promise<number> {
