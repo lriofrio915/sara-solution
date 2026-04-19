@@ -327,6 +327,9 @@ export default function GeneratorPage() {
                         <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
                           <p className="text-xs font-bold text-gray-700 dark:text-gray-300">{i + 1}. {s.title}</p>
                           <p className="text-xs text-gray-600 dark:text-slate-300 mt-1">{s.body}</p>
+                          {s.imagePrompt && (
+                            <p className="text-xs text-blue-500 dark:text-blue-400 mt-1.5 italic">🖼️ {s.imagePrompt}</p>
+                          )}
                         </div>
                       ))}
                     </div>

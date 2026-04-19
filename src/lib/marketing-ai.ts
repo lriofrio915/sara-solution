@@ -30,7 +30,7 @@ export interface GeneratedContent {
   hashtags: string[]
   imagePrompt?: string
   suggestedTime?: string
-  carouselSlides?: { title: string; body: string }[]
+  carouselSlides?: { title: string; body: string; imagePrompt?: string }[]
   reelScript?: string
 }
 
@@ -111,18 +111,18 @@ Devuelve SOLO este JSON con los valores reales generados:
   }
 
   if (opts.contentType === 'CAROUSEL') {
-    return `Crea un carrusel ${platformNote} sobre el tema: "${opts.topic}" (5-7 diapositivas)${goalNote}${extra}
+    return `Crea un carrusel ${platformNote} sobre el tema: "${opts.topic}" (3-5 diapositivas)${goalNote}${extra}
 
-Genera el contenido REAL y completo para cada diapositiva (no uses placeholders).
+Genera el contenido REAL y completo para cada diapositiva (no uses placeholders). Cada slide debe tener su propia descripción de imagen.
 
 Devuelve SOLO este JSON con los valores reales generados:
 {
   "content": "<caption principal real del carrusel>",
   "hashtags": ["<hashtag_real_1>", "<hashtag_real_2>", "<hashtag_real_3>"],
-  "imagePrompt": "<descripción en inglés del estilo visual del carrusel>",
+  "imagePrompt": "<descripción en inglés de la imagen de portada/thumbnail del carrusel>",
   "suggestedTime": "<mejor día y hora, ej: Miércoles 7pm>",
   "carouselSlides": [
-    { "title": "<título real de la diapositiva>", "body": "<texto breve real de la diapositiva>" }
+    { "title": "<título real de la diapositiva>", "body": "<texto breve real de la diapositiva>", "imagePrompt": "<descripción en inglés de la imagen específica para este slide>" }
   ]
 }`
   }
@@ -238,7 +238,7 @@ export interface AutopilotPost {
   content: string
   hashtags: string[]
   imagePrompt?: string
-  carouselSlides?: { title: string; body: string }[]
+  carouselSlides?: { title: string; body: string; imagePrompt?: string }[]
   reelScript?: string
   platform?: string
 }
