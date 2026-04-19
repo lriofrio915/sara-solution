@@ -24,7 +24,7 @@ function headers() {
 
 export const SARA_CREDIT_COSTS = {
   IMAGE: 5,   // credits per image (Flux-2 Pro)
-  VIDEO: 20,  // credits per video (Kling 5s)
+  VIDEO: 20,  // credits per video (Grok Imagine 6s)
 } as const
 
 // ─── Recharge packages available to doctors ──────────────────
@@ -76,13 +76,13 @@ export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'kling/v2-1-master-text-to-video',
+      model: 'grok-imagine/text-to-video',
       input: {
         prompt,
-        negative_prompt: '',
         aspect_ratio: '9:16',
-        duration: '5',
-        cfg_scale: 0.5,
+        mode: 'normal',
+        duration: '6',
+        resolution: '480p',
       },
     }),
   })
@@ -140,13 +140,14 @@ export async function createVideoFromImageTask(imageUrl: string, prompt: string)
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'kling/v2-1-standard',
+      model: 'grok-imagine/image-to-video',
       input: {
         prompt,
-        image_url: imageUrl,
-        negative_prompt: '',
-        duration: '5',
-        cfg_scale: 0.5,
+        image_urls: [imageUrl],
+        mode: 'normal',
+        duration: '6',
+        resolution: '480p',
+        aspect_ratio: '9:16',
       },
     }),
   })

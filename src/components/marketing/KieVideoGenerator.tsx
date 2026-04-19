@@ -112,7 +112,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     <div className="space-y-3">
       {/* Header label */}
       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-        Video IA (Kling v2.1 · 5 seg)
+        Video IA (Grok Imagine · 6 seg)
       </p>
 
       {/* Mode toggle */}
