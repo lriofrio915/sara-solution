@@ -158,8 +158,8 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                       <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                      <span>🎬</span><span>Video ~15 seg (Grok Imagine)</span>
-                      <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[3]} cr.</span>
+                      <span>🎬</span><span>Video 6 seg (Grok Imagine)</span>
+                      <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1]} cr.</span>
                     </div>
                   </div>
 

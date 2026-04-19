@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { createVideoTask, createVideoFromImageTask, uploadImageToKie, SARA_CREDIT_COSTS, VideoDurationClips } from '@/lib/kie-ai'
+import { createVideoTask, createVideoFromImageTask, uploadImageToKie, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 
 const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
@@ -17,18 +17,15 @@ async function getAuth() {
   return { doctor, isAdmin: user.email === SUPERADMIN_EMAIL }
 }
 
-const VALID_CLIPS: VideoDurationClips[] = [3, 5, 8]
-
 export async function POST(req: Request) {
   const auth = await getAuth()
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { doctor, isAdmin } = auth
-  const { prompt, socialPostId, imageBase64, clips: rawClips = 1 } = await req.json()
+  const { prompt, socialPostId, imageBase64 } = await req.json()
   if (!prompt?.trim()) return NextResponse.json({ error: 'Prompt requerido' }, { status: 400 })
 
-  const clips: VideoDurationClips = VALID_CLIPS.includes(rawClips) ? rawClips : 3
-  const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[clips]
+  const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1]
 
   // Regular doctor: check DB balance
   if (!isAdmin) {
@@ -49,11 +46,11 @@ export async function POST(req: Request) {
       const imageUrl = await uploadImageToKie(imageBase64, 'video-frame.jpg')
       const result = await createVideoFromImageTask(imageUrl, prompt)
       firstTaskId = result.taskId
-      description = `Video IA generado (Grok Imagine I2V ${clips * 6}s)`
+      description = 'Video IA generado (Grok Imagine I2V 6s)'
     } else {
       const result = await createVideoTask(prompt)
       firstTaskId = result.taskId
-      description = `Video IA generado (Grok Imagine T2V ${clips * 6}s)`
+      description = 'Video IA generado (Grok Imagine T2V 6s)'
     }
 
     if (!isAdmin) {
@@ -74,8 +71,7 @@ export async function POST(req: Request) {
 
     void socialPostId
 
-    // totalExtensions = how many times the frontend must call /extend after polling the base clip
-    return NextResponse.json({ taskId: firstTaskId, totalExtensions: clips - 1, creditCost: cost, newCredits: null })
+    return NextResponse.json({ taskId: firstTaskId, creditCost: cost, newCredits: null })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error desconocido'
     console.error('KIE video error:', message)

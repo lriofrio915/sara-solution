@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { VIDEO_DURATION_OPTIONS, SARA_CREDIT_COSTS, VideoDurationClips } from '@/lib/kie-ai'
+import { SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 import { useCreditBalance } from './CreditBalance'
 
 interface Props {
@@ -12,22 +12,17 @@ interface Props {
 export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
   const { credits, refresh } = useCreditBalance()
   const [mode, setMode] = useState<'text' | 'image'>('text')
-  const [clips, setClips] = useState<VideoDurationClips>(3)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'extending' | 'done' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'done' | 'error'>('idle')
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [elapsed, setElapsed] = useState(0)
-  const [extendStep, setExtendStep] = useState(0) // 0 = base clip, 1..N = extensions done
 
-  const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[clips]
+  const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1]
   const hasCredits = credits !== null && credits >= cost
-  const isGenerating = status === 'loading' || status === 'polling' || status === 'extending'
+  const isGenerating = status === 'loading' || status === 'polling'
   const canGenerate = hasCredits && !isGenerating && (mode === 'text' || !!imageBase64)
-
-  const totalSeconds = clips * 6
-  const durationLabel = VIDEO_DURATION_OPTIONS.find(o => o.clips === clips)?.label ?? '6 seg'
 
   function handleModeChange(next: 'text' | 'image') {
     setMode(next)
@@ -36,16 +31,10 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     resetResult()
   }
 
-  function handleClipsChange(next: VideoDurationClips) {
-    setClips(next)
-    resetResult()
-  }
-
   function resetResult() {
     setStatus('idle')
     setVideoUrl(null)
     setErrorMsg('')
-    setExtendStep(0)
   }
 
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -66,7 +55,6 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     setErrorMsg('')
     setVideoUrl(null)
     setElapsed(0)
-    setExtendStep(0)
 
     try {
       const res = await fetch('/api/marketing/kie/video', {
@@ -75,7 +63,6 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         body: JSON.stringify({
           prompt,
           socialPostId,
-          clips,
           imageBase64: mode === 'image' ? imageBase64 : undefined,
         }),
       })
@@ -88,40 +75,13 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       }
 
       refresh()
-      const { taskId, totalExtensions } = data as { taskId: string; totalExtensions: number }
+      const { taskId } = data as { taskId: string }
 
-      // Poll base clip
       setStatus('polling')
-      const baseResult = await pollTaskForUrl(taskId)
-      if (!baseResult) return
+      const result = await pollTaskForUrl(taskId)
+      if (!result) return
 
-      // Chain extensions sequentially using recordTaskId (task_grok_XXX format)
-      let prevRecordTaskId = baseResult.recordTaskId ?? taskId
-      for (let i = 0; i < totalExtensions; i++) {
-        setExtendStep(i + 1)
-        setStatus('extending')
-        setElapsed(0)
-
-        const extRes = await fetch('/api/marketing/kie/video/extend', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prevTaskId: prevRecordTaskId, prompt }),
-        })
-        const extData = await extRes.json()
-        if (!extRes.ok) {
-          setErrorMsg(extData.error ?? 'Error al extender el video.')
-          setStatus('error')
-          return
-        }
-
-        const extResult = await pollTaskForUrl(extData.taskId)
-        if (!extResult) return
-
-        prevRecordTaskId = extResult.recordTaskId ?? extData.taskId
-        setVideoUrl(extResult.url)
-      }
-
-      if (totalExtensions === 0) setVideoUrl(baseResult.url)
+      setVideoUrl(result.url)
       setStatus('done')
       refresh()
     } catch (e) {
@@ -140,7 +100,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     refresh()
   }
 
-  async function pollTaskForUrl(taskId: string, attempt = 0): Promise<{ url: string; recordTaskId?: string } | null> {
+  async function pollTaskForUrl(taskId: string, attempt = 0): Promise<{ url: string } | null> {
     if (attempt > 40) {
       setErrorMsg('La generación tardó demasiado. Tus créditos fueron reembolsados.')
       setStatus('error')
@@ -155,7 +115,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       const data = await res.json()
 
       if (data.state === 'success' && data.resultUrl) {
-        return { url: data.resultUrl, recordTaskId: data.recordTaskId }
+        return { url: data.resultUrl }
       }
       if (data.state === 'success' && !data.resultUrl) {
         setErrorMsg('KIE marcó la tarea como exitosa pero no devolvió la URL del video. Tus créditos fueron reembolsados.')
@@ -178,13 +138,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
 
   function progressLabel() {
     if (status === 'loading') return 'Preparando…'
-    if (status === 'polling' && extendStep === 0) return `Generando clip base (6s)… ${elapsed > 0 ? `(${elapsed}s)` : ''}`
-    if (status === 'extending') {
-      const doneSeconds = (extendStep) * 6
-      const targetSeconds = (extendStep + 1) * 6
-      return `Extendiendo a ${targetSeconds}s… (${doneSeconds}s listos) ${elapsed > 0 ? `(${elapsed}s)` : ''}`
-    }
-    if (status === 'polling' && extendStep > 0) return `Procesando extensión ${extendStep}… ${elapsed > 0 ? `(${elapsed}s)` : ''}`
+    if (status === 'polling') return `Generando video (6s)… ${elapsed > 0 ? `(${elapsed}s)` : ''}`
     return ''
   }
 
@@ -192,7 +146,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     <div className="space-y-3">
       {/* Header */}
       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-        Video IA (Grok Imagine · hasta {totalSeconds}s)
+        Video IA (Grok Imagine · 6s)
       </p>
 
       {/* Mode toggle */}
@@ -209,25 +163,6 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             }`}
           >
             {m === 'text' ? '✏️ Desde texto' : '🖼️ Desde imagen'}
-          </button>
-        ))}
-      </div>
-
-      {/* Duration selector */}
-      <div className="flex gap-1.5">
-        {VIDEO_DURATION_OPTIONS.map(opt => (
-          <button
-            key={opt.clips}
-            type="button"
-            onClick={() => handleClipsChange(opt.clips)}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-xl border-2 transition-colors ${
-              clips === opt.clips
-                ? 'border-primary text-primary bg-primary/5 dark:bg-primary/10'
-                : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300'
-            }`}
-          >
-            <span className="block">{opt.label}</span>
-            <span className="block text-[10px] font-normal opacity-70">{opt.cost} cr</span>
           </button>
         ))}
       </div>
@@ -272,7 +207,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
             </svg>
             <p className="text-xs text-gray-400 dark:text-slate-500">
-              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : `Video para Reel/TikTok · ${durationLabel}`}
+              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : 'Video para Reel/TikTok · 6 seg'}
             </p>
           </div>
         )}
@@ -285,24 +220,12 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             </svg>
             <p className="text-xs text-gray-500 dark:text-slate-400">{progressLabel()}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-              {'Generación encadenada · ~30-90s por segmento'}
+              ~30-90s
             </p>
-            {clips > 1 && (
-              <div className="flex gap-1 justify-center mt-2">
-                {Array.from({ length: clips }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1 rounded-full transition-all ${
-                      i < extendStep ? 'w-4 bg-primary' : i === extendStep ? 'w-4 bg-primary/50 animate-pulse' : 'w-2 bg-gray-300 dark:bg-gray-600'
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
 
-        {(status === 'done' || (status === 'extending' && videoUrl)) && videoUrl && (
+        {status === 'done' && videoUrl && (
           <video key={videoUrl} src={videoUrl} controls className="w-full h-full object-contain" />
         )}
 

@@ -22,19 +22,16 @@ function headers() {
 
 // ─── Credit costs in "Sara credits" (admin adjusts here) ─────
 
-// Grok Imagine only supports 6s/clip. Longer videos = multiple clips generated in parallel.
-// Real cost: ~9.6 KIE credits per 6s clip. Sara charges ~2.5x markup.
-export type VideoDurationClips = 3 | 5 | 8
+// Grok Imagine only supports 6s/clip. Extend está deshabilitado hasta confirmar payload con KIE.
+export type VideoDurationClips = 1
 
 export const VIDEO_DURATION_OPTIONS = [
-  { label: '~15 seg', clips: 3 as VideoDurationClips, cost: 60  },
-  { label: '~30 seg', clips: 5 as VideoDurationClips, cost: 100 },
-  { label: '~45 seg', clips: 8 as VideoDurationClips, cost: 150 },
+  { label: '6 seg', clips: 1 as VideoDurationClips, cost: 20 },
 ] as const
 
 export const SARA_CREDIT_COSTS = {
   IMAGE: 5,
-  VIDEO_BY_CLIPS: { 3: 60, 5: 100, 8: 150 } as Record<VideoDurationClips, number>,
+  VIDEO_BY_CLIPS: { 1: 20 } as Record<VideoDurationClips, number>,
 } as const
 
 // ─── Recharge packages available to doctors ──────────────────
@@ -53,7 +50,6 @@ export interface KieTaskResult {
 export interface KieTaskStatus {
   state: 'waiting' | 'queuing' | 'generating' | 'success' | 'fail'
   resultUrl?: string
-  recordTaskId?: string  // task_grok_XXXX format from recordInfo, required by extend API
   failReason?: string
 }
 
@@ -119,32 +115,20 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
 
-  const { state, resultJson, taskId: recordTaskId } = data.data
-
-  console.log('KIE recordInfo data.data full:', JSON.stringify(data.data))
+  const { state, resultJson } = data.data
   const failReason: string | undefined =
     data.data.failMsg ?? data.data.errorMsg ?? data.data.failReason ?? data.data.failCode ?? undefined
-  console.log('KIE recordInfo state/fail:', state, 'failReason:', failReason ?? null)
 
   let resultUrl: string | undefined
-  let grokTaskId: string | undefined
   if (state === 'success' && resultJson) {
     try {
-      const parsed = JSON.parse(resultJson)
-      console.log('KIE resultJson keys:', JSON.stringify(Object.keys(parsed)))
-      console.log('KIE resultJson full:', JSON.stringify(parsed))
-      resultUrl = parsed.resultUrls?.[0]
-      grokTaskId = parsed.taskId ?? parsed.task_id ?? parsed.grokTaskId ?? parsed.recordTaskId
+      resultUrl = JSON.parse(resultJson).resultUrls?.[0]
     } catch {
       // resultJson may not be JSON
     }
   }
 
-  const topLevelGrokId: string | undefined =
-    data.data.grokTaskId ?? data.data.task_grok_id ?? data.data.parentTaskId
-  const finalRecordTaskId = grokTaskId ?? topLevelGrokId ?? recordTaskId
-  console.log('KIE using recordTaskId:', finalRecordTaskId, '(grokTaskId:', grokTaskId, ', topLevelGrokId:', topLevelGrokId, ')')
-  return { state, resultUrl, recordTaskId: finalRecordTaskId, failReason }
+  return { state, resultUrl, failReason }
 }
 
 export async function uploadImageToKie(base64Data: string, fileName: string): Promise<string> {
@@ -179,31 +163,6 @@ export async function createVideoFromImageTask(imageUrl: string, prompt: string)
   const data = await res.json()
   if (!res.ok || data.code !== 200) {
     console.error('KIE image-to-video raw response:', JSON.stringify(data))
-    throw new Error(data.msg ?? `KIE error ${res.status}`)
-  }
-  return { taskId: data.data.taskId }
-}
-
-export async function createVideoExtendTask(prevTaskId: string, prompt: string): Promise<KieTaskResult> {
-  const body = {
-    model: 'grok-imagine/extend',
-    input: {
-      task_id: prevTaskId,
-      prompt,
-      extend_at: 0,
-      extend_times: '6',
-    },
-  }
-  console.log('KIE extend request:', JSON.stringify(body))
-  const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify(body),
-  })
-  const data = await res.json()
-  console.log('KIE extend create response:', JSON.stringify(data))
-  if (!res.ok || data.code !== 200) {
-    console.error('KIE video extend raw response:', JSON.stringify(data))
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
   return { taskId: data.data.taskId }
