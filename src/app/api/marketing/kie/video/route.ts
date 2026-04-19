@@ -43,7 +43,6 @@ export async function POST(req: Request) {
     const { taskId } = await createVideoTask(prompt)
 
     if (!isAdmin) {
-      // Deduct credits from DB only for regular doctors
       await prisma.doctorCredit.update({
         where: { doctorId: doctor.id },
         data: { credits: { decrement: cost } },
@@ -59,11 +58,12 @@ export async function POST(req: Request) {
       })
     }
 
-    void socialPostId // unused for now
+    void socialPostId
 
     return NextResponse.json({ taskId, creditCost: cost, newCredits: null })
   } catch (err) {
-    console.error('KIE video error:', err)
-    return NextResponse.json({ error: 'Error al iniciar la generación de video' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Error desconocido'
+    console.error('KIE video error:', message)
+    return NextResponse.json({ error: `Error al iniciar la generación de video: ${message}` }, { status: 500 })
   }
 }

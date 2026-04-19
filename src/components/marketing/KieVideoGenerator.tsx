@@ -135,15 +135,19 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         </div>
         <div className="ml-auto flex gap-2">
           {status === 'done' && videoUrl && (
-            <a
-              href={videoUrl}
-              download="video-reel.mp4"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                const a = document.createElement('a')
+                a.href = `/api/marketing/posts/download-image?url=${encodeURIComponent(videoUrl)}&filename=video-reel`
+                a.download = 'video-reel.mp4'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+              }}
               className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Descargar
-            </a>
+            </button>
           )}
           <button
             onClick={hasCredits ? handleGenerate : undefined}

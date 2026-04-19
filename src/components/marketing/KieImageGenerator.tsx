@@ -19,22 +19,58 @@ const ASPECT_LABELS: Record<AspectRatio, string> = {
   '16:9': 'Horizontal',
 }
 
-export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socialPostId, downloadName = 'imagen-post.jpg' }: Props) {
+function pollinationsFallbackUrl(prompt: string) {
+  const encoded = encodeURIComponent(
+    `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
+  )
+  return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
+}
+
+export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socialPostId, downloadName = 'imagen-post' }: Props) {
   const { credits, refresh } = useCreditBalance()
   const [aspect, setAspect] = useState<AspectRatio>(defaultAspect)
   const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'done' | 'error'>('idle')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [pollCount, setPollCount] = useState(0)
+  const [isFallback, setIsFallback] = useState(false)
 
   const hasCredits = credits !== null && credits >= SARA_CREDIT_COSTS.IMAGE
   const isGenerating = status === 'loading' || status === 'polling'
 
+  async function saveImageUrl(url: string) {
+    if (!socialPostId) return
+    try {
+      await fetch(`/api/marketing/posts/${socialPostId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: url }),
+      })
+    } catch {
+      // non-fatal
+    }
+  }
+
+  async function handleFallback() {
+    const url = pollinationsFallbackUrl(prompt)
+    setImageUrl(url)
+    setStatus('done')
+    setIsFallback(true)
+    setErrorMsg('')
+    await saveImageUrl(url)
+  }
+
   async function handleGenerate() {
-    if (!hasCredits || isGenerating) return
+    if (isGenerating) return
     setStatus('loading')
     setErrorMsg('')
     setImageUrl(null)
+    setIsFallback(false)
+
+    if (!hasCredits) {
+      await handleFallback()
+      return
+    }
 
     try {
       const res = await fetch('/api/marketing/kie/image', {
@@ -46,15 +82,15 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
 
       if (!res.ok) {
         if (data.code === 'INSUFFICIENT_CREDITS') {
-          setErrorMsg('Sin créditos suficientes.')
+          await handleFallback()
         } else {
           setErrorMsg(data.error ?? 'Error al generar')
+          setStatus('error')
         }
-        setStatus('error')
         return
       }
 
-      refresh() // update balance display
+      refresh()
       await pollTask(data.taskId)
     } catch {
       setErrorMsg('Error de conexión. Intenta de nuevo.')
@@ -63,9 +99,9 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
   }
 
   async function pollTask(taskId: string, attempt = 0) {
-    if (attempt > 20) { // max 60s (20 × 3s)
-      setErrorMsg('La generación tardó demasiado. Tus créditos serán reembolsados.')
-      setStatus('error')
+    if (attempt > 20) {
+      // Timeout — use fallback instead of showing error
+      await handleFallback()
       return
     }
     setStatus('polling')
@@ -80,17 +116,30 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
       if (data.state === 'success' && data.resultUrl) {
         setImageUrl(data.resultUrl)
         setStatus('done')
+        setIsFallback(false)
         refresh()
+        await saveImageUrl(data.resultUrl)
       } else if (data.state === 'fail') {
-        setErrorMsg('La generación falló. Tus créditos fueron reembolsados.')
-        setStatus('error')
         refresh()
+        // KIE failed — use fallback
+        await handleFallback()
       } else {
         await pollTask(taskId, attempt + 1)
       }
     } catch {
       await pollTask(taskId, attempt + 1)
     }
+  }
+
+  function handleDownload() {
+    if (!imageUrl) return
+    const proxyUrl = `/api/marketing/posts/download-image?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(downloadName)}`
+    const a = document.createElement('a')
+    a.href = proxyUrl
+    a.download = downloadName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   return (
@@ -154,6 +203,12 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <p className="text-xs text-red-500 dark:text-red-400 text-center">{errorMsg}</p>
+            <button
+              onClick={handleFallback}
+              className="mt-2 px-2.5 py-1 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Usar imagen de librería
+            </button>
           </div>
         )}
       </div>
@@ -161,27 +216,30 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
       {/* Cost + generate button */}
       <div className="flex items-center gap-2">
         <div className="text-xs text-gray-400 dark:text-slate-500">
-          Costo: <span className="font-semibold text-gray-700 dark:text-gray-200">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
-          {' · '}
-          Saldo: <span className={`font-semibold ${hasCredits ? 'text-gray-700 dark:text-gray-200' : 'text-red-500'}`}>
-            {credits ?? '…'} cr.
-          </span>
+          {isFallback ? (
+            <span className="text-amber-500 font-medium">Imagen de librería</span>
+          ) : (
+            <>
+              Costo: <span className="font-semibold text-gray-700 dark:text-gray-200">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
+              {' · '}
+              Saldo: <span className={`font-semibold ${hasCredits ? 'text-gray-700 dark:text-gray-200' : 'text-red-500'}`}>
+                {credits ?? '…'} cr.
+              </span>
+            </>
+          )}
         </div>
         <div className="ml-auto flex gap-2">
           {status === 'done' && imageUrl && (
             <>
-              <a
-                href={imageUrl}
-                download={downloadName}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleDownload}
                 className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Descargar
-              </a>
+              </button>
               <button
                 onClick={handleGenerate}
-                disabled={!hasCredits || isGenerating}
+                disabled={isGenerating}
                 className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-primary/40 text-primary hover:bg-primary/5 disabled:opacity-50"
               >
                 Nueva variación
@@ -190,23 +248,19 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
           )}
           {status !== 'done' && (
             <button
-              onClick={hasCredits ? handleGenerate : undefined}
+              onClick={handleGenerate}
               disabled={isGenerating}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                hasCredits
-                  ? 'bg-primary text-white hover:bg-primary/90 disabled:opacity-50'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-              }`}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg transition-colors bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
             >
-              {isGenerating ? 'Generando…' : hasCredits ? '✨ Generar imagen' : 'Sin créditos →'}
+              {isGenerating ? 'Generando…' : hasCredits ? '✨ Generar imagen' : '✨ Imagen alternativa'}
             </button>
           )}
         </div>
       </div>
 
-      {!hasCredits && credits !== null && (
-        <p className="text-xs text-red-500">
-          No tienes suficientes créditos. Recarga desde el botón arriba.
+      {!hasCredits && credits !== null && status !== 'done' && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          Sin créditos IA — se usará imagen de librería automáticamente.
         </p>
       )}
     </div>
