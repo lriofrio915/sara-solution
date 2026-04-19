@@ -22,9 +22,20 @@ function headers() {
 
 // ─── Credit costs in "Sara credits" (admin adjusts here) ─────
 
+// Grok Imagine only supports 6s/clip. Longer videos = multiple clips generated in parallel.
+// Real cost: ~9.6 KIE credits per 6s clip. Sara charges ~2.5x markup.
+export type VideoDurationClips = 1 | 3 | 5 | 8
+
+export const VIDEO_DURATION_OPTIONS = [
+  { label: '6 seg',   clips: 1 as VideoDurationClips, cost: 25  },
+  { label: '~15 seg', clips: 3 as VideoDurationClips, cost: 60  },
+  { label: '~30 seg', clips: 5 as VideoDurationClips, cost: 100 },
+  { label: '~45 seg', clips: 8 as VideoDurationClips, cost: 150 },
+] as const
+
 export const SARA_CREDIT_COSTS = {
-  IMAGE: 5,   // credits per image (Flux-2 Pro)
-  VIDEO: 20,  // credits per video (Grok Imagine 6s)
+  IMAGE: 5,
+  VIDEO_BY_CLIPS: { 1: 25, 3: 60, 5: 100, 8: 150 } as Record<VideoDurationClips, number>,
 } as const
 
 // ─── Recharge packages available to doctors ──────────────────

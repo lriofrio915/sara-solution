@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { SARA_CREDIT_COSTS } from '@/lib/kie-ai'
+import { VIDEO_DURATION_OPTIONS, SARA_CREDIT_COSTS, VideoDurationClips } from '@/lib/kie-ai'
 import { useCreditBalance } from './CreditBalance'
 
 interface Props {
@@ -9,17 +9,47 @@ interface Props {
   socialPostId?: string
 }
 
+function SequentialPlayer({ urls }: { urls: string[] }) {
+  const [current, setCurrent] = useState(0)
+  return (
+    <div className="w-full h-full flex flex-col gap-1">
+      <video
+        key={current}
+        src={urls[current]}
+        controls
+        autoPlay
+        className="w-full h-full object-contain"
+        onEnded={() => setCurrent(i => Math.min(i + 1, urls.length - 1))}
+      />
+      {urls.length > 1 && (
+        <div className="flex gap-1 justify-center pb-1">
+          {urls.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`w-2 h-2 rounded-full transition-colors ${i === current ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
   const { credits, refresh } = useCreditBalance()
   const [mode, setMode] = useState<'text' | 'image'>('text')
+  const [clips, setClips] = useState<VideoDurationClips>(1)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'done' | 'error'>('idle')
-  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [videoUrls, setVideoUrls] = useState<string[]>([])
   const [errorMsg, setErrorMsg] = useState('')
   const [elapsed, setElapsed] = useState(0)
+  const [clipsReady, setClipsReady] = useState(0)
 
-  const hasCredits = credits !== null && credits >= SARA_CREDIT_COSTS.VIDEO
+  const cost = SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[clips]
+  const hasCredits = credits !== null && credits >= cost
   const isGenerating = status === 'loading' || status === 'polling'
   const canGenerate = hasCredits && !isGenerating && (mode === 'text' || !!imageBase64)
 
@@ -28,7 +58,14 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     setImageBase64(null)
     setImagePreview(null)
     setStatus('idle')
-    setVideoUrl(null)
+    setVideoUrls([])
+    setErrorMsg('')
+  }
+
+  function handleClipsChange(next: VideoDurationClips) {
+    setClips(next)
+    setStatus('idle')
+    setVideoUrls([])
     setErrorMsg('')
   }
 
@@ -48,8 +85,9 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     if (!canGenerate) return
     setStatus('loading')
     setErrorMsg('')
-    setVideoUrl(null)
+    setVideoUrls([])
     setElapsed(0)
+    setClipsReady(0)
 
     try {
       const res = await fetch('/api/marketing/kie/video', {
@@ -58,6 +96,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         body: JSON.stringify({
           prompt,
           socialPostId,
+          clips,
           imageBase64: mode === 'image' ? imageBase64 : undefined,
         }),
       })
@@ -70,22 +109,30 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       }
 
       refresh()
-      await pollTask(data.taskId)
+      const taskIds: string[] = data.taskIds
+      setStatus('polling')
+      await pollAllTasks(taskIds)
     } catch {
       setErrorMsg('Error de conexión.')
       setStatus('error')
     }
   }
 
-  async function pollTask(taskId: string, attempt = 0) {
+  async function pollAllTasks(taskIds: string[]) {
+    const results = await Promise.all(taskIds.map(id => pollTaskForUrl(id)))
+    if (results.some(u => u === null)) return
+    setVideoUrls(results as string[])
+    setStatus('done')
+    refresh()
+  }
+
+  async function pollTaskForUrl(taskId: string, attempt = 0): Promise<string | null> {
     if (attempt > 40) {
       setErrorMsg('La generación tardó demasiado. Tus créditos serán reembolsados.')
       setStatus('error')
-      return
+      return null
     }
-    setStatus('polling')
     setElapsed(attempt * 3)
-
     await new Promise(r => setTimeout(r, 3000))
 
     try {
@@ -93,26 +140,27 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       const data = await res.json()
 
       if (data.state === 'success' && data.resultUrl) {
-        setVideoUrl(data.resultUrl)
-        setStatus('done')
-        refresh()
+        setClipsReady(n => n + 1)
+        return data.resultUrl
       } else if (data.state === 'fail') {
         setErrorMsg('La generación falló. Tus créditos fueron reembolsados.')
         setStatus('error')
         refresh()
-      } else {
-        await pollTask(taskId, attempt + 1)
+        return null
       }
+      return pollTaskForUrl(taskId, attempt + 1)
     } catch {
-      await pollTask(taskId, attempt + 1)
+      return pollTaskForUrl(taskId, attempt + 1)
     }
   }
+
+  const durationLabel = VIDEO_DURATION_OPTIONS.find(o => o.clips === clips)?.label ?? '6 seg'
 
   return (
     <div className="space-y-3">
       {/* Header label */}
       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-        Video IA (Grok Imagine · 6 seg)
+        Video IA (Grok Imagine · multi-clip)
       </p>
 
       {/* Mode toggle */}
@@ -129,6 +177,25 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             }`}
           >
             {m === 'text' ? '✏️ Desde texto' : '🖼️ Desde imagen'}
+          </button>
+        ))}
+      </div>
+
+      {/* Duration selector */}
+      <div className="flex gap-1.5">
+        {VIDEO_DURATION_OPTIONS.map(opt => (
+          <button
+            key={opt.clips}
+            type="button"
+            onClick={() => handleClipsChange(opt.clips)}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-xl border-2 transition-colors ${
+              clips === opt.clips
+                ? 'border-primary text-primary bg-primary/5 dark:bg-primary/10'
+                : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300'
+            }`}
+          >
+            <span className="block">{opt.label}</span>
+            <span className="block text-[10px] font-normal opacity-70">{opt.cost} cr</span>
           </button>
         ))}
       </div>
@@ -175,7 +242,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
             </svg>
             <p className="text-xs text-gray-400 dark:text-slate-500">
-              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : 'Video para Reel/TikTok'}
+              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : `Video para Reel/TikTok · ${durationLabel}`}
             </p>
           </div>
         )}
@@ -187,14 +254,16 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
             <p className="text-xs text-gray-500 dark:text-slate-400">
-              {status === 'loading' ? 'Preparando…' : `Generando video… ${elapsed > 0 ? `(${elapsed}s)` : ''}`}
+              {status === 'loading' ? 'Preparando…' : `Generando clips… ${clipsReady}/${clips} listos${elapsed > 0 ? ` (${elapsed}s)` : ''}`}
             </p>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Los videos tardan ~30-90 segundos</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+              {clips === 1 ? 'Los videos tardan ~30-90 segundos' : `${clips} clips en paralelo · ~30-90s c/u`}
+            </p>
           </div>
         )}
 
-        {status === 'done' && videoUrl && (
-          <video src={videoUrl} controls className="w-full h-full object-contain" />
+        {status === 'done' && videoUrls.length > 0 && (
+          <SequentialPlayer urls={videoUrls} />
         )}
 
         {status === 'error' && (
@@ -207,28 +276,29 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       {/* Cost + button */}
       <div className="flex items-center gap-2">
         <div className="text-xs text-gray-400 dark:text-slate-500">
-          Costo: <span className="font-semibold text-gray-700 dark:text-gray-200">{SARA_CREDIT_COSTS.VIDEO} cr.</span>
+          Costo: <span className="font-semibold text-gray-700 dark:text-gray-200">{cost} cr.</span>
           {' · '}
           Saldo: <span className={`font-semibold ${hasCredits ? 'text-gray-700 dark:text-gray-200' : 'text-red-500'}`}>
             {credits ?? '…'} cr.
           </span>
         </div>
-        <div className="ml-auto flex gap-2">
-          {status === 'done' && videoUrl && (
+        <div className="ml-auto flex gap-2 flex-wrap justify-end">
+          {status === 'done' && videoUrls.length > 0 && videoUrls.map((url, i) => (
             <button
+              key={i}
               onClick={() => {
                 const a = document.createElement('a')
-                a.href = `/api/marketing/posts/download-image?url=${encodeURIComponent(videoUrl)}&filename=video-reel`
-                a.download = 'video-reel.mp4'
+                a.href = `/api/marketing/posts/download-image?url=${encodeURIComponent(url)}&filename=video-reel-${i + 1}`
+                a.download = `video-reel-${i + 1}.mp4`
                 document.body.appendChild(a)
                 a.click()
                 document.body.removeChild(a)
               }}
               className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              Descargar
+              {videoUrls.length === 1 ? 'Descargar' : `Clip ${i + 1}`}
             </button>
-          )}
+          ))}
           <button
             onClick={canGenerate ? handleGenerate : undefined}
             disabled={isGenerating || !hasCredits || (mode === 'image' && !imageBase64)}
