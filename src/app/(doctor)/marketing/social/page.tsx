@@ -42,7 +42,7 @@ function LinkedInIcon({ className }: { className?: string }) {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Platform = 'INSTAGRAM' | 'FACEBOOK' | 'TIKTOK' | 'LINKEDIN'
-type ContentType = 'POST' | 'CAROUSEL' | 'VIDEO'
+type ContentType = 'POST' | 'CAROUSEL' | 'REEL'
 
 interface GeneratedPost {
   id: string
@@ -240,7 +240,7 @@ export default function SocialPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Tipo de contenido</p>
             <div className="grid grid-cols-3 gap-2">
-              {(['POST', 'CAROUSEL', 'VIDEO'] as ContentType[]).map(ct => (
+              {(['POST', 'CAROUSEL', 'REEL'] as ContentType[]).map(ct => (
                 <button
                   key={ct}
                   onClick={() => setContentType(ct)}
@@ -250,7 +250,7 @@ export default function SocialPage() {
                       : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-300'
                   }`}
                 >
-                  {ct === 'POST' ? '📝 Post' : ct === 'CAROUSEL' ? '🎠 Carrusel' : '🎬 Video/Reel'}
+                  {ct === 'POST' ? '📝 Post' : ct === 'CAROUSEL' ? '🎠 Carrusel' : ct === 'REEL' ? '🎬 Video/Reel' : ct}
                 </button>
               ))}
             </div>
