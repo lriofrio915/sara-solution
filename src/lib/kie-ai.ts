@@ -78,10 +78,9 @@ export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
       model: 'kling-2.6/text-to-video',
       input: {
         prompt,
-        negative_prompt: '',
-        duration: 5,
+        sound: false,
         aspect_ratio: '9:16',
-        mode: 'std',
+        duration: '5',
       },
     }),
   })
