@@ -124,16 +124,27 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       if (totalExtensions === 0) setVideoUrl(baseResult.url)
       setStatus('done')
       refresh()
-    } catch {
-      setErrorMsg('Error de conexión.')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'desconocido'
+      setErrorMsg(`Error de conexión: ${msg}`)
       setStatus('error')
     }
   }
 
+  async function requestForceRefund(taskId: string) {
+    try {
+      await fetch(`/api/marketing/kie/task?taskId=${encodeURIComponent(taskId)}&type=VIDEO&refundCredits=${cost}&forceRefund=1`)
+    } catch {
+      // best effort — the server is idempotent on kieTaskId
+    }
+    refresh()
+  }
+
   async function pollTaskForUrl(taskId: string, attempt = 0): Promise<{ url: string; recordTaskId?: string } | null> {
     if (attempt > 40) {
-      setErrorMsg('La generación tardó demasiado. Tus créditos serán reembolsados.')
+      setErrorMsg('La generación tardó demasiado. Tus créditos fueron reembolsados.')
       setStatus('error')
+      await requestForceRefund(taskId)
       return null
     }
     setElapsed(attempt * 3)
@@ -146,8 +157,15 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       if (data.state === 'success' && data.resultUrl) {
         return { url: data.resultUrl, recordTaskId: data.recordTaskId }
       }
+      if (data.state === 'success' && !data.resultUrl) {
+        setErrorMsg('KIE marcó la tarea como exitosa pero no devolvió la URL del video. Tus créditos fueron reembolsados.')
+        setStatus('error')
+        await requestForceRefund(taskId)
+        return null
+      }
       if (data.state === 'fail') {
-        setErrorMsg('La generación falló. Tus créditos fueron reembolsados.')
+        const reason = data.failReason ? `: ${data.failReason}` : ''
+        setErrorMsg(`La generación falló${reason}. Tus créditos fueron reembolsados.`)
         setStatus('error')
         refresh()
         return null

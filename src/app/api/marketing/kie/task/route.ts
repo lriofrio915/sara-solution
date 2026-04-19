@@ -16,9 +16,10 @@ export async function GET(req: Request) {
 
   try {
     const result = await getTaskResult(taskId)
+    const forceRefund = searchParams.get('forceRefund') === '1'
 
-    // If task failed, refund credits
-    if (result.state === 'fail') {
+    // If task failed (or caller forces a refund for an already-charged task), refund credits
+    if (result.state === 'fail' || forceRefund) {
       const doctor = await prisma.doctor.findFirst({
         where: { OR: [{ id: user.id }, { email: user.email! }] },
         select: { id: true },
@@ -28,25 +29,40 @@ export async function GET(req: Request) {
         const cost = type === 'VIDEO'
           ? (refundCreditsParam > 0 ? refundCreditsParam : SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[3])
           : SARA_CREDIT_COSTS.IMAGE
-        await prisma.doctorCredit.update({
-          where: { doctorId: doctor.id },
-          data: { credits: { increment: cost } },
-        }).catch(() => {})
-        await prisma.creditTransaction.create({
-          data: {
-            doctorId: doctor.id,
-            type: 'RECHARGE',
-            credits: cost,
-            description: `Reembolso por fallo en generación (${taskId})`,
-            kieTaskId: taskId,
-          },
-        }).catch(() => {})
+        // Only refund once per taskId — skip if a RECHARGE row with this kieTaskId already exists
+        const existing = await prisma.creditTransaction.findFirst({
+          where: { doctorId: doctor.id, kieTaskId: taskId, type: 'RECHARGE' },
+          select: { id: true },
+        }).catch(() => null)
+        if (!existing) {
+          await prisma.doctorCredit.update({
+            where: { doctorId: doctor.id },
+            data: { credits: { increment: cost } },
+          }).catch(() => {})
+          await prisma.creditTransaction.create({
+            data: {
+              doctorId: doctor.id,
+              type: 'RECHARGE',
+              credits: cost,
+              description: forceRefund && result.state !== 'fail'
+                ? `Reembolso por resultado vacío (${taskId})`
+                : `Reembolso por fallo en generación (${taskId})`,
+              kieTaskId: taskId,
+            },
+          }).catch(() => {})
+        }
       }
     }
 
-    return NextResponse.json({ state: result.state, resultUrl: result.resultUrl, recordTaskId: result.recordTaskId })
+    return NextResponse.json({
+      state: result.state,
+      resultUrl: result.resultUrl,
+      recordTaskId: result.recordTaskId,
+      failReason: result.failReason,
+    })
   } catch (err) {
-    console.error('KIE task error:', err)
-    return NextResponse.json({ error: 'Error al consultar tarea' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Error desconocido'
+    console.error('KIE task error:', message)
+    return NextResponse.json({ error: `Error al consultar tarea: ${message}` }, { status: 500 })
   }
 }

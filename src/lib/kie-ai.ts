@@ -54,6 +54,7 @@ export interface KieTaskStatus {
   state: 'waiting' | 'queuing' | 'generating' | 'success' | 'fail'
   resultUrl?: string
   recordTaskId?: string  // task_grok_XXXX format from recordInfo, required by extend API
+  failReason?: string
 }
 
 export async function createImageTask(
@@ -120,6 +121,11 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
 
   const { state, resultJson, taskId: recordTaskId } = data.data
 
+  console.log('KIE recordInfo data.data full:', JSON.stringify(data.data))
+  const failReason: string | undefined =
+    data.data.failMsg ?? data.data.errorMsg ?? data.data.failReason ?? data.data.failCode ?? undefined
+  console.log('KIE recordInfo state/fail:', state, 'failReason:', failReason ?? null)
+
   let resultUrl: string | undefined
   let grokTaskId: string | undefined
   if (state === 'success' && resultJson) {
@@ -134,9 +140,11 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     }
   }
 
-  const finalRecordTaskId = grokTaskId ?? recordTaskId
-  console.log('KIE using recordTaskId:', finalRecordTaskId, '(grokTaskId:', grokTaskId, ')')
-  return { state, resultUrl, recordTaskId: finalRecordTaskId }
+  const topLevelGrokId: string | undefined =
+    data.data.grokTaskId ?? data.data.task_grok_id ?? data.data.parentTaskId
+  const finalRecordTaskId = grokTaskId ?? topLevelGrokId ?? recordTaskId
+  console.log('KIE using recordTaskId:', finalRecordTaskId, '(grokTaskId:', grokTaskId, ', topLevelGrokId:', topLevelGrokId, ')')
+  return { state, resultUrl, recordTaskId: finalRecordTaskId, failReason }
 }
 
 export async function uploadImageToKie(base64Data: string, fileName: string): Promise<string> {
@@ -193,6 +201,7 @@ export async function createVideoExtendTask(prevTaskId: string, prompt: string):
     body: JSON.stringify(body),
   })
   const data = await res.json()
+  console.log('KIE extend create response:', JSON.stringify(data))
   if (!res.ok || data.code !== 200) {
     console.error('KIE video extend raw response:', JSON.stringify(data))
     throw new Error(data.msg ?? `KIE error ${res.status}`)
