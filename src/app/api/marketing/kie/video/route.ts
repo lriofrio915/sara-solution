@@ -43,21 +43,16 @@ export async function POST(req: Request) {
   }
 
   try {
-    let taskIds: string[]
     let description: string
-
+    let firstTaskId: string
     if (imageBase64) {
       const imageUrl = await uploadImageToKie(imageBase64, 'video-frame.jpg')
-      const results = await Promise.all(
-        Array.from({ length: clips }, () => createVideoFromImageTask(imageUrl, prompt))
-      )
-      taskIds = results.map(r => r.taskId)
+      const result = await createVideoFromImageTask(imageUrl, prompt)
+      firstTaskId = result.taskId
       description = `Video IA generado (Grok Imagine I2V ${clips * 6}s)`
     } else {
-      const results = await Promise.all(
-        Array.from({ length: clips }, () => createVideoTask(prompt))
-      )
-      taskIds = results.map(r => r.taskId)
+      const result = await createVideoTask(prompt)
+      firstTaskId = result.taskId
       description = `Video IA generado (Grok Imagine T2V ${clips * 6}s)`
     }
 
@@ -72,14 +67,15 @@ export async function POST(req: Request) {
           type: 'VIDEO',
           credits: -cost,
           description,
-          kieTaskId: taskIds[0],
+          kieTaskId: firstTaskId,
         },
       })
     }
 
     void socialPostId
 
-    return NextResponse.json({ taskIds, clipCount: clips, creditCost: cost, newCredits: null })
+    // totalExtensions = how many times the frontend must call /extend after polling the base clip
+    return NextResponse.json({ taskId: firstTaskId, totalExtensions: clips - 1, creditCost: cost, newCredits: null })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error desconocido'
     console.error('KIE video error:', message)

@@ -170,6 +170,28 @@ export async function createVideoFromImageTask(imageUrl: string, prompt: string)
   return { taskId: data.data.taskId }
 }
 
+export async function createVideoExtendTask(prevTaskId: string): Promise<KieTaskResult> {
+  const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      model: 'grok-imagine/extend',
+      input: {
+        task_id: prevTaskId,
+        prompt: '',
+        extend_at: 0,
+        extend_times: '6',
+      },
+    }),
+  })
+  const data = await res.json()
+  if (!res.ok || data.code !== 200) {
+    console.error('KIE video extend raw response:', JSON.stringify(data))
+    throw new Error(data.msg ?? `KIE error ${res.status}`)
+  }
+  return { taskId: data.data.taskId }
+}
+
 export async function getAdminCredits(): Promise<number> {
   const res = await fetch(`${KIE_BASE_URL}/api/v1/chat/credit`, {
     headers: headers(),
