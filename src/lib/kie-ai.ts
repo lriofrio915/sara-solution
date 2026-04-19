@@ -119,8 +119,6 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
 
-  console.log('KIE recordInfo full data.data:', JSON.stringify(data.data))
-
   const { state, resultJson, taskId: recordTaskId } = data.data
 
   let resultUrl: string | undefined
@@ -179,8 +177,8 @@ export async function createVideoExtendTask(prevTaskId: string, prompt: string):
     input: {
       task_id: prevTaskId,
       prompt,
-      extend_at: 0,
-      extend_times: '6',
+      extend_at: 6,
+      extend_times: 6,
     },
   }
   console.log('KIE extend request:', JSON.stringify(body))
