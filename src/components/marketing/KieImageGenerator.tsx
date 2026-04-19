@@ -5,12 +5,15 @@ import { SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 import { useCreditBalance } from './CreditBalance'
 
 type AspectRatio = '1:1' | '4:5' | '16:9'
+type StyleKey = 'fotorrealista' | 'minimalista' | 'ilustracion' | 'acuarela' | 'corporativo'
 
 interface Props {
   prompt: string
   defaultAspect?: AspectRatio
   socialPostId?: string
   downloadName?: string
+  styleAnchor?: string
+  onStyleAnchorChange?: (anchor: string) => void
 }
 
 const ASPECT_LABELS: Record<AspectRatio, string> = {
@@ -19,6 +22,14 @@ const ASPECT_LABELS: Record<AspectRatio, string> = {
   '16:9': 'Horizontal',
 }
 
+const STYLE_OPTIONS: { key: StyleKey; label: string; icon: string }[] = [
+  { key: 'fotorrealista', label: 'Foto real',    icon: '📷' },
+  { key: 'minimalista',   label: 'Minimalista',  icon: '◻️' },
+  { key: 'ilustracion',   label: 'Ilustración',  icon: '🎨' },
+  { key: 'acuarela',      label: 'Acuarela',     icon: '🖌️' },
+  { key: 'corporativo',   label: 'Corporativo',  icon: '💼' },
+]
+
 function pollinationsFallbackUrl(prompt: string) {
   const encoded = encodeURIComponent(
     `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
@@ -26,14 +37,33 @@ function pollinationsFallbackUrl(prompt: string) {
   return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
 }
 
-export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socialPostId, downloadName = 'imagen-post' }: Props) {
+export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socialPostId, downloadName = 'imagen-post', styleAnchor, onStyleAnchorChange }: Props) {
   const { credits, refresh } = useCreditBalance()
   const [aspect, setAspect] = useState<AspectRatio>(defaultAspect)
+  const [styleKey, setStyleKey] = useState<StyleKey | null>(null)
+  const [overlayText, setOverlayText] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'polling' | 'done' | 'error'>('idle')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [pollCount, setPollCount] = useState(0)
   const [isFallback, setIsFallback] = useState(false)
+
+  function handleStyleSelect(key: StyleKey) {
+    const next = styleKey === key ? null : key
+    setStyleKey(next)
+    if (onStyleAnchorChange && next) {
+      const descriptions: Record<StyleKey, string> = {
+        fotorrealista: 'photorealistic professional photography studio lighting',
+        minimalista: 'minimalist flat design clean white background simple geometric shapes',
+        ilustracion: 'digital illustration flat vector art vibrant colors',
+        acuarela: 'soft watercolor illustration pastel tones medical art style',
+        corporativo: 'corporate photography professional sharp high contrast',
+      }
+      onStyleAnchorChange(descriptions[next])
+    } else if (onStyleAnchorChange) {
+      onStyleAnchorChange('')
+    }
+  }
 
   const hasCredits = credits !== null && credits >= SARA_CREDIT_COSTS.IMAGE
   const isGenerating = status === 'loading' || status === 'polling'
@@ -76,7 +106,7 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
       const res = await fetch('/api/marketing/kie/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, aspectRatio: aspect, socialPostId }),
+        body: JSON.stringify({ prompt, aspectRatio: aspect, socialPostId, styleKey: styleKey ?? undefined, styleAnchor: styleAnchor ?? undefined, overlayText: overlayText.trim() || undefined }),
       })
       const data = await res.json()
 
@@ -164,6 +194,43 @@ export default function KieImageGenerator({ prompt, defaultAspect = '1:1', socia
             {ASPECT_LABELS[a]}
           </button>
         ))}
+      </div>
+
+      {/* Style selector */}
+      <div className="space-y-1.5">
+        <p className="text-xs text-gray-400 dark:text-slate-500">Estilo visual</p>
+        <div className="flex flex-wrap gap-1.5">
+          {STYLE_OPTIONS.map(s => (
+            <button
+              key={s.key}
+              onClick={() => handleStyleSelect(s.key)}
+              disabled={isGenerating}
+              className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors ${
+                styleKey === s.key
+                  ? 'border-primary bg-primary/5 text-primary dark:bg-primary/10'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-slate-400 hover:border-gray-300 disabled:opacity-50'
+              }`}
+            >
+              {s.icon} {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Overlay text input */}
+      <div className="space-y-1">
+        <p className="text-xs text-gray-400 dark:text-slate-500">Texto en la imagen <span className="font-normal">(opcional)</span></p>
+        <input
+          type="text"
+          value={overlayText}
+          onChange={e => setOverlayText(e.target.value.slice(0, 60))}
+          disabled={isGenerating}
+          placeholder="Ej: Consulta gratis hoy · Dr. Ramírez"
+          className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary disabled:opacity-50"
+        />
+        {overlayText.length > 0 && (
+          <p className="text-xs text-gray-400 dark:text-slate-500 text-right">{overlayText.length}/60</p>
+        )}
       </div>
 
       {/* Image preview area */}

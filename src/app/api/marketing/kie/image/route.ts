@@ -41,10 +41,21 @@ async function getAuth() {
   return { doctor, isAdmin: user.email === SUPERADMIN_EMAIL }
 }
 
+const STYLE_DESCRIPTIONS: Record<string, string> = {
+  fotorrealista: 'photorealistic, professional photography, studio lighting, sharp focus, high resolution',
+  minimalista: 'minimalist flat design, clean white background, simple geometric shapes, elegant spacing',
+  ilustracion: 'digital illustration, flat vector art, vibrant colors, modern graphic design',
+  acuarela: 'soft watercolor illustration, pastel tones, delicate brushstrokes, medical art style',
+  corporativo: 'corporate photography style, professional, sharp, high contrast, business setting',
+}
+
 async function enhanceImagePrompt(
   rawPrompt: string,
   brand: BrandProfile | null,
   doctorName: string,
+  styleKey?: string,
+  styleAnchor?: string,
+  overlayText?: string,
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) return rawPrompt
@@ -52,6 +63,17 @@ async function enhanceImagePrompt(
   const brandBlock = brand
     ? `\n\nCONTEXTO DE MARCA:\n- Nombre: ${brand.clinicName ?? doctorName}\n- Especialidades: ${brand.specialties?.join(', ') || 'medicina general'}\n- Slogan: ${brand.slogan ?? 'ninguno'}\n- Colores de marca: primario ${brand.primaryColor}, secundario ${brand.secondaryColor}, acento ${brand.accentColor}\n- Tono de comunicación: ${brand.tones?.join(', ') || 'profesional'}\n- Audiencia objetivo: ${brand.targetAudience ?? 'pacientes en general'}\n- Logo disponible: ${brand.logoUrl ? 'sí' : 'no'}`
     : ''
+
+  const styleDesc = styleKey ? STYLE_DESCRIPTIONS[styleKey] : undefined
+  const styleBlock = styleDesc ? `\n\nESTILO VISUAL REQUERIDO: ${styleDesc}` : ''
+  const anchorBlock = styleAnchor ? `\n\nCOHERENCIA DE CARRUSEL: Mantén exactamente este estilo visual en todos los slides — ${styleAnchor}. Usa la misma paleta de colores, iluminación y composición.` : ''
+  const textBlock = overlayText
+    ? `\n\nTEXTO A INCORPORAR EN LA IMAGEN: "${overlayText}". Intégralo como elemento tipográfico elegante dentro de la composición. Usa tipografía limpia y profesional, asegura alta legibilidad, intégralo de forma natural con el estilo visual.`
+    : ''
+
+  const noTextInstruction = overlayText
+    ? ''
+    : ' Never include any text, letters, words, watermarks, or typography in the image.'
 
   try {
     const client = new OpenAI({
@@ -69,16 +91,16 @@ async function enhanceImagePrompt(
           role: 'system',
           content: `Eres un prompt engineer experto en generación de imágenes con IA (Flux, Midjourney, DALL-E).
 Creas prompts en inglés, detallados y profesionales para contenido médico en redes sociales.
-Incluye siempre: estilo visual, iluminación, composición, paleta de colores coherente con la marca, atmósfera.
+Incluye siempre: estilo visual, iluminación, composición, paleta de colores coherente con la marca, atmósfera.${noTextInstruction}
 Responde ÚNICAMENTE con el prompt mejorado en inglés, sin explicaciones ni texto adicional.`,
         },
         {
           role: 'user',
-          content: `Transforma este prompt básico en un prompt profesional para generar una imagen médica para redes sociales:\n\n"${rawPrompt}"${brandBlock}`,
+          content: `Transforma este prompt básico en un prompt profesional para generar una imagen médica para redes sociales:\n\n"${rawPrompt}"${brandBlock}${styleBlock}${anchorBlock}${textBlock}`,
         },
       ],
       temperature: 0.7,
-      max_tokens: 400,
+      max_tokens: 500,
     })
     return res.choices[0]?.message?.content?.trim() ?? rawPrompt
   } catch {
@@ -91,7 +113,7 @@ export async function POST(req: Request) {
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { doctor, isAdmin } = auth
-  const { prompt, aspectRatio = '1:1', socialPostId } = await req.json()
+  const { prompt, aspectRatio = '1:1', socialPostId, styleKey, styleAnchor, overlayText } = await req.json()
   if (!prompt?.trim()) return NextResponse.json({ error: 'Prompt requerido' }, { status: 400 })
 
   const cost = SARA_CREDIT_COSTS.IMAGE
@@ -109,7 +131,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const enhanced = await enhanceImagePrompt(prompt, doctor.brandProfile ?? null, doctor.name)
+    const enhanced = await enhanceImagePrompt(prompt, doctor.brandProfile ?? null, doctor.name, styleKey, styleAnchor, overlayText)
     const { taskId } = await createImageTask(enhanced, aspectRatio)
 
     if (!isAdmin) {
