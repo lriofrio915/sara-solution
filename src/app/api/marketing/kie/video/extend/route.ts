@@ -14,11 +14,11 @@ export async function POST(req: Request) {
   })
   if (!doctor) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { prevTaskId } = await req.json()
+  const { prevTaskId, prompt = '' } = await req.json()
   if (!prevTaskId?.trim()) return NextResponse.json({ error: 'prevTaskId requerido' }, { status: 400 })
 
   try {
-    const result = await createVideoExtendTask(prevTaskId)
+    const result = await createVideoExtendTask(prevTaskId, prompt)
     return NextResponse.json({ taskId: result.taskId })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error desconocido'

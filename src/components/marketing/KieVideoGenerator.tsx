@@ -105,7 +105,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         const extRes = await fetch('/api/marketing/kie/video/extend', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prevTaskId: currentTaskId }),
+          body: JSON.stringify({ prevTaskId: currentTaskId, prompt }),
         })
         const extData = await extRes.json()
         if (!extRes.ok) {
@@ -118,11 +118,10 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
         const extUrl = await pollTaskForUrl(currentTaskId)
         if (!extUrl) return
 
-        // Show intermediate result while more extensions pending
-        if (i < totalExtensions - 1) setVideoUrl(extUrl)
+        setVideoUrl(extUrl)
       }
 
-      setVideoUrl(await pollTaskForUrl(currentTaskId) ?? baseUrl)
+      if (totalExtensions === 0) setVideoUrl(baseUrl)
       setStatus('done')
       refresh()
     } catch {

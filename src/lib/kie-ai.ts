@@ -170,19 +170,24 @@ export async function createVideoFromImageTask(imageUrl: string, prompt: string)
   return { taskId: data.data.taskId }
 }
 
-export async function createVideoExtendTask(prevTaskId: string): Promise<KieTaskResult> {
+export async function createVideoExtendTask(prevTaskId: string, prompt: string): Promise<KieTaskResult> {
+  const body = {
+    model: 'grok-imagine/extend',
+    input: {
+      task_id: prevTaskId,
+      prompt,
+      extend_at: 0,
+      extend_times: '6',
+      mode: 'normal',
+      resolution: '480p',
+      aspect_ratio: '9:16',
+    },
+  }
+  console.log('KIE extend request:', JSON.stringify(body))
   const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({
-      model: 'grok-imagine/extend',
-      input: {
-        task_id: prevTaskId,
-        prompt: '',
-        extend_at: 0,
-        extend_times: '6',
-      },
-    }),
+    body: JSON.stringify(body),
   })
   const data = await res.json()
   if (!res.ok || data.code !== 200) {
