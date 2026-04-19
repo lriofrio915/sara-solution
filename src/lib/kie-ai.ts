@@ -119,8 +119,7 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
 
-  console.log('KIE recordInfo data.data keys:', JSON.stringify(Object.keys(data.data ?? {})))
-  console.log('KIE recordInfo taskId field:', data.data?.taskId, '| id field:', data.data?.id, '| recordId:', data.data?.recordId)
+  console.log('KIE recordInfo full data.data:', JSON.stringify(data.data))
 
   const { state, resultJson, taskId: recordTaskId } = data.data
 
