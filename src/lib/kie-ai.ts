@@ -121,16 +121,22 @@ export async function getTaskResult(taskId: string): Promise<KieTaskStatus> {
   const { state, resultJson, taskId: recordTaskId } = data.data
 
   let resultUrl: string | undefined
+  let grokTaskId: string | undefined
   if (state === 'success' && resultJson) {
     try {
       const parsed = JSON.parse(resultJson)
+      console.log('KIE resultJson keys:', JSON.stringify(Object.keys(parsed)))
+      console.log('KIE resultJson full:', JSON.stringify(parsed))
       resultUrl = parsed.resultUrls?.[0]
+      grokTaskId = parsed.taskId ?? parsed.task_id ?? parsed.grokTaskId ?? parsed.recordTaskId
     } catch {
       // resultJson may not be JSON
     }
   }
 
-  return { state, resultUrl, recordTaskId }
+  const finalRecordTaskId = grokTaskId ?? recordTaskId
+  console.log('KIE using recordTaskId:', finalRecordTaskId, '(grokTaskId:', grokTaskId, ')')
+  return { state, resultUrl, recordTaskId: finalRecordTaskId }
 }
 
 export async function uploadImageToKie(base64Data: string, fileName: string): Promise<string> {
@@ -176,7 +182,7 @@ export async function createVideoExtendTask(prevTaskId: string, prompt: string):
     input: {
       task_id: prevTaskId,
       prompt,
-      extend_at: 6,
+      extend_at: 0,
       extend_times: '6',
     },
   }
