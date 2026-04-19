@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server'
 
-const ALLOWED_ORIGINS = [
-  'image.kie.ai',
-  'video.kie.ai',
-  'image.pollinations.ai',
+const ALLOWED_DOMAIN_SUFFIXES = [
+  'kie.ai',
+  'aiquickdraw.com',
+  'redpandaai.co',
+  'erweima.ai',
+  'pollinations.ai',
 ]
+
+function isHostnameAllowed(hostname: string) {
+  return ALLOWED_DOMAIN_SUFFIXES.some(
+    d => hostname === d || hostname.endsWith(`.${d}`)
+  )
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -20,19 +28,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'URL inválida' }, { status: 400 })
   }
 
-  if (!ALLOWED_ORIGINS.some(o => parsed.hostname === o)) {
+  if (parsed.protocol !== 'https:' || !isHostnameAllowed(parsed.hostname)) {
+    console.warn('[download-image] Origen rechazado:', parsed.hostname, 'url:', url)
     return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
   }
 
   const upstream = await fetch(url)
   if (!upstream.ok) {
+    console.warn('[download-image] Upstream falló', upstream.status, url)
     return NextResponse.json({ error: 'No se pudo obtener el archivo' }, { status: 502 })
   }
 
   const contentType = upstream.headers.get('content-type') ?? 'application/octet-stream'
   const ext = contentType.includes('video') ? 'mp4' : 'jpg'
-
   const buffer = await upstream.arrayBuffer()
+
   return new NextResponse(buffer, {
     headers: {
       'Content-Type': contentType,
