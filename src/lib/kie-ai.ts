@@ -78,6 +78,7 @@ export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
       model: 'kling-2.6/text-to-video',
       input: {
         prompt,
+        negative_prompt: '',
         duration: 5,
         aspect_ratio: '9:16',
         mode: 'std',
@@ -87,6 +88,7 @@ export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
 
   const data = await res.json()
   if (!res.ok || data.code !== 200) {
+    console.error('KIE video raw response:', JSON.stringify(data))
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
 

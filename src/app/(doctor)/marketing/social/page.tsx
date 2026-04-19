@@ -100,16 +100,20 @@ export default function SocialPage() {
   const [result, setResult] = useState<SingleResult | null>(null)
   const [specialtyTopics, setSpecialtyTopics] = useState<string[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
+  const [loadingTopics, setLoadingTopics] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/marketing/specialty-topics?platform=instagram')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d?.topics?.length) setSpecialtyTopics(d.topics)
-        if (d?.isAdmin) setIsAdmin(true)
-      })
-      .catch(() => {})
-  }, [])
+  async function loadTopics() {
+    setLoadingTopics(true)
+    try {
+      const r = await fetch('/api/marketing/specialty-topics?platform=instagram')
+      const d = r.ok ? await r.json() : null
+      if (d?.topics?.length) setSpecialtyTopics(d.topics)
+      if (d?.isAdmin) setIsAdmin(true)
+    } catch {}
+    setLoadingTopics(false)
+  }
+
+  useEffect(() => { loadTopics() }, [])
 
   function togglePlatform(p: Platform) {
     setSelectedPlatforms(prev =>
@@ -207,9 +211,26 @@ export default function SocialPage() {
 
           {/* Tema del post */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
-            <label className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide block">
-              Tema del post
-            </label>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
+                Tema del post
+              </label>
+              <button
+                type="button"
+                onClick={loadTopics}
+                disabled={loadingTopics}
+                className="text-gray-400 hover:text-primary transition-colors disabled:opacity-50"
+                title="Regenerar sugerencias"
+              >
+                <svg
+                  className={`w-3.5 h-3.5 ${loadingTopics ? 'animate-spin' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
             {specialtyTopics.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {specialtyTopics.slice(0, 6).map(t => (
