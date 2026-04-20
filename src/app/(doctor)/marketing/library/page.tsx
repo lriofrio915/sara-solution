@@ -12,6 +12,8 @@ interface SocialPost {
   targetPlatform: string
   topic: string | null
   imagePrompt: string | null
+  imageUrl: string | null
+  videoUrl: string | null
   suggestedTime: string | null
   aiGenerated: boolean
   createdAt: string
@@ -447,9 +449,23 @@ export default function LibraryPage() {
                     </div>
                   )}
 
-                  {post.imagePrompt && (
+                  {post.videoUrl ? (
+                    <video
+                      src={post.videoUrl}
+                      poster={post.imageUrl ?? undefined}
+                      controls
+                      className="w-full max-w-[320px] rounded-xl border border-gray-200 dark:border-gray-600 bg-black"
+                    />
+                  ) : post.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.imageUrl}
+                      alt={post.imagePrompt ?? 'Imagen del post'}
+                      className="w-full max-w-[320px] rounded-xl border border-gray-200 dark:border-gray-600 object-cover"
+                    />
+                  ) : post.imagePrompt ? (
                     <AIImage prompt={post.imagePrompt} aspect="1/1" accentColor="blue" downloadName="imagen-post.jpg" />
-                  )}
+                  ) : null}
 
                   {post.suggestedTime && (
                     <p className="text-xs text-gray-500 dark:text-slate-300">

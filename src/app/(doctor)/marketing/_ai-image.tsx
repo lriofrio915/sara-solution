@@ -7,6 +7,7 @@ interface Props {
   aspect?: '1/1' | '16/9' | '9/16' | '1200/627' | '1200/630'
   accentColor?: string
   downloadName?: string
+  imageUrl?: string
 }
 
 // Extrae palabras clave del prompt para LoremFlickr
@@ -30,13 +31,13 @@ function getDimensions(aspect: string): { w: number; h: number } {
   return { w: 800, h: 450 } // 16/9
 }
 
-export default function AIImage({ prompt, aspect = '1/1', accentColor = 'blue', downloadName = 'post-image.jpg' }: Props) {
+export default function AIImage({ prompt, aspect = '1/1', accentColor = 'blue', downloadName = 'post-image.jpg', imageUrl }: Props) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 9000) + 1000)
 
   const keywords = extractKeywords(prompt)
   const { w, h } = getDimensions(aspect)
-  const src = `https://loremflickr.com/${w}/${h}/${keywords}?lock=${seed}`
+  const src = imageUrl || `https://loremflickr.com/${w}/${h}/${keywords}?lock=${seed}`
 
   function retry() {
     setStatus('loading')

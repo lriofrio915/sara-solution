@@ -21,6 +21,7 @@ interface SocialPost {
   suggestedTime: string | null
   createdAt: string
   imageUrl: string | null
+  videoUrl: string | null
   imagePrompt: string | null
   carouselSlides: CarouselSlide[] | null
   reelScript: string | null
@@ -71,13 +72,6 @@ function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
-}
-
-function pollinationsUrl(prompt: string) {
-  const encoded = encodeURIComponent(
-    `professional medical healthcare illustration, ${prompt}, clean modern style, no text, high quality`
-  )
-  return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=42`
 }
 
 export default function CalendarioPage() {
@@ -284,19 +278,23 @@ export default function CalendarioPage() {
 
   function ImagePreview({ post }: { post: SocialPost }) {
     const [imgStatus, setImgStatus] = useState<'loading' | 'ok' | 'error'>('loading')
-    const fallbackSrc = post.imagePrompt ? pollinationsUrl(post.imagePrompt) : null
-    const src = editImageUrl || fallbackSrc
+    const src = editImageUrl || post.imageUrl
 
     function handleLoad() {
       setImgStatus('ok')
-      if (!editImageUrl && src) {
-        setEditImageUrl(src)
-        fetch(`/api/marketing/posts/${post.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: src }),
-        }).catch(() => {})
-      }
+    }
+
+    if (post.videoUrl) {
+      return (
+        <div className="relative w-full aspect-square max-w-[200px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 bg-black">
+          <video
+            src={post.videoUrl}
+            poster={post.imageUrl ?? undefined}
+            controls
+            className="w-full h-full object-contain"
+          />
+        </div>
+      )
     }
 
     if (generatingImage && generatingPostId === post.id) {

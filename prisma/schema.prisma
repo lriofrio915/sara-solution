@@ -499,6 +499,7 @@ model SocialPost {
   doctorId       String
   content        String         @db.Text
   imageUrl       String?
+  videoUrl       String?
   platforms      Json
   publishedAt    DateTime?
   scheduledAt    DateTime?

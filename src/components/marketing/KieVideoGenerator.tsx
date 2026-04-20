@@ -37,6 +37,19 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     setErrorMsg('')
   }
 
+  async function saveVideoUrl(url: string) {
+    if (!socialPostId) return
+    try {
+      await fetch(`/api/marketing/posts/${socialPostId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoUrl: url }),
+      })
+    } catch {
+      // non-fatal
+    }
+  }
+
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -84,6 +97,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
       setVideoUrl(result.url)
       setStatus('done')
       refresh()
+      await saveVideoUrl(result.url)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'desconocido'
       setErrorMsg(`Error de conexión: ${msg}`)
