@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getTaskResult, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
+import { getTaskResult, getVeoTaskResult, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 
 export async function GET(req: Request) {
   const supabase = await createClient()
@@ -15,7 +15,9 @@ export async function GET(req: Request) {
   if (!taskId) return NextResponse.json({ error: 'taskId requerido' }, { status: 400 })
 
   try {
-    const result = await getTaskResult(taskId)
+    const result = type === 'VIDEO'
+      ? await getVeoTaskResult(taskId)
+      : await getTaskResult(taskId)
     const forceRefund = searchParams.get('forceRefund') === '1'
 
     // If task failed (or caller forces a refund for an already-charged task), refund credits

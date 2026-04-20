@@ -22,16 +22,16 @@ function headers() {
 
 // ─── Credit costs in "Sara credits" (admin adjusts here) ─────
 
-// Grok Imagine only supports 6s/clip. Extend está deshabilitado hasta confirmar payload con KIE.
+// Veo 3.1 Fast: 8s fijos por clip, 1080p vertical, audio nativo sincronizado.
 export type VideoDurationClips = 1
 
 export const VIDEO_DURATION_OPTIONS = [
-  { label: '6 seg', clips: 1 as VideoDurationClips, cost: 20 },
+  { label: '8 seg · 1080p + audio', clips: 1 as VideoDurationClips, cost: 50 },
 ] as const
 
 export const SARA_CREDIT_COSTS = {
-  IMAGE: 5,
-  VIDEO_BY_CLIPS: { 1: 20 } as Record<VideoDurationClips, number>,
+  IMAGE: 15,
+  VIDEO_BY_CLIPS: { 1: 50 } as Record<VideoDurationClips, number>,
 } as const
 
 // ─── Recharge packages available to doctors ──────────────────
@@ -61,12 +61,13 @@ export async function createImageTask(
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'flux-2/pro-text-to-image',
+      model: 'nano-banana-pro',
       input: {
         prompt,
+        image_input: [],
         aspect_ratio: aspectRatio,
-        resolution: '1K',
-        nsfw_checker: false,
+        resolution: '2K',
+        output_format: 'png',
       },
     }),
   })
@@ -80,18 +81,16 @@ export async function createImageTask(
 }
 
 export async function createVideoTask(prompt: string): Promise<KieTaskResult> {
-  const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
+  const res = await fetch(`${KIE_BASE_URL}/api/v1/veo/generate`, {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'grok-imagine/text-to-video',
-      input: {
-        prompt,
-        aspect_ratio: '9:16',
-        mode: 'normal',
-        duration: '6',
-        resolution: '480p',
-      },
+      prompt,
+      model: 'veo3_fast',
+      aspect_ratio: '9:16',
+      generationType: 'TEXT_2_VIDEO',
+      enableTranslation: true,
+      enableFallback: false,
     }),
   })
 
@@ -145,19 +144,17 @@ export async function uploadImageToKie(base64Data: string, fileName: string): Pr
 }
 
 export async function createVideoFromImageTask(imageUrl: string, prompt: string): Promise<KieTaskResult> {
-  const res = await fetch(`${KIE_BASE_URL}/api/v1/jobs/createTask`, {
+  const res = await fetch(`${KIE_BASE_URL}/api/v1/veo/generate`, {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      model: 'grok-imagine/image-to-video',
-      input: {
-        prompt,
-        image_urls: [imageUrl],
-        mode: 'normal',
-        duration: '6',
-        resolution: '480p',
-        aspect_ratio: '9:16',
-      },
+      prompt,
+      imageUrls: [imageUrl],
+      model: 'veo3_fast',
+      aspect_ratio: '9:16',
+      generationType: 'REFERENCE_2_VIDEO',
+      enableTranslation: true,
+      enableFallback: false,
     }),
   })
   const data = await res.json()
@@ -166,6 +163,36 @@ export async function createVideoFromImageTask(imageUrl: string, prompt: string)
     throw new Error(data.msg ?? `KIE error ${res.status}`)
   }
   return { taskId: data.data.taskId }
+}
+
+export async function getVeoTaskResult(taskId: string): Promise<KieTaskStatus> {
+  const res = await fetch(
+    `${KIE_BASE_URL}/api/v1/veo/record-info?taskId=${encodeURIComponent(taskId)}`,
+    { headers: headers() }
+  )
+
+  const data = await res.json()
+  if (!res.ok || data.code !== 200) {
+    throw new Error(data.msg ?? `KIE error ${res.status}`)
+  }
+
+  const { successFlag, response, errorMessage, errorCode } = data.data ?? {}
+
+  // successFlag: 0 = pending, 1 = success, 2 = generating/queued, 3 = failed
+  let state: KieTaskStatus['state']
+  if (successFlag === 1) state = 'success'
+  else if (successFlag === 3) state = 'fail'
+  else if (successFlag === 2) state = 'generating'
+  else state = 'waiting'
+
+  const failReason: string | undefined = errorMessage ?? errorCode ?? undefined
+
+  let resultUrl: string | undefined
+  if (state === 'success' && response) {
+    resultUrl = response.resultUrls?.[0] ?? response.originUrls?.[0]
+  }
+
+  return { state, resultUrl, failReason }
 }
 
 export async function getAdminCredits(): Promise<number> {

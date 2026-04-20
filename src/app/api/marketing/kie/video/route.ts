@@ -46,11 +46,11 @@ export async function POST(req: Request) {
       const imageUrl = await uploadImageToKie(imageBase64, 'video-frame.jpg')
       const result = await createVideoFromImageTask(imageUrl, prompt)
       firstTaskId = result.taskId
-      description = 'Video IA generado (Grok Imagine I2V 6s)'
+      description = 'Video IA generado (Veo 3.1 Fast I2V 8s 1080p)'
     } else {
       const result = await createVideoTask(prompt)
       firstTaskId = result.taskId
-      description = 'Video IA generado (Grok Imagine T2V 6s)'
+      description = 'Video IA generado (Veo 3.1 Fast T2V 8s 1080p)'
     }
 
     if (!isAdmin) {

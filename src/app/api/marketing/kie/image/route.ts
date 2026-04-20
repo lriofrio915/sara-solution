@@ -89,9 +89,10 @@ async function enhanceImagePrompt(
       messages: [
         {
           role: 'system',
-          content: `Eres un prompt engineer experto en generación de imágenes con IA (Flux, Midjourney, DALL-E).
-Creas prompts en inglés, detallados y profesionales para contenido médico en redes sociales.
-Incluye siempre: estilo visual, iluminación, composición, paleta de colores coherente con la marca, atmósfera.${noTextInstruction}
+          content: `Eres un prompt engineer experto en Google Nano Banana Pro (Gemini 3 Pro Image).
+Creas prompts descriptivos en inglés natural (no listas de keywords) para contenido médico profesional en redes sociales.
+El modelo sobresale en: renderizado de texto tipográfico dentro de la imagen, consistencia de personajes, fotorrealismo 2K, y seguir instrucciones complejas en lenguaje natural.
+Describe la escena como si se la explicaras a un fotógrafo: sujeto, acción, composición, iluminación, ambiente, paleta de colores, textura.${noTextInstruction}
 Responde ÚNICAMENTE con el prompt mejorado en inglés, sin explicaciones ni texto adicional.`,
         },
         {
@@ -144,7 +145,7 @@ export async function POST(req: Request) {
           doctorId: doctor.id,
           type: 'IMAGE',
           credits: -cost,
-          description: `Imagen IA generada (Flux-2 Pro)`,
+          description: `Imagen IA generada (Nano Banana Pro 2K)`,
           kieTaskId: taskId,
         },
       })

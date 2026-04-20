@@ -154,11 +154,11 @@ export default function RechargeModal({ currentCredits, onClose, onSuccess }: Pr
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 space-y-1.5">
                     <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">¿Qué puedes generar?</p>
                     <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                      <span>🖼️</span><span>Imagen IA (Flux-2 Pro)</span>
+                      <span>🖼️</span><span>Imagen IA 2K (Nano Banana Pro)</span>
                       <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.IMAGE} cr.</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                      <span>🎬</span><span>Video 6 seg (Grok Imagine)</span>
+                      <span>🎬</span><span>Video 8 seg 1080p + audio (Veo 3.1 Fast)</span>
                       <span className="ml-auto font-bold text-primary">{SARA_CREDIT_COSTS.VIDEO_BY_CLIPS[1]} cr.</span>
                     </div>
                   </div>

@@ -101,7 +101,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
   }
 
   async function pollTaskForUrl(taskId: string, attempt = 0): Promise<{ url: string } | null> {
-    if (attempt > 40) {
+    if (attempt > 80) {
       setErrorMsg('La generación tardó demasiado. Tus créditos fueron reembolsados.')
       setStatus('error')
       await requestForceRefund(taskId)
@@ -138,7 +138,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
 
   function progressLabel() {
     if (status === 'loading') return 'Preparando…'
-    if (status === 'polling') return `Generando video (6s)… ${elapsed > 0 ? `(${elapsed}s)` : ''}`
+    if (status === 'polling') return `Generando video (8s · 1080p)… ${elapsed > 0 ? `(${elapsed}s)` : ''}`
     return ''
   }
 
@@ -146,7 +146,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
     <div className="space-y-3">
       {/* Header */}
       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-        Video IA (Grok Imagine · 6s)
+        Video IA (Veo 3.1 Fast · 8s · 1080p + audio)
       </p>
 
       {/* Mode toggle */}
@@ -207,7 +207,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
             </svg>
             <p className="text-xs text-gray-400 dark:text-slate-500">
-              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : 'Video para Reel/TikTok · 6 seg'}
+              {mode === 'image' ? 'Sube una imagen y genera tu Reel/TikTok' : 'Video para Reel/TikTok · 8 seg + audio'}
             </p>
           </div>
         )}
@@ -220,7 +220,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             </svg>
             <p className="text-xs text-gray-500 dark:text-slate-400">{progressLabel()}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-              ~30-90s
+              ~60-180s
             </p>
           </div>
         )}
