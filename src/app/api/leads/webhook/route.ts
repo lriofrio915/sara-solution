@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { parseBody } from '@/lib/validation/parseBody'
 import { LeadWebhookSchema } from '@/lib/validation/schemas/lead'
+import { timingSafeStringEqual } from '@/lib/timingSafeEqual'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ const ALLOWED_SOURCES = ['INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'LINKEDIN', 'GOOGLE'
 export async function GET(req: NextRequest) {
   // n8n webhook test / verification ping
   const secret = req.headers.get('x-webhook-secret')
-  if (!process.env.LEADS_WEBHOOK_SECRET || secret !== process.env.LEADS_WEBHOOK_SECRET) {
+  if (!timingSafeStringEqual(secret, process.env.LEADS_WEBHOOK_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   return NextResponse.json({ ok: true, message: 'Sara Medical webhook activo' })

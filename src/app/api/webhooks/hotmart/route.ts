@@ -18,13 +18,13 @@ import { prisma } from '@/lib/prisma'
 import { sendNexusWA } from '@/lib/whatsapp'
 import { parseBody } from '@/lib/validation/parseBody'
 import { HotmartWebhookSchema } from '@/lib/validation/schemas/hotmart'
+import { timingSafeStringEqual } from '@/lib/timingSafeEqual'
 
 export const dynamic = 'force-dynamic'
 
 function validateHottok(req: NextRequest): boolean {
   const hottok = req.headers.get('x-hotmart-hottok')
-  if (!process.env.HOTMART_HOTTOK || !hottok) return false
-  return hottok === process.env.HOTMART_HOTTOK
+  return timingSafeStringEqual(hottok, process.env.HOTMART_HOTTOK)
 }
 
 function creditsFromProductId(productId: number | string): { credits: number } | null {

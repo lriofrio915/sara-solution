@@ -21,6 +21,7 @@ import type { SaraMessage } from '@/lib/sara'
 import { getEffectivePlan } from '@/lib/plan'
 import { parseBody } from '@/lib/validation/parseBody'
 import { EvolutionWebhookSchema } from '@/lib/validation/schemas/evolution'
+import { timingSafeStringEqual } from '@/lib/timingSafeEqual'
 
 export const dynamic = 'force-dynamic'
 
@@ -210,12 +211,16 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     // ── Auth: verify apikey header matches EVOLUTION_API_KEY if set ──────────
-    // If env var is not set, accept all (useful during initial setup)
+    // If env var is not set, accept all (useful during initial setup only).
+    // When set, mismatches are rejected — the instance lookup below is a data
+    // resolver, not a security control.
     const apiKey = req.headers.get('apikey')
     const expectedKey = process.env.EVOLUTION_API_KEY
-    if (expectedKey && apiKey && apiKey !== expectedKey) {
-      console.warn(`WA webhook: apikey mismatch — received "${apiKey?.slice(0, 8)}...", expected "${expectedKey?.slice(0, 8)}..."`)
-      // Don't reject — the instance check below acts as secondary validation
+    if (expectedKey) {
+      if (!timingSafeStringEqual(apiKey, expectedKey)) {
+        console.warn(`WA webhook: apikey mismatch — rejecting request`)
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
     }
 
     const parsed = await parseBody(req, EvolutionWebhookSchema)
