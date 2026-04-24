@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { PatientLeadUpdateSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +35,10 @@ export async function PATCH(
     })
     if (!lead) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    const body = await req.json()
+    const parsed = await parseBody(req, PatientLeadUpdateSchema)
+    if (!parsed.ok) return parsed.response
+    const body = parsed.data
+
     const updated = await prisma.patientLead.update({
       where: { id: params.id },
       data: {

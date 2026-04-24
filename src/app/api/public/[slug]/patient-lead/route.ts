@@ -6,6 +6,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { PatientLeadCreateSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,13 +15,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
+  const parsed = await parseBody(req, PatientLeadCreateSchema)
+  if (!parsed.ok) return parsed.response
+  const { name, phone, email, message, source, campaign } = parsed.data
+
   try {
-    const { name, phone, email, message, source, campaign } = await req.json()
-
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
-    }
-
     const doctor = await prisma.doctor.findUnique({
       where: { slug: params.slug },
       select: { id: true, name: true, webhookUrl: true, whatsapp: true, phone: true },
@@ -32,10 +32,10 @@ export async function POST(
     const lead = await prisma.patientLead.create({
       data: {
         doctorId: doctor.id,
-        name: name.trim(),
-        phone: phone?.trim() || null,
-        email: email?.trim() || null,
-        message: message?.trim() || null,
+        name,
+        phone: phone ?? null,
+        email: email ?? null,
+        message: message ?? null,
         source: source ?? 'CHAT',
         campaign: campaign ?? null,
         status: 'NUEVO',
@@ -45,10 +45,10 @@ export async function POST(
     const payload = {
       doctorName: doctor.name,
       doctorSlug: params.slug,
-      patientName: name.trim(),
-      patientPhone: phone?.trim() || null,
-      patientEmail: email?.trim() || null,
-      message: message?.trim() || null,
+      patientName: name,
+      patientPhone: phone ?? null,
+      patientEmail: email ?? null,
+      message: message ?? null,
       source: source ?? 'CHAT',
       campaign: campaign ?? null,
       timestamp: new Date().toISOString(),

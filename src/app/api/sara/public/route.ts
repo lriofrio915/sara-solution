@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { prisma } from '@/lib/prisma'
 import { executeTool } from '@/lib/sara-tools'
+import { parseBody } from '@/lib/validation/parseBody'
+import { SaraPublicSchema } from '@/lib/validation/schemas/sara'
 
 // POST /api/sara/public
 // Body: { messages: {role, content}[], slug: string }
@@ -212,20 +214,11 @@ Representas al consultorio de ${doctor.name}. Sé profesional, cálida y eficien
 // ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const parsed = await parseBody(req, SaraPublicSchema)
+  if (!parsed.ok) return parsed.response
+  const { messages, slug } = parsed.data
+
   try {
-    const body = await req.json()
-    const { messages, slug } = body as {
-      messages?: Array<{ role: string; content: string }>
-      slug?: string
-    }
-
-    if (!slug) {
-      return NextResponse.json({ error: 'slug es requerido' }, { status: 400 })
-    }
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'messages es requerido' }, { status: 400 })
-    }
-
     // Find doctor by slug
     const doctor = await prisma.doctor.findUnique({
       where: { slug },

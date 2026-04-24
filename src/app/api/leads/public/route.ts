@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendNexusWA } from '@/lib/whatsapp'
+import { parseBody } from '@/lib/validation/parseBody'
+import { LeadWebhookSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,28 +60,25 @@ async function notifyN8n(lead: {
 }
 
 export async function POST(req: NextRequest) {
+  const parsed = await parseBody(req, LeadWebhookSchema)
+  if (!parsed.ok) return parsed.response
+  const { name, email, phone, specialty, city, source, campaign, utmSource, utmMedium, utmCampaign } = parsed.data
+
   try {
-    const body = await req.json()
-    const { name, email, phone, specialty, city, source, campaign, utmSource, utmMedium, utmCampaign } = body
-
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 })
-    }
-
-    const resolvedSource = ALLOWED_SOURCES.includes(source) ? source : 'LANDING'
+    const resolvedSource = source && ALLOWED_SOURCES.includes(source) ? source : 'LANDING'
 
     const lead = await prisma.lead.create({
       data: {
-        name:       name.trim(),
-        email:      email?.trim()      || null,
-        phone:      phone?.trim()      || null,
-        specialty:  specialty?.trim()  || null,
-        city:       city?.trim()       || null,
+        name,
+        email:      email       ?? null,
+        phone:      phone       ?? null,
+        specialty:  specialty   ?? null,
+        city:       city        ?? null,
         source:     resolvedSource,
-        campaign:   campaign?.trim()   || utmCampaign?.trim() || null,
-        utmSource:  utmSource?.trim()  || null,
-        utmMedium:  utmMedium?.trim()  || null,
-        utmCampaign:utmCampaign?.trim()|| null,
+        campaign:   campaign    ?? utmCampaign ?? null,
+        utmSource:  utmSource   ?? null,
+        utmMedium:  utmMedium   ?? null,
+        utmCampaign:utmCampaign ?? null,
         status:     'NUEVO',
       },
     })

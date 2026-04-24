@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { SurveyAnswerSchema } from '@/lib/validation/schemas/survey'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,17 +31,14 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
 
 // POST — submit survey answer
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
+  const parsed = await parseBody(req, SurveyAnswerSchema)
+  if (!parsed.ok) return parsed.response
+  const { score, comment, wouldRecommend } = parsed.data
+
   try {
     const survey = await prisma.satisfactionSurvey.findUnique({ where: { token: params.token } })
     if (!survey) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     if (survey.answeredAt) return NextResponse.json({ error: 'Already answered' }, { status: 409 })
-
-    const body = await req.json()
-    const { score, comment, wouldRecommend } = body
-
-    if (!score || score < 1 || score > 5) {
-      return NextResponse.json({ error: 'Invalid score' }, { status: 400 })
-    }
 
     await prisma.satisfactionSurvey.update({
       where: { token: params.token },

@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { PatientLeadCreateSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,20 +48,21 @@ export async function POST(req: NextRequest) {
     const doctorId = await getDoctorId(user.id, user.email)
     if (!doctorId) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
-    const body = await req.json()
-    if (!body.name?.trim()) return NextResponse.json({ error: 'name is required' }, { status: 400 })
+    const parsed = await parseBody(req, PatientLeadCreateSchema)
+    if (!parsed.ok) return parsed.response
+    const body = parsed.data
 
     const lead = await prisma.patientLead.create({
       data: {
         doctorId,
-        name: body.name.trim(),
-        phone: body.phone?.trim() || null,
-        email: body.email?.trim() || null,
-        message: body.message?.trim() || null,
+        name: body.name,
+        phone: body.phone ?? null,
+        email: body.email ?? null,
+        message: body.message ?? null,
         source: body.source ?? 'OTRO',
-        campaign: body.campaign?.trim() || null,
+        campaign: body.campaign ?? null,
         status: body.status ?? 'NUEVO',
-        notes: body.notes?.trim() || null,
+        notes: body.notes ?? null,
       },
     })
 

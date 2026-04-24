@@ -11,6 +11,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { LeadWebhookSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,27 +34,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { name, email, phone, specialty, city, source, campaign, utmSource, utmMedium, utmCampaign } = body
+    const parsed = await parseBody(req, LeadWebhookSchema)
+    if (!parsed.ok) return parsed.response
+    const { name, email, phone, specialty, city, source, campaign, utmSource, utmMedium, utmCampaign } = parsed.data
 
-    if (!name?.trim()) {
-      return NextResponse.json({ error: 'name requerido' }, { status: 400 })
-    }
-
-    const resolvedSource = ALLOWED_SOURCES.includes(source?.toUpperCase()) ? source.toUpperCase() : 'OTRO'
+    const resolvedSource = source && ALLOWED_SOURCES.includes(source.toUpperCase()) ? source.toUpperCase() : 'OTRO'
 
     const lead = await prisma.lead.create({
       data: {
-        name: name.trim(),
-        email: email?.trim() || null,
-        phone: phone?.trim() || null,
-        specialty: specialty?.trim() || null,
-        city: city?.trim() || null,
+        name,
+        email: email ?? null,
+        phone: phone ?? null,
+        specialty: specialty ?? null,
+        city: city ?? null,
         source: resolvedSource,
-        campaign: campaign?.trim() || null,
-        utmSource: utmSource?.trim() || null,
-        utmMedium: utmMedium?.trim() || null,
-        utmCampaign: utmCampaign?.trim() || null,
+        campaign: campaign ?? null,
+        utmSource: utmSource ?? null,
+        utmMedium: utmMedium ?? null,
+        utmCampaign: utmCampaign ?? null,
         status: 'NUEVO',
       },
     })

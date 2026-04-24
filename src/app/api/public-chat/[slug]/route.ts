@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import OpenAI from 'openai'
+import { parseBody } from '@/lib/validation/parseBody'
+import { ChatBodySchema } from '@/lib/validation/schemas/chat'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,9 +27,11 @@ const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
 export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
-  try {
-    const { messages } = await req.json() as { messages: ChatMessage[] }
+  const parsed = await parseBody(req, ChatBodySchema)
+  if (!parsed.ok) return parsed.response
+  const messages = parsed.data.messages as ChatMessage[]
 
+  try {
     // Fetch doctor info
     const doctor = await prisma.doctor.findUnique({
       where: { slug: params.slug },

@@ -5,6 +5,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { parseBody } from '@/lib/validation/parseBody'
+import { ChatBodySchema } from '@/lib/validation/schemas/chat'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,9 +62,11 @@ REGLAS:
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
 export async function POST(req: NextRequest) {
-  try {
-    const { messages } = await req.json() as { messages: ChatMessage[] }
+  const parsed = await parseBody(req, ChatBodySchema)
+  if (!parsed.ok) return parsed.response
+  const messages = parsed.data.messages as ChatMessage[]
 
+  try {
     const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 
     const completion = await getOpenAI().chat.completions.create({

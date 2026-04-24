@@ -19,6 +19,8 @@ import { sendWA } from '@/lib/whatsapp'
 import { askSara } from '@/lib/sara'
 import type { SaraMessage } from '@/lib/sara'
 import { getEffectivePlan } from '@/lib/plan'
+import { parseBody } from '@/lib/validation/parseBody'
+import { EvolutionWebhookSchema } from '@/lib/validation/schemas/evolution'
 
 export const dynamic = 'force-dynamic'
 
@@ -216,7 +218,9 @@ export async function POST(req: Request) {
       // Don't reject — the instance check below acts as secondary validation
     }
 
-    const payload = await req.json() as EvolutionPayload
+    const parsed = await parseBody(req, EvolutionWebhookSchema)
+    if (!parsed.ok) return parsed.response
+    const payload = parsed.data as unknown as EvolutionPayload
     console.log(`WA webhook: event="${payload.event}" instance="${payload.instance}"`)
 
 

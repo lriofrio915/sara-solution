@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { parseBody } from '@/lib/validation/parseBody'
+import { ContactSchema } from '@/lib/validation/schemas/contact'
 
 async function fireWebhook(url: string, payload: Record<string, unknown>) {
   try {
@@ -21,13 +23,11 @@ async function fireWebhook(url: string, payload: Record<string, unknown>) {
 }
 
 export async function POST(req: NextRequest) {
+  const parsed = await parseBody(req, ContactSchema)
+  if (!parsed.ok) return parsed.response
+  const { slug, name, phone, email, message } = parsed.data
+
   try {
-    const { slug, name, phone, email, message } = await req.json()
-
-    if (!slug || !name || !phone) {
-      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
-    }
-
     const doctor = await prisma.doctor.findUnique({
       where: { slug },
       select: { id: true, name: true, webhookUrl: true, whatsapp: true, phone: true },

@@ -16,6 +16,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendNexusWA } from '@/lib/whatsapp'
+import { parseBody } from '@/lib/validation/parseBody'
+import { HotmartWebhookSchema } from '@/lib/validation/schemas/hotmart'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,14 +61,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: unknown
-  try {
-    body = await req.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  const payload = body as Record<string, unknown>
+  const parsed = await parseBody(req, HotmartWebhookSchema)
+  if (!parsed.ok) return parsed.response
+  const payload = parsed.data as Record<string, unknown>
   const event = payload?.event as string | undefined
   const data = payload?.data as Record<string, unknown> | undefined
   const product = data?.product as Record<string, unknown> | undefined
