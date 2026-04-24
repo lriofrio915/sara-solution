@@ -14,6 +14,7 @@ interface RateLimits {
   prescriptions: Ratelimit
   patients: Ratelimit
   fhir: Ratelimit
+  public: Ratelimit
 }
 
 let rl: RateLimits | null = null
@@ -30,6 +31,7 @@ function getRateLimits(): RateLimits | null {
     prescriptions: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, '1 m'), prefix: 'rl:presc' }),
     patients:      new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 m'), prefix: 'rl:patients' }),
     fhir:          new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 m'), prefix: 'rl:fhir' }),
+    public:        new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, '1 m'), prefix: 'rl:public' }),
   }
   return rl
 }
@@ -54,6 +56,15 @@ async function applyRateLimit(request: NextRequest, pathname: string): Promise<N
   else if (pathname.startsWith('/api/prescriptions'))          limiter = limits.prescriptions
   else if (pathname.startsWith('/api/patients'))               limiter = limits.patients
   else if (pathname.startsWith('/api/fhir'))                   limiter = limits.fhir
+  // Public, unauthenticated routes — spam/abuse protection.
+  // Webhooks (Hotmart, Evolution, leads/webhook) are intentionally excluded:
+  // they come from trusted third parties with header secrets and may legitimately burst.
+  else if (pathname.startsWith('/api/sara/public'))            limiter = limits.public
+  else if (pathname.startsWith('/api/public-chat'))            limiter = limits.public
+  else if (pathname === '/api/landing-chat')                   limiter = limits.public
+  else if (pathname === '/api/contact')                        limiter = limits.public
+  else if (pathname === '/api/leads/public')                   limiter = limits.public
+  else if (pathname.startsWith('/api/public/'))                limiter = limits.public
 
   if (!limiter) return null
 
@@ -193,5 +204,12 @@ export const config = {
     '/api/prescriptions/:path*',
     '/api/patients/:path*',
     '/api/fhir/:path*',
+    // Public unauthenticated routes (rate limiting only — webhooks excluded)
+    '/api/sara/public/:path*',
+    '/api/public-chat/:path*',
+    '/api/landing-chat',
+    '/api/contact',
+    '/api/leads/public',
+    '/api/public/:path*',
   ],
 }
