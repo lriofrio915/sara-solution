@@ -23,7 +23,7 @@ export default function SaraLogo({ dark = false, forceDark = false, size = 'md',
       : 'text-gray-900 dark:text-white'
 
   const subColor = dark
-    ? 'text-white/60'
+    ? 'text-white/85'
     : forceDark
       ? 'text-gray-400'
       : 'text-gray-400 dark:text-slate-300'

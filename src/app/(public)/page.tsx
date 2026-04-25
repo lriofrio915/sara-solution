@@ -80,7 +80,7 @@ function Hero() {
                 </div>
               ))}
             </div>
-            <p className="text-white/70 text-sm">
+            <p className="text-white/90 text-sm">
               <strong className="text-white">+200 médicos</strong> ya usan Sara
             </p>
           </div>
@@ -104,7 +104,7 @@ function Hero() {
                 />
                 <div>
                   <p className="text-white font-semibold text-sm">Sara</p>
-                  <p className="text-white/50 text-xs">Asistente IA · en línea</p>
+                  <p className="text-white/80 text-xs">Asistente IA · en línea</p>
                 </div>
                 <div className="ml-auto w-2 h-2 bg-accent rounded-full animate-pulse" />
               </div>
@@ -136,7 +136,7 @@ function Hero() {
 
               {/* Input mock */}
               <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5">
-                <span className="text-white/40 text-sm flex-1">Escríbele a Sara...</span>
+                <span className="text-white/75 text-sm flex-1">Escríbele a Sara...</span>
                 <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
@@ -1014,7 +1014,7 @@ function CTAFinal() {
           </span>
         </h2>
 
-        <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+        <p className="text-white/90 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
           21 días gratis, sin tarjeta de crédito. Configura tu perfil en minutos y empieza a ver
           resultados desde el primer día.
         </p>
@@ -1029,7 +1029,7 @@ function CTAFinal() {
           </svg>
         </Link>
 
-        <p className="text-white/40 text-sm mt-5">
+        <p className="text-white/75 text-sm mt-5">
           Sin tarjeta de crédito · Cancela cuando quieras · Soporte incluido
         </p>
       </div>
@@ -1057,7 +1057,7 @@ function Footer() {
             </div>
             <span className="text-white font-bold text-lg">Sara</span>
           </div>
-          <p className="text-white/40 text-sm leading-relaxed">
+          <p className="text-white/75 text-sm leading-relaxed">
             La plataforma médica con IA para profesionales de la salud.
           </p>
           {/* Social links */}
@@ -1069,7 +1069,7 @@ function Footer() {
               aria-label="Instagram"
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
             >
-              <svg className="w-4 h-4 text-white/50" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-white/80" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.608 1.308.975.975 1.246 2.242 1.308 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-1.308 3.608-.975.975-2.242 1.246-3.608 1.308-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.608-1.308-.975-.975-1.246-2.242-1.308-3.608C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.062-1.366.334-2.633 1.308-3.608C4.516 2.497 5.783 2.226 7.15 2.163 8.416 2.105 8.796 2.163 12 2.163zm0-2.163c-3.259 0-3.667.014-4.947.072-1.613.073-3.046.44-4.18 1.573C1.74 2.78 1.372 4.212 1.3 5.825.014 7.105 0 7.513 0 12c0 4.487.014 4.895.072 6.175.073 1.613.44 3.046 1.573 4.18 1.134 1.133 2.567 1.5 4.18 1.573C7.105 23.986 7.513 24 12 24c4.487 0 4.895-.014 6.175-.072 1.613-.073 3.046-.44 4.18-1.573 1.133-1.134 1.5-2.567 1.573-4.18.058-1.28.072-1.688.072-6.175 0-4.487-.014-4.895-.072-6.175-.073-1.613-.44-3.046-1.573-4.18C21.046.512 19.613.145 18 .072 16.72.014 16.312 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
               </svg>
             </a>
@@ -1080,7 +1080,7 @@ function Footer() {
               aria-label="LinkedIn"
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
             >
-              <svg className="w-4 h-4 text-white/50" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-white/80" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
               </svg>
             </a>
@@ -1089,27 +1089,27 @@ function Footer() {
 
         {/* Producto */}
         <div>
-          <h4 className="text-white/70 font-semibold text-sm mb-4 uppercase tracking-wider">Producto</h4>
-          <ul className="space-y-3 text-sm text-white/40">
-            <li><a href="#features" className="hover:text-white/70 transition-colors">Funcionalidades</a></li>
-            <li><a href="#pricing" className="hover:text-white/70 transition-colors">Precios</a></li>
-            <li><a href="#how" className="hover:text-white/70 transition-colors">¿Cómo funciona?</a></li>
-            <li><a href="/register" className="hover:text-white/70 transition-colors">Crear cuenta</a></li>
-            <li><a href="/login" className="hover:text-white/70 transition-colors">Iniciar sesión</a></li>
+          <h4 className="text-white/90 font-semibold text-sm mb-4 uppercase tracking-wider">Producto</h4>
+          <ul className="space-y-3 text-sm text-white/75">
+            <li><a href="#features" className="hover:text-white/90 transition-colors">Funcionalidades</a></li>
+            <li><a href="#pricing" className="hover:text-white/90 transition-colors">Precios</a></li>
+            <li><a href="#how" className="hover:text-white/90 transition-colors">¿Cómo funciona?</a></li>
+            <li><a href="/register" className="hover:text-white/90 transition-colors">Crear cuenta</a></li>
+            <li><a href="/login" className="hover:text-white/90 transition-colors">Iniciar sesión</a></li>
           </ul>
         </div>
 
         {/* Soporte */}
         <div>
-          <h4 className="text-white/70 font-semibold text-sm mb-4 uppercase tracking-wider">Soporte</h4>
-          <ul className="space-y-3 text-sm text-white/40">
+          <h4 className="text-white/90 font-semibold text-sm mb-4 uppercase tracking-wider">Soporte</h4>
+          <ul className="space-y-3 text-sm text-white/75">
             <li>
-              <a href="mailto:soporte@consultorio.site" className="hover:text-white/70 transition-colors">
+              <a href="mailto:soporte@consultorio.site" className="hover:text-white/90 transition-colors">
                 soporte@consultorio.site
               </a>
             </li>
             <li>
-              <a href="https://wa.me/593996691586" target="_blank" rel="noopener noreferrer" className="hover:text-white/70 transition-colors">
+              <a href="https://wa.me/593996691586" target="_blank" rel="noopener noreferrer" className="hover:text-white/90 transition-colors">
                 WhatsApp
               </a>
             </li>
@@ -1118,10 +1118,10 @@ function Footer() {
 
         {/* Legal */}
         <div>
-          <h4 className="text-white/70 font-semibold text-sm mb-4 uppercase tracking-wider">Legal</h4>
-          <ul className="space-y-3 text-sm text-white/40">
-            <li><a href="/terms" className="hover:text-white/70 transition-colors">Términos de uso</a></li>
-            <li><a href="/privacy" className="hover:text-white/70 transition-colors">Política de privacidad</a></li>
+          <h4 className="text-white/90 font-semibold text-sm mb-4 uppercase tracking-wider">Legal</h4>
+          <ul className="space-y-3 text-sm text-white/75">
+            <li><a href="/terms" className="hover:text-white/90 transition-colors">Términos de uso</a></li>
+            <li><a href="/privacy" className="hover:text-white/90 transition-colors">Política de privacidad</a></li>
           </ul>
         </div>
       </div>
@@ -1140,7 +1140,7 @@ function Footer() {
               href="https://www.instagram.com/nexus.593"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/40 hover:text-white/70 transition-colors"
+              className="text-white/75 hover:text-white/90 transition-colors"
             >
               Nexus Software Solution
             </a>

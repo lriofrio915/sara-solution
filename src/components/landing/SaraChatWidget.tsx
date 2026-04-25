@@ -191,7 +191,7 @@ export default function SaraChatWidget() {
               {/* Limpiar chat */}
               <button
                 onClick={clearChat}
-                className="text-white/60 hover:text-white transition-colors flex-shrink-0 p-1"
+                className="text-white/85 hover:text-white transition-colors flex-shrink-0 p-1"
                 aria-label="Limpiar conversación"
                 title="Limpiar conversación"
               >
@@ -205,7 +205,7 @@ export default function SaraChatWidget() {
               {/* Cerrar */}
               <button
                 onClick={() => setOpen(false)}
-                className="text-white/60 hover:text-white transition-colors flex-shrink-0 p-1"
+                className="text-white/85 hover:text-white transition-colors flex-shrink-0 p-1"
                 aria-label="Cerrar chat"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

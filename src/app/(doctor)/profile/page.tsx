@@ -862,7 +862,7 @@ function DoctorProfileContent() {
                 <img src={avatarUrl} alt="Portada" className="w-full h-full object-cover object-top opacity-60" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-white/40 text-4xl font-bold">{initials}</span>
+                  <span className="text-white/75 text-4xl font-bold">{initials}</span>
                 </div>
               )}
               {bannerUploading && (
@@ -871,7 +871,7 @@ function DoctorProfileContent() {
                 </div>
               )}
               {!bannerUrl && avatarUrl && (
-                <div className="absolute bottom-1 left-0 right-0 text-center text-white/60 text-[10px]">usando foto de perfil</div>
+                <div className="absolute bottom-1 left-0 right-0 text-center text-white/85 text-[10px]">usando foto de perfil</div>
               )}
             </div>
             <div className="flex-1 space-y-2">

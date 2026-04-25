@@ -380,7 +380,7 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
                 ? <div dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
                 : msg.content
               }
-              <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-white/60' : 'text-gray-400'}`}>
+              <p className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-white/85' : 'text-gray-400'}`}>
                 {new Date(msg.timestamp).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>

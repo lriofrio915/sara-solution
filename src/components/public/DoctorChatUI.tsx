@@ -212,12 +212,12 @@ export default function DoctorChatUI({ doctor }: { doctor: DoctorInfo }) {
 
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm leading-tight">Sara — Asistente de {firstName}</p>
-          <p className="text-white/70 text-xs">{doctor.specialty}</p>
+          <p className="text-white/90 text-xs">{doctor.specialty}</p>
         </div>
 
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white/70 text-xs">En línea</span>
+          <span className="text-white/90 text-xs">En línea</span>
         </div>
       </header>
 

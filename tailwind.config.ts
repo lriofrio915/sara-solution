@@ -18,8 +18,10 @@ const config: Config = {
           dark: '#0F766E',
         },
         accent: {
-          DEFAULT: '#25D366',
-          dark: '#128C7E',
+          // #16A34A (Tailwind green-600) gives 4.79:1 contrast on white — WCAG AA pass.
+          // Previous #25D366 (WhatsApp green) was 3.2:1, failed AA for normal text.
+          DEFAULT: '#16A34A',
+          dark: '#15803D',
         },
       },
       fontFamily: {

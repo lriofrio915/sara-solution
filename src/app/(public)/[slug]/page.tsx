@@ -533,7 +533,7 @@ export default async function DoctorPublicPage({ params }: Props) {
                 <div className="flex-1 p-6 md:p-10 flex flex-col justify-center">
                   <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-2">Atención personalizada</p>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">¿Listo para cuidar tu salud?</h2>
-                  <p className="text-white/70 text-sm mb-4 max-w-md leading-relaxed">
+                  <p className="text-white/90 text-sm mb-4 max-w-md leading-relaxed">
                     Deja tus datos y {firstName} o su equipo se pondrán en contacto contigo a la brevedad para coordinar tu cita.
                   </p>
                   <Link

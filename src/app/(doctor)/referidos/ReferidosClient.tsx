@@ -165,7 +165,7 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
                 Se aplicarán como descuento en tu próxima renovación. Contáctanos para canjearlo.
               </p>
             </div>
-            <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
+            <ChevronRight size={20} className="text-white/85 flex-shrink-0 hidden sm:block" />
           </div>
         )
       ) : (
@@ -182,7 +182,7 @@ export default function ReferidosClient({ referralCode, freeMonthsBalance, rewar
                 Escríbenos a <span className="font-semibold">soporte@consultorio.site</span> para gestionar tu pago.
               </p>
             </div>
-            <ChevronRight size={20} className="text-white/60 flex-shrink-0 hidden sm:block" />
+            <ChevronRight size={20} className="text-white/85 flex-shrink-0 hidden sm:block" />
           </div>
         )
       )}

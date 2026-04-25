@@ -214,7 +214,7 @@ export default function DoctorLeadsPage() {
             )}
           </div>
         </div>
-        <div className="relative mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-xs text-white/70">
+        <div className="relative mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-xs text-white/90">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
             El formulario captura leads automáticamente
