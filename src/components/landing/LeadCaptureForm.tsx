@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PhoneInput from '@/components/PhoneInput'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { apiPostJson } from '@/lib/apiFetch'
 
 const SPECIALTIES = [
   'Medicina General', 'Pediatría', 'Ginecología', 'Cardiología', 'Dermatología',
@@ -18,7 +23,6 @@ export default function LeadCaptureForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  // Read UTM params from URL
   const utmSource = searchParams.get('utm_source') || ''
   const utmMedium = searchParams.get('utm_medium') || ''
   const utmCampaign = searchParams.get('utm_campaign') || ''
@@ -31,23 +35,27 @@ export default function LeadCaptureForm() {
     }
     setStatus('loading')
     setErrorMsg('')
-    try {
-      const res = await fetch('/api/leads/public', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          source: 'LANDING',
-          utmSource: utmSource || 'directo',
-          utmMedium,
-          utmCampaign,
-        }),
-      })
-      if (!res.ok) throw new Error()
+
+    const result = await apiPostJson('/api/leads/public', {
+      ...form,
+      source: 'LANDING',
+      utmSource: utmSource || 'directo',
+      utmMedium,
+      utmCampaign,
+    })
+
+    if (result.ok) {
       setStatus('success')
-    } catch {
-      setStatus('error')
-      setErrorMsg('Ocurrió un error. Por favor intente de nuevo.')
+      return
+    }
+
+    setStatus('error')
+    if (result.status === 422) {
+      setErrorMsg('Revisa los campos del formulario.')
+    } else if (result.status === 0) {
+      setErrorMsg('Sin conexión. Verifica tu internet e intenta de nuevo.')
+    } else {
+      setErrorMsg('Error del servidor. Intenta en unos minutos.')
     }
   }
 
@@ -71,32 +79,35 @@ export default function LeadCaptureForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {errorMsg && (
-        <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl">
+        <p
+          role="alert"
+          className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl"
+        >
           {errorMsg}
         </p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Nombre completo <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
+          <Label htmlFor="lcf-name">
+            Nombre completo <span className="text-red-500" aria-hidden="true">*</span>
+          </Label>
+          <Input
+            id="lcf-name"
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             placeholder="Dr. / Dra. Juan Pérez"
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
+            aria-required="true"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Teléfono / WhatsApp <span className="text-red-500">*</span>
-          </label>
+          <Label htmlFor="lcf-phone">
+            Teléfono / WhatsApp <span className="text-red-500" aria-hidden="true">*</span>
+          </Label>
           <PhoneInput
             value={form.phone}
             onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -107,56 +118,50 @@ export default function LeadCaptureForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Email</label>
-          <input
+          <Label htmlFor="lcf-email">Email</Label>
+          <Input
+            id="lcf-email"
             type="email"
             value={form.email}
             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
             placeholder="doctor@ejemplo.com"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Especialidad</label>
-          <select
+          <Label htmlFor="lcf-specialty">Especialidad</Label>
+          <Select
             value={form.specialty}
-            onChange={e => setForm(f => ({ ...f, specialty: e.target.value }))}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
+            onValueChange={v => setForm(f => ({ ...f, specialty: v }))}
           >
-            <option value="">Seleccionar...</option>
-            {SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+            <SelectTrigger id="lcf-specialty" aria-label="Especialidad">
+              <SelectValue placeholder="Seleccionar..." />
+            </SelectTrigger>
+            <SelectContent>
+              {SPECIALTIES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Ciudad</label>
-          <input
-            type="text"
+          <Label htmlFor="lcf-city">Ciudad</Label>
+          <Input
+            id="lcf-city"
             value={form.city}
             onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
             placeholder="Quito, Guayaquil..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
           />
         </div>
       </div>
 
-      <button
+      <Button
         type="submit"
-        disabled={status === 'loading'}
-        className="w-full py-3.5 px-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 text-sm"
+        loading={status === 'loading'}
+        size="lg"
+        className="w-full shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
       >
-        {status === 'loading' ? (
-          <>
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Enviando...
-          </>
-        ) : (
-          <>
-            🚀 Solicitar demostración gratuita
-          </>
-        )}
-      </button>
+        {status === 'loading' ? 'Enviando...' : 'Solicitar demostración gratuita'}
+      </Button>
 
       <p className="text-xs text-center text-gray-400 dark:text-slate-500">
         Sin compromisos. Te contactamos en menos de 24 horas.
