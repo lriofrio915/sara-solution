@@ -8,7 +8,12 @@ export default defineConfig({
     setupFiles: ['./test/setup.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/app/api/**/*.ts'],
+      include: [
+        'src/app/api/**/*.ts',
+        'src/lib/validation/**/*.ts',
+        'src/lib/timingSafeEqual.ts',
+        'src/lib/apiFetch.ts',
+      ],
     },
   },
   resolve: {
