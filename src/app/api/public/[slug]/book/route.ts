@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { trackEvent } from '@/lib/posthog/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,21 +66,15 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   // Find or create patient by phone + doctorId
-  let patient = await prisma.patient.findFirst({
+  const existingPatient = await prisma.patient.findFirst({
     where: { doctorId: doctor.id, phone },
     select: { id: true },
   })
-
-  if (!patient) {
-    patient = await prisma.patient.create({
-      data: {
-        doctorId: doctor.id,
-        name,
-        phone,
-      },
-      select: { id: true },
-    })
-  }
+  const patient = existingPatient ?? await prisma.patient.create({
+    data: { doctorId: doctor.id, name, phone },
+    select: { id: true },
+  })
+  const isNewPatient = !existingPatient
 
   const appointment = await prisma.appointment.create({
     data: {
@@ -92,6 +87,15 @@ export async function POST(req: NextRequest, { params }: Params) {
       reason:    reason ?? null,
     },
     select: { id: true, date: true },
+  })
+
+  // Funnel analytics — doctorSlug is public, appointment.id is non-PII
+  void trackEvent(`apt-${appointment.id}`, 'appointment_booked', {
+    doctorSlug: params.slug,
+    durationMinutes: duration,
+    appointmentType: 'IN_PERSON',
+    bookingChannel: 'public_landing',
+    isNewPatient,
   })
 
   return NextResponse.json({

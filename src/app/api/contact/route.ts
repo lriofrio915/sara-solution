@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { parseBody } from '@/lib/validation/parseBody'
 import { ContactSchema } from '@/lib/validation/schemas/contact'
+import { trackEvent } from '@/lib/posthog/server'
 
 async function fireWebhook(url: string, payload: Record<string, unknown>) {
   try {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!doctor) return NextResponse.json({ error: 'Médico no encontrado' }, { status: 404 })
 
     // Always save lead in DB
-    await prisma.patientLead.create({
+    const lead = await prisma.patientLead.create({
       data: {
         doctorId: doctor.id,
         name: name.trim(),
@@ -47,6 +48,15 @@ export async function POST(req: NextRequest) {
         campaign: 'formulario-publico',
         status: 'NUEVO',
       },
+      select: { id: true },
+    })
+
+    // Funnel analytics — doctorSlug is public, no PHI
+    void trackEvent(`patient-lead-${lead.id}`, 'contact_submitted', {
+      doctorSlug: slug,
+      hasEmail: !!email,
+      hasMessage: !!message,
+      source: 'FORMULARIO',
     })
 
     const payload = {

@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma'
 import { sendNexusWA } from '@/lib/whatsapp'
 import { parseBody } from '@/lib/validation/parseBody'
 import { LeadWebhookSchema } from '@/lib/validation/schemas/lead'
+import { trackEvent } from '@/lib/posthog/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -81,6 +82,18 @@ export async function POST(req: NextRequest) {
         utmCampaign:utmCampaign ?? null,
         status:     'NUEVO',
       },
+    })
+
+    // Funnel analytics — non-PII properties only
+    void trackEvent(`lead-${lead.id}`, 'lead_captured', {
+      source: resolvedSource,
+      utmSource: utmSource ?? 'directo',
+      utmMedium: utmMedium ?? null,
+      utmCampaign: utmCampaign ?? null,
+      hasEmail: !!email,
+      hasPhone: !!phone,
+      hasSpecialty: !!specialty,
+      hasCity: !!city,
     })
 
     // Fire-and-forget notifications
