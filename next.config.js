@@ -35,8 +35,13 @@ const nextConfig = {
   },
 }
 
+// El SDK @sentry/nextjs habla el protocolo Sentry estándar y funciona contra
+// cualquier endpoint compatible (Sentry cloud, GlitchTip, Highlight, self-host).
+// El destino real lo decide NEXT_PUBLIC_SENTRY_DSN en runtime — no este config.
+// Si SENTRY_AUTH_TOKEN está vacío, el upload de sourcemaps se salta sin error
+// (silent: !process.env.SENTRY_AUTH_TOKEN). Necesario para GlitchTip free.
 module.exports = withSentryConfig(nextConfig, {
-  // Sentry build-time options
+  // Sentry build-time options (only used by Sentry-cloud's source map upload)
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
