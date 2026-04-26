@@ -89,8 +89,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     select: { id: true, date: true },
   })
 
-  // Funnel analytics — doctorSlug is public, appointment.id is non-PII
-  void trackEvent(`apt-${appointment.id}`, 'appointment_booked', {
+  // Funnel analytics — doctorSlug is public, appointment.id is non-PII.
+  // distinctId: visitor's PostHog id when available so funnel ties together.
+  const visitorId = req.headers.get('x-posthog-distinct-id')
+  void trackEvent(visitorId || `apt-${appointment.id}`, 'appointment_booked', {
     doctorSlug: params.slug,
     durationMinutes: duration,
     appointmentType: 'IN_PERSON',

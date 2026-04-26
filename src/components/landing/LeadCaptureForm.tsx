@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { apiPostJson } from '@/lib/apiFetch'
+import { withPosthogHeaders } from '@/lib/posthog/client'
 
 const SPECIALTIES = [
   'Medicina General', 'Pediatría', 'Ginecología', 'Cardiología', 'Dermatología',
@@ -42,6 +43,8 @@ export default function LeadCaptureForm() {
       utmSource: utmSource || 'directo',
       utmMedium,
       utmCampaign,
+    }, {
+      headers: withPosthogHeaders(),
     })
 
     if (result.ok) {

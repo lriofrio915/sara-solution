@@ -84,8 +84,12 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Funnel analytics — non-PII properties only
-    void trackEvent(`lead-${lead.id}`, 'lead_captured', {
+    // Funnel analytics — non-PII properties only.
+    // distinctId: prefer the visitor's PostHog id (passed from client) so the
+    // funnel ties pageview → lead_captured under one person. Fallback to
+    // lead-{cuid} if the client didn't send the header.
+    const visitorId = req.headers.get('x-posthog-distinct-id')
+    void trackEvent(visitorId || `lead-${lead.id}`, 'lead_captured', {
       source: resolvedSource,
       utmSource: utmSource ?? 'directo',
       utmMedium: utmMedium ?? null,

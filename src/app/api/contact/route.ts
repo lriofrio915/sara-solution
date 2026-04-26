@@ -51,8 +51,10 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     })
 
-    // Funnel analytics — doctorSlug is public, no PHI
-    void trackEvent(`patient-lead-${lead.id}`, 'contact_submitted', {
+    // Funnel analytics — doctorSlug is public, no PHI.
+    // distinctId: visitor's PostHog id when available so funnel ties together.
+    const visitorId = req.headers.get('x-posthog-distinct-id')
+    void trackEvent(visitorId || `patient-lead-${lead.id}`, 'contact_submitted', {
       doctorSlug: slug,
       hasEmail: !!email,
       hasMessage: !!message,
