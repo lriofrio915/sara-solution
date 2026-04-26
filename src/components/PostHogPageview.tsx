@@ -18,6 +18,7 @@ function ensureInit() {
     capture_pageview: false, // we track pageviews manually below
     capture_pageleave: true,
     autocapture: false, // CRITICAL: healthcare app, never auto-grab DOM events
+    capture_performance: false, // healthcare cleanliness: no Core Web Vitals auto-capture
     persistence: 'localStorage', // no 3rd-party cookies
     disable_session_recording: true, // never record sessions
     disable_surveys: true,

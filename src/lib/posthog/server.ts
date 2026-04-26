@@ -18,7 +18,17 @@ function getClient(): PostHog | null {
   if (client) return client
   const key = process.env.POSTHOG_API_KEY
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
-  if (!key || !host) return null
+  if (!key || !host) {
+    // Diagnostic: surface why we no-op so it shows in Vercel logs
+    if (!warnedMissingEnv) {
+      console.warn('[posthog/server] no-op: missing env vars', {
+        hasKey: !!key,
+        hasHost: !!host,
+      })
+      warnedMissingEnv = true
+    }
+    return null
+  }
   client = new PostHog(key, {
     host,
     flushAt: 1, // serverless: flush immediately, no batching
@@ -27,6 +37,8 @@ function getClient(): PostHog | null {
   })
   return client
 }
+
+let warnedMissingEnv = false
 
 export type FunnelEvent =
   | 'lead_captured'
@@ -52,8 +64,13 @@ export async function trackEvent(
   try {
     c.capture({ distinctId, event, properties })
     await c.flush()
-  } catch {
+    console.log(`[posthog/server] event sent: ${event}`)
+  } catch (err) {
     // never crash the request handler
+    console.warn('[posthog/server] capture failed', {
+      event,
+      error: err instanceof Error ? err.message : String(err),
+    })
   }
 }
 
