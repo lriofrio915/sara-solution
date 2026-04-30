@@ -194,6 +194,7 @@ export default function KieVideoGenerator({ prompt, socialPostId }: Props) {
             imagePreview ? 'border-primary/40' : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'
           }`} style={{ aspectRatio: '16/9', maxHeight: '140px' }}>
             {imagePreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={imagePreview} alt="Imagen seleccionada" className="w-full h-full object-cover" />
             ) : (
               <div className="text-center p-4">

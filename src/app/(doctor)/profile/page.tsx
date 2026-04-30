@@ -857,9 +857,9 @@ function DoctorProfileContent() {
             {/* Preview */}
             <div className="relative w-full sm:w-48 h-36 rounded-xl overflow-hidden bg-gradient-to-br from-primary to-secondary flex-shrink-0 border border-gray-100 dark:border-gray-700">
               {bannerUrl ? (
-                <img src={bannerUrl} alt="Portada" className="w-full h-full object-cover object-top" />
+                <Image fill src={bannerUrl} alt="Portada" className="object-cover object-top" />
               ) : avatarUrl ? (
-                <img src={avatarUrl} alt="Portada" className="w-full h-full object-cover object-top opacity-60" />
+                <Image fill src={avatarUrl} alt="Portada" className="object-cover object-top opacity-60" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-white/75 text-4xl font-bold">{initials}</span>
