@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
+// Facebook Graph devuelve JSON con `error: { message, type, code }` en respuestas no-2xx.
+// Sin este check, un error de Meta se confunde con "no access_token" y oculta el motivo real.
+async function fetchGraph(url: string, label: string): Promise<unknown> {
+  const res = await fetch(url)
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const detail = (body as { error?: { message?: string } })?.error?.message ?? `HTTP ${res.status}`
+    throw new Error(`${label}: ${detail}`)
+  }
+  return body
+}
+
 // GET /api/auth/meta/callback — callback OAuth de Meta
 export async function GET(req: Request) {
   const supabase = await createClient()
@@ -24,25 +36,32 @@ export async function GET(req: Request) {
 
   try {
     // 1. Intercambiar code por short-lived token
-    const tokenRes = await fetch(
+    const tokenData = await fetchGraph(
       `https://graph.facebook.com/v22.0/oauth/access_token?` +
-      `client_id=${appId}&client_secret=${appSecret}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`
-    )
-    const tokenData = await tokenRes.json()
-    if (!tokenData.access_token) throw new Error('No access_token en respuesta')
+      `client_id=${appId}&client_secret=${appSecret}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`,
+      'short-lived exchange'
+    ) as { access_token?: string }
+    if (!tokenData.access_token) throw new Error('short-lived exchange: missing access_token')
 
-    // 2. Extender a long-lived token (60 días)
-    const longRes = await fetch(
+    // 2. Extender a long-lived token (60 días).
+    // Si el exchange falla, abortamos en vez de guardar el token corto con expiresAt de 60 días
+    // (lo que provocaría fallos silenciosos al publicar cuando el token expire en ~1-2h).
+    const longData = await fetchGraph(
       `https://graph.facebook.com/v22.0/oauth/access_token?` +
-      `grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${tokenData.access_token}`
-    )
-    const longData = await longRes.json()
-    const longToken = longData.access_token ?? tokenData.access_token
-    const expiresIn = longData.expires_in ?? 5184000 // 60 días default
+      `grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${tokenData.access_token}`,
+      'long-lived exchange'
+    ) as { access_token?: string; expires_in?: number }
+    if (!longData.access_token || !longData.expires_in) {
+      throw new Error('long-lived exchange: incomplete response')
+    }
+    const longToken = longData.access_token
+    const expiresIn = longData.expires_in
 
     // 3. Obtener user ID de Facebook
-    const meRes = await fetch(`https://graph.facebook.com/v22.0/me?access_token=${longToken}`)
-    const meData = await meRes.json()
+    const meData = await fetchGraph(
+      `https://graph.facebook.com/v22.0/me?access_token=${longToken}`,
+      'me lookup'
+    ) as { id?: string }
     const fbUserId = meData.id ?? null
 
     // 4. Obtener Pages y su Instagram Business Account vinculado
@@ -50,19 +69,19 @@ export async function GET(req: Request) {
     let pageAccessToken: string | null = null
     let igUserId: string | null = null
     try {
-      const pagesRes = await fetch(
-        `https://graph.facebook.com/v22.0/${fbUserId}/accounts?access_token=${longToken}`
-      )
-      const pagesData = await pagesRes.json()
+      const pagesData = await fetchGraph(
+        `https://graph.facebook.com/v22.0/${fbUserId}/accounts?access_token=${longToken}`,
+        'pages lookup'
+      ) as { data?: Array<{ id: string; access_token: string }> }
       const page = pagesData.data?.[0]
       if (page) {
         // Usar Page ID y Page Access Token para publicar en Facebook
         pageId = page.id
         pageAccessToken = page.access_token
-        const igRes = await fetch(
-          `https://graph.facebook.com/v22.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-        )
-        const igData = await igRes.json()
+        const igData = await fetchGraph(
+          `https://graph.facebook.com/v22.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`,
+          'ig lookup'
+        ) as { instagram_business_account?: { id: string } }
         igUserId = igData.instagram_business_account?.id ?? null
       }
     } catch { /* Instagram account may not exist */ }
