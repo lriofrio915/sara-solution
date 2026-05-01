@@ -19,22 +19,37 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const doctor = await getDoctor(user)
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
-    const patient = await prisma.patient.findFirst({
-      where: { id: params.id, doctorId: doctor.id },
-      include: {
-        appointments: {
-          orderBy: { date: 'desc' },
-          take: 10,
+    const [patientCore, appointments, medicalRecords] = await Promise.all([
+      prisma.patient.findFirst({
+        where: { id: params.id, doctorId: doctor.id },
+        select: {
+          id: true, name: true, email: true, phone: true,
+          birthDate: true, bloodType: true, documentId: true,
+          documentType: true, allergies: true, notes: true,
+          authId: true, createdAt: true,
         },
-        medicalRecords: {
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-        },
-      },
-    })
+      }),
+      prisma.appointment.findMany({
+        where: { patientId: params.id, doctorId: doctor.id },
+        orderBy: { date: 'desc' },
+        take: 10,
+        select: { id: true, date: true, reason: true, status: true, type: true },
+      }),
+      prisma.medicalRecord.findMany({
+        where: { patientId: params.id, doctorId: doctor.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, diagnosis: true, treatment: true, createdAt: true },
+      }),
+    ])
 
-    if (!patient) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
-    return NextResponse.json({ patient })
+    if (!patientCore) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
+
+    const patient = { ...patientCore, appointments, medicalRecords }
+    return NextResponse.json(
+      { patient },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' } },
+    )
   } catch (err) {
     console.error('GET /api/patients/[id]:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

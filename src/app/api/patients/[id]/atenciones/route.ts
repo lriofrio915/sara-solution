@@ -64,7 +64,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       }),
     ])
 
-    return NextResponse.json({ atenciones, total, page, limit })
+    return NextResponse.json(
+      { atenciones, total, page, limit },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' } },
+    )
   } catch (err) {
     console.error('GET /api/patients/[id]/atenciones:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

@@ -57,7 +57,10 @@ export async function GET(req: NextRequest) {
       prisma.patient.count({ where }),
     ])
 
-    return NextResponse.json({ patients, total, page, limit })
+    return NextResponse.json(
+      { patients, total, page, limit },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' } },
+    )
   } catch (err) {
     console.error('GET /api/patients:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

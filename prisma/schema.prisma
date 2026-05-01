@@ -257,6 +257,7 @@ model Patient {
   @@index([email])
   @@index([doctorId, name])
   @@index([deletedAt])
+  @@index([doctorId, createdAt])   // dashboard new-patients count by month
 }
 
 // ─── Appointment ────────────────────────────────────────────
@@ -342,6 +343,7 @@ model Prescription {
   @@index([appointmentId])
   @@index([attentionId])
   @@index([date])
+  @@index([doctorId, date])        // dashboard prescription count by month
 }
 
 // ─── Exam Order (Orden de Examen) ────────────────────────────
@@ -762,6 +764,8 @@ model Attention {
   @@index([patientId])
   @@index([doctorId])
   @@index([doctorId, datetime])
+  @@index([patientId, datetime])   // patient history sorted by date
+  @@index([doctorId, service])     // dashboard filter by service type
 }
 
 // ─── Diagnosis (HL7 FHIR / ICD-11 normalizado) ───────────────

@@ -109,7 +109,8 @@ export default async function DashboardPage() {
     const prevMonthStart = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth() - 1, 1, 5, 0, 0))
     const prevMonthEnd   = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth(), 0, 28, 59, 59, 999))
 
-    const sixMonthsAgo = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth() - 5, 1, 5, 0, 0))
+    const sixMonthsAgo   = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth() - 5, 1, 5, 0, 0))
+    const twelveMonthsAgo = new Date(Date.UTC(ecuadorNow.getUTCFullYear(), ecuadorNow.getUTCMonth() - 11, 1, 5, 0, 0))
 
     // ── Parallel queries ─────────────────────────────────────────────────────
     const [
@@ -165,9 +166,9 @@ export default async function DashboardPage() {
         select: { createdAt: true },
       }),
 
-      // all-time for type/status distribution
+      // last-12-months for type/status distribution (avoids full-table scan)
       prisma.appointment.findMany({
-        where: { doctorId: doctor.id },
+        where: { doctorId: doctor.id, date: { gte: twelveMonthsAgo } },
         select: { status: true, type: true },
       }),
 
