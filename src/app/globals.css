@@ -52,6 +52,20 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
+
+  /* Pointer cursor on all enabled interactive elements */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  /* Smooth color transitions on all buttons and links by default */
+  button,
+  a[href] {
+    transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
 }
 
 @utility btn-primary {
@@ -71,6 +85,27 @@
            px-6 py-3 rounded-xl transition-all duration-200 hover:bg-primary hover:text-white
            hover:-translate-y-0.5 dark:border-blue-400 dark:text-blue-400
            dark:hover:bg-blue-600 dark:hover:border-blue-600 dark:hover:text-white;
+}
+
+@utility btn-ghost {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium
+         text-gray-600 dark:text-gray-300
+         hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white
+         transition-all duration-150 active:scale-95;
+}
+
+@utility btn-action {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium
+         text-primary
+         hover:bg-primary/10 dark:hover:bg-primary/20
+         transition-all duration-150 active:scale-95;
+}
+
+@utility btn-danger {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium
+         text-red-600 dark:text-red-400
+         hover:bg-red-50 dark:hover:bg-red-900/20
+         transition-all duration-150 active:scale-95;
 }
 
 @utility section-badge {

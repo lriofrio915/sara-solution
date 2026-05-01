@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 
 // ─── AI Analysis Panel ────────────────────────────────────────────────────────
@@ -189,7 +189,6 @@ function calcAge(birthDate: string | null): string | null {
 
 export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const router = useRouter()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -199,6 +198,12 @@ export default function PatientDetailPage() {
   const [accessLoading, setAccessLoading] = useState(false)
   const [credentials, setCredentials] = useState<{ email: string; password: string; reset?: boolean } | null>(null)
   const [revokeConfirm, setRevokeConfirm] = useState(false)
+  // Standalone notes
+  const [notesDraft, setNotesDraft] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
+  const [noteSaved, setNoteSaved] = useState(false)
+  // Allergy inline input
+  const [allergyInput, setAllergyInput] = useState('')
 
   useEffect(() => {
     fetch(`/api/patients/${id}`)
@@ -206,10 +211,31 @@ export default function PatientDetailPage() {
       .then((data) => {
         setPatient(data.patient)
         setForm(data.patient)
+        setNotesDraft(data.patient?.notes ?? '')
       })
       .catch(() => setError('Error cargando paciente'))
       .finally(() => setLoading(false))
   }, [id])
+
+  async function handleSaveNote() {
+    setNoteSaving(true)
+    try {
+      const res = await fetch(`/api/patients/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: notesDraft }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Error')
+      const { patient: updated } = await res.json()
+      setPatient((prev) => prev ? { ...prev, notes: updated.notes } : prev)
+      setNoteSaved(true)
+      setTimeout(() => setNoteSaved(false), 2500)
+    } catch {
+      // keep draft, let user retry
+    } finally {
+      setNoteSaving(false)
+    }
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -360,7 +386,55 @@ export default function PatientDetailPage() {
           {/* Allergies */}
           <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
             <p className="text-xs text-gray-400 dark:text-slate-400 mb-2">Alergias</p>
-            {patient.allergies.length > 0 ? (
+            {editing ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {(form.allergies ?? []).map((a) => (
+                    <span key={a} className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 rounded-full text-xs font-medium">
+                      {a}
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, allergies: (p.allergies ?? []).filter((x) => x !== a) }))}
+                        className="hover:text-orange-900 dark:hover:text-orange-200 leading-none"
+                        aria-label={`Eliminar alergia ${a}`}
+                      >✕</button>
+                    </span>
+                  ))}
+                  {(form.allergies ?? []).length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-slate-500 italic">Sin alergias registradas</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    className="input text-sm py-1.5 flex-1"
+                    value={allergyInput}
+                    onChange={(e) => setAllergyInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const t = allergyInput.trim()
+                        if (t && !(form.allergies ?? []).includes(t)) {
+                          setForm((p) => ({ ...p, allergies: [...(p.allergies ?? []), t] }))
+                          setAllergyInput('')
+                        }
+                      }
+                    }}
+                    placeholder="Escribir alergia y presionar Enter o +"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const t = allergyInput.trim()
+                      if (t && !(form.allergies ?? []).includes(t)) {
+                        setForm((p) => ({ ...p, allergies: [...(p.allergies ?? []), t] }))
+                        setAllergyInput('')
+                      }
+                    }}
+                    className="btn-primary text-sm py-1.5 px-4"
+                  >+</button>
+                </div>
+              </div>
+            ) : patient.allergies.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {patient.allergies.map((a) => (
                   <span key={a} className="px-3 py-1 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 rounded-full text-xs font-medium">
@@ -369,22 +443,39 @@ export default function PatientDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Sin alergias registradas</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500">
+                Sin alergias registradas.{' '}
+                <button type="button" onClick={() => setEditing(true)} className="text-primary hover:underline text-xs">
+                  Agregar →
+                </button>
+              </p>
             )}
           </div>
 
-          {/* Notes */}
-          {(patient.notes || editing) && (
-            <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
-              <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Notas</p>
-              {editing ? (
-                <textarea value={form.notes ?? ''} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                  rows={3} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
-              ) : (
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{patient.notes}</p>
+          {/* Notes — always visible, standalone save */}
+          <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
+            <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Notas clínicas</p>
+            <textarea
+              value={notesDraft}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              placeholder="Notas internas del médico sobre este paciente..."
+            />
+            <div className="flex items-center gap-3 mt-1.5">
+              <button
+                type="button"
+                onClick={handleSaveNote}
+                disabled={noteSaving}
+                className="btn-primary text-xs py-1.5 px-3 disabled:opacity-60"
+              >
+                {noteSaving ? 'Guardando...' : '💾 Guardar nota'}
+              </button>
+              {noteSaved && (
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Guardado</span>
               )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Appointments */}
