@@ -64,8 +64,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^10.0.1",
     "@types/node": "^25.6.0",
     "@types/node-forge": "^1.3.14",
     "@types/pdf-parse": "^1.1.5",
