@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -35,7 +36,8 @@ function calcAge(birthDate: Date | null): string {
   return `${Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} años`
 }
 
-export default async function CertificatePrintPage({ params }: { params: { id: string } }) {
+export default async function CertificatePrintPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const data = await getData(params.id)
   if (!data) notFound()
 
@@ -60,7 +62,7 @@ export default async function CertificatePrintPage({ params }: { params: { id: s
       `}} />
 
       <div className="no-print flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <a href="/certificates" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Volver</a>
+        <Link href="/certificates" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Volver</Link>
         <div className="flex-1" />
         <PrintButton downloadUrl={`/api/documents/certificates/${params.id}/download`} />
       </div>

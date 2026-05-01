@@ -8,9 +8,10 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-type Params = { params: { slug: string } }
+type Params = { params: Promise<{ slug: string }> }
 
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(_req: NextRequest, props: Params) {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: { name: true, specialty: true, avatarUrl: true, slug: true },

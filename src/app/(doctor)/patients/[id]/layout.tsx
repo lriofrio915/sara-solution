@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -12,13 +13,18 @@ function calcAge(birthDate: Date | null): string {
   return `${years} años`
 }
 
-export default async function PatientLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode
-  params: { id: string }
-}) {
+export default async function PatientLayout(
+  props: {
+    children: React.ReactNode
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) redirect('/login')
@@ -73,12 +79,12 @@ export default async function PatientLayout({
           {/* Breadcrumb + Patient info */}
           <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
-              <a
+              <Link
                 href="/patients"
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm transition-colors flex-shrink-0"
               >
                 ← Pacientes
-              </a>
+              </Link>
               <span className="text-gray-300 dark:text-gray-600 flex-shrink-0">/</span>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

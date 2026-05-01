@@ -9,7 +9,7 @@ import PublicDoctorHeader from '@/components/PublicDoctorHeader'
 
 export const dynamic = 'force-dynamic'
 
-type Props = { params: { slug: string } }
+type Props = { params: Promise<{ slug: string }> }
 
 function getInitials(name: string) {
   return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -40,7 +40,8 @@ const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: { name: true, specialty: true, bio: true, avatarUrl: true },
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DoctorPublicPage({ params }: Props) {
+export default async function DoctorPublicPage(props: Props) {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: {
@@ -144,7 +146,7 @@ export default async function DoctorPublicPage({ params }: Props) {
   // Avatar helpers
   const AvatarSm = () => doctor.avatarUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={doctor.avatarUrl} alt={doctor.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+    (<img src={doctor.avatarUrl} alt={doctor.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />)
   ) : (
     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
       style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
@@ -154,7 +156,6 @@ export default async function DoctorPublicPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
-
       {/* ── FIXED HEADER (scroll-aware) ──────────────────────── */}
       <PublicDoctorHeader
         slug={params.slug}
@@ -163,10 +164,8 @@ export default async function DoctorPublicPage({ params }: Props) {
         avatarUrl={doctor.avatarUrl}
         initials={initials}
       />
-
       {/* Spacer para compensar el header fixed */}
       <div className="h-16" />
-
       <main className="max-w-5xl mx-auto px-4">
 
         {/* ── HERO ──────────────────────────────────────────── */}
@@ -179,7 +178,7 @@ export default async function DoctorPublicPage({ params }: Props) {
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative z-10">
                 {doctor.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={doctor.avatarUrl} alt={doctor.name} className="w-full h-full object-cover" />
+                  (<img src={doctor.avatarUrl} alt={doctor.name} className="w-full h-full object-cover" />)
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white font-bold text-5xl"
                     style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
@@ -520,8 +519,8 @@ export default async function DoctorPublicPage({ params }: Props) {
                 <div className="w-full md:w-72 flex-shrink-0 overflow-hidden" style={{ minHeight: '260px' }}>
                   {ctaPhoto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ctaPhoto} alt={doctor.name}
-                      className="w-full h-full object-cover object-top" style={{ minHeight: '260px' }} />
+                    (<img src={ctaPhoto} alt={doctor.name}
+                      className="w-full h-full object-cover object-top" style={{ minHeight: '260px' }} />)
                   ) : (
                     <div className="w-full h-full flex items-center justify-center opacity-20" style={{ minHeight: '260px' }}>
                       <span className="text-white text-8xl font-bold">{initials}</span>
@@ -549,11 +548,10 @@ export default async function DoctorPublicPage({ params }: Props) {
 
               </div>
             </section>
-          )
+          );
         })()}
 
       </main>
-
       {/* ── STICKY MOBILE CTA BAR ─────────────────────────── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 shadow-2xl px-4 py-3 flex gap-3">
         <Link
@@ -577,18 +575,14 @@ export default async function DoctorPublicPage({ params }: Props) {
           </a>
         )}
       </div>
-
       {/* Footer padding on mobile so content isn't hidden behind sticky bar */}
       <div className="md:hidden h-20" />
-
       {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 py-6 text-center text-gray-400 dark:text-gray-600 text-xs">
         <p>Página gestionada con <a href="https://www.consultorio.site" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-500 hover:text-blue-600 transition-colors">consultorio.site</a></p>
       </footer>
-
       {/* ── FLOATING ACTIONS (dark mode toggle + scroll to top) ── */}
       <PublicPageActions />
-
       {/* ── DOCTOR CHAT WIDGET ────────────────────────────── */}
       <DoctorChatWidget
         slug={params.slug}
@@ -596,5 +590,5 @@ export default async function DoctorPublicPage({ params }: Props) {
         doctorAvatar={doctor.avatarUrl}
       />
     </div>
-  )
+  );
 }

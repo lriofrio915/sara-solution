@@ -108,7 +108,7 @@ export default function NewPatientPage() {
     }, 400)
 
     return () => { if (lookupTimer.current) clearTimeout(lookupTimer.current) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [form.documentId, form.documentType])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {

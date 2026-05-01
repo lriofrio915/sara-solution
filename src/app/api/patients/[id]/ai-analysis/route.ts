@@ -28,7 +28,8 @@ function getOpenRouterClient() {
 const MODEL = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-chat-v3-0324'
 
 // POST /api/patients/[id]/ai-analysis
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()

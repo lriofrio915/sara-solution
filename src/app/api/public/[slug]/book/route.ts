@@ -16,7 +16,7 @@ import { trackEvent } from '@/lib/posthog/server'
 
 export const dynamic = 'force-dynamic'
 
-type Params = { params: { slug: string } }
+type Params = { params: Promise<{ slug: string }> }
 
 const BookSchema = z.object({
   date:   z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -26,7 +26,8 @@ const BookSchema = z.object({
   reason: z.string().max(300).optional(),
 })
 
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, props: Params) {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: { id: true, name: true, appointmentDuration: true },
@@ -70,10 +71,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     where: { doctorId: doctor.id, phone },
     select: { id: true },
   })
-  const patient = existingPatient ?? await prisma.patient.create({
+  const patient = existingPatient ?? (await prisma.patient.create({
     data: { doctorId: doctor.id, name, phone },
     select: { id: true },
-  })
+  }))
   const isNewPatient = !existingPatient
 
   const appointment = await prisma.appointment.create({

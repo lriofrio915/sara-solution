@@ -13,15 +13,17 @@ async function authorize() {
   return user
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  if (!await authorize()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  if (!(await authorize())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   await prisma.doctor.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  if (!await authorize()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  if (!(await authorize())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
   const plan = body.plan as Plan

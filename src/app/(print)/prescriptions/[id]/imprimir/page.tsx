@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
@@ -189,13 +190,13 @@ export default function PrescriptionPrintPage() {
 
       {/* Controls — hidden when printing */}
       <div className="no-print bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3 flex-wrap">
-        <a href="/prescriptions" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1">
+        <Link href="/prescriptions" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1">
           ← Volver
-        </a>
-        <a href={`/prescriptions/${id}/imprimir`} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        </Link>
+        <Link href={`/prescriptions/${id}/imprimir`} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
           {rxNumber !== '—' && <span className="font-mono font-bold text-primary mr-2">{rxNumber}</span>}
           {patient.name}
-        </a>
+        </Link>
         <div className="flex-1" />
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Próxima cita:</label>

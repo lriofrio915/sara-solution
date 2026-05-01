@@ -1,8 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import Cie10Search from '@/components/Cie10Search'
 import { checkHighAlert } from '@/lib/high-alert-medications'
 
@@ -142,7 +142,7 @@ export default function NewPrescriptionPage() {
       {profileWarning && (
         <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 rounded-xl text-sm flex items-start gap-2">
           <span className="mt-0.5">⚠️</span>
-          <span>{profileWarning} — <a href="/profile" className="underline font-medium">Ir a Mi Perfil</a></span>
+          <span>{profileWarning} — <Link href="/profile" className="underline font-medium">Ir a Mi Perfil</Link></span>
         </div>
       )}
 

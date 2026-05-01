@@ -26,7 +26,8 @@ const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const parsed = await parseBody(req, ChatBodySchema)
   if (!parsed.ok) return parsed.response
   const messages = parsed.data.messages as ChatMessage[]

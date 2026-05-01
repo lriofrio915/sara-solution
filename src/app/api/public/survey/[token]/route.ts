@@ -6,7 +6,8 @@ import { SurveyAnswerSchema } from '@/lib/validation/schemas/survey'
 export const dynamic = 'force-dynamic'
 
 // GET — load survey + doctor info for the public page
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   try {
     const survey = await prisma.satisfactionSurvey.findUnique({
       where: { token: params.token },
@@ -30,7 +31,8 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
 }
 
 // POST — submit survey answer
-export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const parsed = await parseBody(req, SurveyAnswerSchema)
   if (!parsed.ok) return parsed.response
   const { score, comment, wouldRecommend } = parsed.data

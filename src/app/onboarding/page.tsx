@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import SaraLogo from '@/components/SaraLogo'
@@ -442,9 +443,9 @@ export default function OnboardingPage() {
 
       <p className="mt-6 text-gray-400 text-xs text-center">
         Puedes actualizar esta información en cualquier momento desde{' '}
-        <a href="/profile" className="text-primary hover:underline">
+        <Link href="/profile" className="text-primary hover:underline">
           Mi Perfil
-        </a>
+        </Link>
         .
       </p>
     </div>

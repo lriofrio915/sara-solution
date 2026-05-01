@@ -5,9 +5,10 @@ import DoctorChatUI from '@/components/public/DoctorChatUI'
 
 export const dynamic = 'force-dynamic'
 
-type Props = { params: { slug: string } }
+type Props = { params: Promise<{ slug: string }> }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: { name: true, specialty: true },
@@ -19,7 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DoctorChatPage({ params }: Props) {
+export default async function DoctorChatPage(props: Props) {
+  const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
     select: {

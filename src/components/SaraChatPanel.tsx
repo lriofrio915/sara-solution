@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { X, Trash2, BookOpen, Mic, MicOff } from 'lucide-react'
 
@@ -315,10 +316,10 @@ export default function SaraChatPanel({ mode = 'page', patientId, patientName, o
 
         <div className="flex items-center gap-2">
           {!isPopup && (
-            <a href="/knowledge"
+            <Link href="/knowledge"
               className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
               <BookOpen size={12} /> Conocimiento
-            </a>
+            </Link>
           )}
 
           {!showClearConfirm ? (

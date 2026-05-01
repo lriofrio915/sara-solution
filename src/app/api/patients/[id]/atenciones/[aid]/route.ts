@@ -10,10 +10,8 @@ async function getDoctor(user: { id: string; email?: string | null }) {
 }
 
 // GET /api/patients/[id]/atenciones/[aid]
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string; aid: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string; aid: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -34,10 +32,8 @@ export async function GET(
 }
 
 // PATCH /api/patients/[id]/atenciones/[aid]
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string; aid: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string; aid: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -145,10 +141,8 @@ export async function PATCH(
 }
 
 // DELETE /api/patients/[id]/atenciones/[aid]
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string; aid: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string; aid: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()

@@ -72,7 +72,7 @@ describe('GET /api/patients/[id]/atenciones — cross-tenant access', () => {
     const { GET } = await import('@/app/api/patients/[id]/atenciones/route')
     const res = await GET(
       makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_B.id}/atenciones`),
-      { params: { id: PATIENT_OF_B.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_B.id }) },
     )
 
     expect(res.status).toBe(404)
@@ -85,7 +85,7 @@ describe('GET /api/patients/[id]/atenciones — cross-tenant access', () => {
     const { GET } = await import('@/app/api/patients/[id]/atenciones/route')
     await GET(
       makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_B.id}/atenciones`),
-      { params: { id: PATIENT_OF_B.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_B.id }) },
     )
 
     const where = prismaMock.patient.findFirst.mock.calls[0][0].where
@@ -98,7 +98,7 @@ describe('GET /api/patients/[id]/atenciones — cross-tenant access', () => {
     const { GET } = await import('@/app/api/patients/[id]/atenciones/route')
     const res = await GET(
       makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_A.id}/atenciones`),
-      { params: { id: PATIENT_OF_A.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_A.id }) },
     )
 
     expect(res.status).toBe(200)
@@ -118,7 +118,7 @@ describe('GET /api/patients/[id]/atenciones — cross-tenant access', () => {
     const { GET } = await import('@/app/api/patients/[id]/atenciones/route')
     const res = await GET(
       makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_A.id}/atenciones`),
-      { params: { id: PATIENT_OF_A.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_A.id }) },
     )
 
     expect(res.status).toBe(401)
@@ -145,7 +145,7 @@ describe('POST /api/patients/[id]/atenciones — isolation + audit trail', () =>
       makeRequest('POST', `https://consultorio.site/api/patients/${PATIENT_OF_B.id}/atenciones`, {
         service: 'consulta', motive: 'control',
       }),
-      { params: { id: PATIENT_OF_B.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_B.id }) },
     )
 
     expect(res.status).toBe(404)
@@ -160,7 +160,7 @@ describe('POST /api/patients/[id]/atenciones — isolation + audit trail', () =>
         motive: 'control',
         doctorId: DOCTOR_B.id, // injection attempt
       }),
-      { params: { id: PATIENT_OF_A.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_A.id }) },
     )
 
     expect(res.status).toBe(201)
@@ -177,7 +177,7 @@ describe('POST /api/patients/[id]/atenciones — isolation + audit trail', () =>
       makeRequest('POST', `https://consultorio.site/api/patients/${PATIENT_OF_A.id}/atenciones`, {
         service: 'consulta', motive: 'control',
       }),
-      { params: { id: PATIENT_OF_A.id } },
+      { params: Promise.resolve({ id: PATIENT_OF_A.id }) },
     )
 
     expect(auditAttention).toHaveBeenCalledWith(

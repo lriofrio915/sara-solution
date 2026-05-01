@@ -168,7 +168,7 @@ describe('Doctor isolation — GET /api/patients/[id]', () => {
     const { GET } = await import('@/app/api/patients/[id]/route')
 
     const req = makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_B.id}`)
-    const res = await GET(req, { params: { id: PATIENT_OF_B.id } })
+    const res = await GET(req, { params: Promise.resolve({ id: PATIENT_OF_B.id }) })
 
     // Si Prisma devuelve null, debe ser 404 — nunca 200 con datos de otro médico
     expect(res.status).toBe(404)
@@ -179,7 +179,7 @@ describe('Doctor isolation — GET /api/patients/[id]', () => {
 
     const { GET } = await import('@/app/api/patients/[id]/route')
     const req = makeRequest('GET', `https://consultorio.site/api/patients/${PATIENT_OF_B.id}`)
-    await GET(req, { params: { id: PATIENT_OF_B.id } })
+    await GET(req, { params: Promise.resolve({ id: PATIENT_OF_B.id }) })
 
     if (prismaMock.patient.findFirst.mock.calls.length > 0) {
       const whereClause = prismaMock.patient.findFirst.mock.calls[0][0].where

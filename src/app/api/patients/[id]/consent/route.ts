@@ -46,7 +46,8 @@ de sus datos personales de salud con las finalidades indicadas.`
 
 // ── GET — consultar consentimiento activo ─────────────────────────────────────
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -79,7 +80,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 // ── POST — registrar consentimiento ──────────────────────────────────────────
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -126,7 +128,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
 // ── DELETE — revocar consentimiento ──────────────────────────────────────────
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()

@@ -1,9 +1,10 @@
 import RegisterForm from './RegisterForm'
 
 interface Props {
-  searchParams: { ref?: string }
+  searchParams: Promise<{ ref?: string }>
 }
 
-export default function RegisterPage({ searchParams }: Props) {
+export default async function RegisterPage(props: Props) {
+  const searchParams = await props.searchParams;
   return <RegisterForm referralCode={searchParams.ref} />
 }

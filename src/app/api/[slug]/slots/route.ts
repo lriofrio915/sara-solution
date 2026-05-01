@@ -3,10 +3,8 @@ import { prisma } from '@/lib/prisma'
 
 // GET /api/[slug]/slots?date=YYYY-MM-DD
 // Returns available appointment slots for a doctor on a specific date
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const dateParam = req.nextUrl.searchParams.get('date')
     if (!dateParam || !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {

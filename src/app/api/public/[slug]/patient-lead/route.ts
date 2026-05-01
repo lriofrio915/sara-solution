@@ -11,10 +11,8 @@ import { PatientLeadCreateSchema } from '@/lib/validation/schemas/lead'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const parsed = await parseBody(req, PatientLeadCreateSchema)
   if (!parsed.ok) return parsed.response
   const { name, phone, email, message, source, campaign } = parsed.data

@@ -21,7 +21,8 @@ const BLOOD_TYPE_SNOMED: Record<string, string> = {
   O_POS: '112148002', O_NEG: '112149005',
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()

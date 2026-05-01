@@ -48,7 +48,8 @@ function buildHeredoFamiliarSummary(hf: Record<string, unknown> | null): string 
   return parts.join(', ')
 }
 
-export default async function NuevaAtencionPage({ params }: { params: { id: string } }) {
+export default async function NuevaAtencionPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) redirect('/login')

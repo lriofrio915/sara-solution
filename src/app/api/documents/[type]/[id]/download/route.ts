@@ -44,10 +44,8 @@ async function verifyOwnership(type: DocType, id: string, doctorId: string): Pro
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { type: string; id: string } },
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ type: string; id: string }> }) {
+  const params = await props.params;
   try {
     // 1. Auth
     const supabase = await createClient()

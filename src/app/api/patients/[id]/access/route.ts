@@ -11,7 +11,8 @@ function generatePassword(): string {
 }
 
 /** GET — check if patient already has access */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -37,7 +38,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 /** POST — create patient auth account */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -97,7 +99,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 }
 
 /** DELETE — revoke patient access */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()

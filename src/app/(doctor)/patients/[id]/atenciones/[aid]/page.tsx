@@ -47,11 +47,12 @@ function buildHeredoFamiliarSummary(hf: Record<string, unknown> | null): string 
   return parts.join(', ')
 }
 
-export default async function AtencionDetailPage({
-  params,
-}: {
-  params: { id: string; aid: string }
-}) {
+export default async function AtencionDetailPage(
+  props: {
+    params: Promise<{ id: string; aid: string }>
+  }
+) {
+  const params = await props.params;
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) redirect('/login')

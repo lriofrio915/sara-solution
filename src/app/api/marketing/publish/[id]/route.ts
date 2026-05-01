@@ -100,7 +100,8 @@ async function publishLinkedIn(token: string, userId: string, content: string) {
 }
 
 // ─── POST /api/marketing/publish/[id] ─────────────────────────────────────
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const auth = await getAuth()
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 

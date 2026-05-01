@@ -1094,8 +1094,8 @@ function Footer() {
             <li><a href="#features" className="hover:text-white/90 transition-colors">Funcionalidades</a></li>
             <li><a href="#pricing" className="hover:text-white/90 transition-colors">Precios</a></li>
             <li><a href="#how" className="hover:text-white/90 transition-colors">¿Cómo funciona?</a></li>
-            <li><a href="/register" className="hover:text-white/90 transition-colors">Crear cuenta</a></li>
-            <li><a href="/login" className="hover:text-white/90 transition-colors">Iniciar sesión</a></li>
+            <li><Link href="/register" className="hover:text-white/90 transition-colors">Crear cuenta</Link></li>
+            <li><Link href="/login" className="hover:text-white/90 transition-colors">Iniciar sesión</Link></li>
           </ul>
         </div>
 
@@ -1120,8 +1120,8 @@ function Footer() {
         <div>
           <h4 className="text-white/90 font-semibold text-sm mb-4 uppercase tracking-wider">Legal</h4>
           <ul className="space-y-3 text-sm text-white/75">
-            <li><a href="/terms" className="hover:text-white/90 transition-colors">Términos de uso</a></li>
-            <li><a href="/privacy" className="hover:text-white/90 transition-colors">Política de privacidad</a></li>
+            <li><Link href="/terms" className="hover:text-white/90 transition-colors">Términos de uso</Link></li>
+            <li><Link href="/privacy" className="hover:text-white/90 transition-colors">Política de privacidad</Link></li>
           </ul>
         </div>
       </div>
