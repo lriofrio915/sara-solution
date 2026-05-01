@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -290,6 +290,14 @@ export default function FichaPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function showToast(msg: string, ok = true) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ msg, ok })
+    toastTimer.current = setTimeout(() => setToast(null), 3500)
+  }
 
   const loadData = useCallback(async () => {
     try {
@@ -354,8 +362,11 @@ export default function FichaPage() {
       if (!res.ok) throw new Error((await res.json()).error ?? 'Error guardando')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      showToast('Ficha guardada correctamente ✓')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar')
+      const msg = err instanceof Error ? err.message : 'Error al guardar'
+      setError(msg)
+      showToast(msg, false)
     } finally {
       setSaving(false)
     }
@@ -484,25 +495,14 @@ export default function FichaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label">Categoría</label>
-                  <input className="input text-sm" value={chart.category} onChange={(e) => updateChart('category', e.target.value)} placeholder="Categoría" />
-                </div>
-                <div>
-                  <label className="label">Ocupación</label>
-                  <input className="input text-sm" value={chart.occupation} onChange={(e) => updateChart('occupation', e.target.value)} placeholder="Ocupación" />
-                </div>
+              <div>
+                <label className="label">Ocupación</label>
+                <input className="input text-sm" value={chart.occupation} onChange={(e) => updateChart('occupation', e.target.value)} placeholder="Ocupación" />
               </div>
 
               <div>
                 <label className="label">Referido por</label>
                 <input className="input text-sm" value={chart.referredBy} onChange={(e) => updateChart('referredBy', e.target.value)} placeholder="Nombre o institución" />
-              </div>
-
-              <div>
-                <label className="label">Fecha de ingreso</label>
-                <input type="date" className="input text-sm" value={chart.admissionDate} onChange={(e) => updateChart('admissionDate', e.target.value)} />
               </div>
 
               <div>
@@ -978,6 +978,14 @@ export default function FichaPage() {
           </span>
         )}
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${toast.ok ? 'bg-green-600' : 'bg-red-600'}`}>
+          <span>{toast.ok ? '✓' : '✕'}</span>
+          <span>{toast.msg}</span>
+        </div>
+      )}
     </div>
   )
 }

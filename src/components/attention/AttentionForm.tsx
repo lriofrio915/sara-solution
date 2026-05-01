@@ -59,11 +59,12 @@ interface AttentionData {
   prescriptionItems: PrescriptionItem[]
   prescriptionValidUntil: string
   prescriptionNotes: string
-  exams: Record<string, string[]>
+  exams: Record<string, string[] | string>
   images: { url: string; description: string }[]
   examEvolutionNotes: string
   billing: BillingItem[]
   billingStatus: string
+  otrosExams: Record<string, string>
 }
 
 interface Cie10Result {
@@ -142,6 +143,22 @@ export default function AttentionForm({
   const [cie10Query, setCie10Query] = useState('')
   const [cie10Results, setCie10Results] = useState<Cie10Result[]>([])
   const [cie10Loading, setCie10Loading] = useState(false)
+  const [showManualDiag, setShowManualDiag] = useState(false)
+  const [manualCode, setManualCode] = useState('')
+  const [manualDesc, setManualDesc] = useState('')
+
+  // Attachment preview
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; description: string } | null>(null)
+
+  // Toast
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function showToast(msg: string, ok = true) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ msg, ok })
+    toastTimer.current = setTimeout(() => setToast(null), 3500)
+  }
 
   // File upload for Exámenes y Evolución
   const examFileInputRef = useRef<HTMLInputElement>(null)
@@ -168,6 +185,7 @@ export default function AttentionForm({
     examEvolutionNotes: '',
     billing: [],
     billingStatus: 'Pendiente',
+    otrosExams: {},
     ...initialData,
   })
 
@@ -204,7 +222,7 @@ export default function AttentionForm({
     const timeout = setTimeout(async () => {
       setCie10Loading(true)
       try {
-        const res = await fetch(`/api/icd11?q=${encodeURIComponent(cie10Query)}`)
+        const res = await fetch(`/api/cie10?q=${encodeURIComponent(cie10Query)}`)
         const data = await res.json()
         setCie10Results(data.results ?? [])
       } catch {
@@ -244,7 +262,8 @@ export default function AttentionForm({
   }
 
   function toggleExam(categoryKey: string, item: string) {
-    const current = form.exams[categoryKey] ?? []
+    const raw = form.exams[categoryKey]
+    const current: string[] = Array.isArray(raw) ? raw : []
     const next = current.includes(item)
       ? current.filter((x) => x !== item)
       : [...current, item]
@@ -277,6 +296,11 @@ export default function AttentionForm({
         ...form.exploration,
         examEvolutionNotes: form.examEvolutionNotes || null,
       }
+      // Merge otrosExams metadata into exams JSON (namespaced keys)
+      const examsWithOtros: Record<string, string[] | string> = { ...form.exams }
+      for (const [catKey, val] of Object.entries(form.otrosExams)) {
+        if (val) examsWithOtros[`${catKey}__otros`] = val
+      }
       const payload = {
         establishment: form.establishment || null,
         service: form.service || null,
@@ -292,7 +316,7 @@ export default function AttentionForm({
           validUntil: form.prescriptionValidUntil || null,
           notes: form.prescriptionNotes || null,
         },
-        exams: form.exams,
+        exams: examsWithOtros,
         images: form.images,
         billing: { items: form.billing, status: form.billingStatus },
       }
@@ -316,9 +340,12 @@ export default function AttentionForm({
       const data = await res.json()
       setIsDirty(false)
       const savedId = data.attention?.id ?? attentionId
-      router.push(`/patients/${patientId}/atenciones/${savedId}`)
+      showToast('Atención guardada con éxito ✓')
+      setTimeout(() => router.push(`/patients/${patientId}/atenciones/${savedId}`), 1200)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar')
+      const msg = err instanceof Error ? err.message : 'Error al guardar'
+      setError(msg)
+      showToast(msg, false)
     } finally {
       setSaving(false)
     }
@@ -660,13 +687,17 @@ export default function AttentionForm({
                         <div key={i} className="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                           {img.url.startsWith('data:image') ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={img.url} alt={img.description} className="w-full h-24 object-cover" />
+                            <img src={img.url} alt={img.description} className="w-full h-24 object-cover cursor-pointer" onClick={() => setPreviewAttachment(img)} />
                           ) : (
-                            <div className="w-full h-24 bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+                            <div
+                              className="w-full h-24 bg-gray-50 dark:bg-gray-700 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                              onClick={() => setPreviewAttachment(img)}
+                            >
                               <span className="text-2xl">📄</span>
+                              <span className="text-xs text-gray-500 dark:text-slate-400">PDF</span>
                             </div>
                           )}
-                          <div className="p-1.5">
+                          <div className="p-1.5 space-y-1">
                             <input
                               className="input text-xs py-0.5"
                               value={img.description}
@@ -677,6 +708,22 @@ export default function AttentionForm({
                               }}
                               placeholder="Descripción..."
                             />
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setPreviewAttachment(img)}
+                                className="flex-1 text-xs text-primary hover:underline py-0.5"
+                              >
+                                👁 Ver
+                              </button>
+                              <a
+                                href={img.url}
+                                download={img.description || 'adjunto'}
+                                className="flex-1 text-xs text-center text-gray-500 dark:text-slate-400 hover:underline py-0.5"
+                              >
+                                ⬇ Descargar
+                              </a>
+                            </div>
                           </div>
                           <button
                             type="button"
@@ -709,12 +756,12 @@ export default function AttentionForm({
           {activeTab === 1 && (
             <div className="space-y-4">
               <div className="relative">
-                <label className="label text-xs">Buscar diagnóstico CIE-10 / ICD-11</label>
+                <label className="label text-xs">Buscar diagnóstico CIE-10</label>
                 <input
                   className="input text-sm"
                   value={cie10Query}
-                  onChange={(e) => setCie10Query(e.target.value)}
-                  placeholder="Ej: neuralgia, diabetes tipo 2, J45, hipertensión..."
+                  onChange={(e) => { setCie10Query(e.target.value); setShowManualDiag(false) }}
+                  placeholder="Ej: diabetes tipo 2, E11, hipertensión, asma..."
                 />
                 {cie10Loading && (
                   <div className="absolute right-3 top-8">
@@ -722,7 +769,7 @@ export default function AttentionForm({
                   </div>
                 )}
                 {cie10Results.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden max-h-72 overflow-y-auto">
                     {cie10Results.map((result) => (
                       <button
                         key={result.code}
@@ -734,6 +781,55 @@ export default function AttentionForm({
                         <span className="text-gray-700 dark:text-gray-300">{result.title ?? result.description}</span>
                       </button>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Manual diagnosis entry */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => { setShowManualDiag(!showManualDiag); setCie10Results([]) }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  + Agregar diagnóstico manualmente
+                </button>
+                {showManualDiag && (
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-xl space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="label text-xs">Código CIE-10 (opcional)</label>
+                        <input
+                          className="input text-xs py-1"
+                          value={manualCode}
+                          onChange={(e) => setManualCode(e.target.value)}
+                          placeholder="Ej: J45.9"
+                        />
+                      </div>
+                      <div>
+                        <label className="label text-xs">Descripción *</label>
+                        <input
+                          className="input text-xs py-1"
+                          value={manualDesc}
+                          onChange={(e) => setManualDesc(e.target.value)}
+                          placeholder="Nombre de la enfermedad"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!manualDesc.trim()}
+                      onClick={() => {
+                        if (!manualDesc.trim()) return
+                        addDiagnosis(manualCode.trim(), manualDesc.trim())
+                        setManualCode('')
+                        setManualDesc('')
+                        setShowManualDiag(false)
+                      }}
+                      className="btn-primary text-xs px-3 py-1.5 disabled:opacity-50"
+                    >
+                      Confirmar
+                    </button>
                   </div>
                 )}
               </div>
@@ -902,62 +998,162 @@ export default function AttentionForm({
           {/* Tab 4: Exámenes de laboratorio */}
           {activeTab === 3 && (
             <div className="space-y-2">
-              {EXAM_CATEGORIES.map((cat) => (
-                <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
-                    <span>{cat.label}</span>
-                    {(form.exams[cat.key]?.length ?? 0) > 0 && (
-                      <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
-                        {form.exams[cat.key].length}
-                      </span>
-                    )}
-                  </summary>
-                  <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-3 gap-2 bg-white dark:bg-gray-800">
-                    {cat.exams.map((item) => (
-                      <label key={item} className="flex items-center gap-2 cursor-pointer">
+              {EXAM_CATEGORIES.map((cat) => {
+                const selCount = (form.exams[cat.key] as string[] | undefined)?.length ?? 0
+                const otrosVal = form.otrosExams[cat.key] ?? ''
+                return (
+                  <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
+                      <span>{cat.label}</span>
+                      {(selCount > 0 || otrosVal) && (
+                        <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                          {selCount + (otrosVal ? 1 : 0)}
+                        </span>
+                      )}
+                    </summary>
+                    <div className="px-4 py-3 bg-white dark:bg-gray-800">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {cat.exams.map((item) => (
+                          <label key={item} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={(form.exams[cat.key] as string[] | undefined)?.includes(item) ?? false}
+                              onChange={() => toggleExam(cat.key, item)}
+                              className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {/* OTROS field */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <label className="label text-xs">Otros (especificar)</label>
                         <input
-                          type="checkbox"
-                          checked={form.exams[cat.key]?.includes(item) ?? false}
-                          onChange={() => toggleExam(cat.key, item)}
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                          className="input text-sm"
+                          value={otrosVal}
+                          onChange={(e) => update('otrosExams', { ...form.otrosExams, [cat.key]: e.target.value })}
+                          placeholder="Escriba el examen a solicitar..."
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                      </label>
-                    ))}
-                  </div>
-                </details>
-              ))}
+                      </div>
+                    </div>
+                  </details>
+                )
+              })}
             </div>
           )}
 
           {/* Tab 5: Imágenes */}
           {activeTab === 4 && (
             <div className="space-y-2">
-              {IMAGING_CATEGORIES.map((cat) => (
-                <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
-                    <span>{cat.label}</span>
-                    {(form.exams[cat.key]?.length ?? 0) > 0 && (
-                      <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
-                        {form.exams[cat.key].length}
-                      </span>
-                    )}
-                  </summary>
-                  <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-3 gap-2 bg-white dark:bg-gray-800">
-                    {cat.exams.map((item) => (
-                      <label key={item} className="flex items-center gap-2 cursor-pointer">
+              {IMAGING_CATEGORIES.map((cat) => {
+                const selArr = (form.exams[cat.key] as string[] | undefined) ?? []
+                const otrosVal = form.otrosExams[cat.key] ?? ''
+
+                // Helpers for special metadata fields stored inside exams JSON
+                const metaKey = (field: string) => `${cat.key}__${field}`
+                const getMeta = (field: string) => (form.exams[metaKey(field)] as string) ?? ''
+                const setMeta = (field: string, val: string) =>
+                  update('exams', { ...form.exams, [metaKey(field)]: val })
+
+                return (
+                  <details key={cat.key} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700/60 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 select-none flex items-center justify-between">
+                      <span>{cat.label}</span>
+                      {(selArr.length > 0 || otrosVal) && (
+                        <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                          {selArr.length + (otrosVal ? 1 : 0)}
+                        </span>
+                      )}
+                    </summary>
+                    <div className="px-4 py-3 bg-white dark:bg-gray-800">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {cat.exams.map((item) => (
+                          <div key={item} className="col-span-1">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selArr.includes(item)}
+                                onChange={() => toggleExam(cat.key, item)}
+                                className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                            </label>
+
+                            {/* Partes blandas → text input */}
+                            {item === 'Partes blandas' && selArr.includes(item) && (
+                              <input
+                                className="input text-xs py-1 mt-1 ml-6"
+                                value={getMeta('partesBlandas_texto')}
+                                onChange={(e) => setMeta('partesBlandas_texto', e.target.value)}
+                                placeholder="¿Qué parte blanda?"
+                              />
+                            )}
+
+                            {/* Inguinal → lado */}
+                            {item === 'Inguinal' && selArr.includes(item) && (
+                              <div className="flex gap-3 mt-1 ml-6">
+                                {['Izquierdo', 'Derecho'].map(lado => (
+                                  <label key={lado} className="flex items-center gap-1 cursor-pointer text-xs text-gray-600 dark:text-gray-300">
+                                    <input
+                                      type="radio"
+                                      name={`inguinal_lado_${cat.key}`}
+                                      value={lado}
+                                      checked={getMeta('inguinal_lado') === lado}
+                                      onChange={() => setMeta('inguinal_lado', lado)}
+                                      className="text-primary"
+                                    />
+                                    {lado}
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Doppler arterial → text input */}
+                            {item === 'Doppler arterial' && selArr.includes(item) && (
+                              <input
+                                className="input text-xs py-1 mt-1 ml-6"
+                                value={getMeta('dopplerArterial_texto')}
+                                onChange={(e) => setMeta('dopplerArterial_texto', e.target.value)}
+                                placeholder="Especificar zona..."
+                              />
+                            )}
+
+                            {/* Ecografía mamaria unilateral → lado */}
+                            {item === 'Ecografía mamaria unilateral' && selArr.includes(item) && (
+                              <div className="flex gap-3 mt-1 ml-6">
+                                {['Derecha', 'Izquierda'].map(lado => (
+                                  <label key={lado} className="flex items-center gap-1 cursor-pointer text-xs text-gray-600 dark:text-gray-300">
+                                    <input
+                                      type="radio"
+                                      name={`mamariaUnilateral_lado_${cat.key}`}
+                                      value={lado}
+                                      checked={getMeta('mamariaUnilateral_lado') === lado}
+                                      onChange={() => setMeta('mamariaUnilateral_lado', lado)}
+                                      className="text-primary"
+                                    />
+                                    {lado}
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* OTROS field */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <label className="label text-xs">Otros (especificar)</label>
                         <input
-                          type="checkbox"
-                          checked={form.exams[cat.key]?.includes(item) ?? false}
-                          onChange={() => toggleExam(cat.key, item)}
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                          className="input text-sm"
+                          value={otrosVal}
+                          onChange={(e) => update('otrosExams', { ...form.otrosExams, [cat.key]: e.target.value })}
+                          placeholder="Escriba el estudio a solicitar..."
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                      </label>
-                    ))}
-                  </div>
-                </details>
-              ))}
+                      </div>
+                    </div>
+                  </details>
+                )
+              })}
             </div>
           )}
 
@@ -1097,6 +1293,66 @@ export default function AttentionForm({
           ⏱ {elapsedMins}m en consulta
         </span>
       </div>
+
+      {/* Attachment preview modal */}
+      {previewAttachment && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setPreviewAttachment(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                {previewAttachment.description || 'Adjunto'}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewAttachment.url}
+                  download={previewAttachment.description || 'adjunto'}
+                  className="text-xs text-primary hover:underline px-2 py-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ⬇ Descargar
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewAttachment(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-50 dark:bg-gray-800 p-4">
+              {previewAttachment.url.startsWith('data:image') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewAttachment.url}
+                  alt={previewAttachment.description}
+                  className="max-w-full max-h-[70vh] object-contain rounded-xl"
+                />
+              ) : (
+                <iframe
+                  src={previewAttachment.url}
+                  title={previewAttachment.description}
+                  className="w-full h-[70vh] rounded-xl border-0"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${toast.ok ? 'bg-green-600' : 'bg-red-600'}`}>
+          <span>{toast.ok ? '✓' : '✕'}</span>
+          <span>{toast.msg}</span>
+        </div>
+      )}
     </div>
   )
 }

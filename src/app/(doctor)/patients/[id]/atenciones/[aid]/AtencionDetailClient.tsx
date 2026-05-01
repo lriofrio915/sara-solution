@@ -58,7 +58,7 @@ interface Props {
     exploration: Record<string, string> | null
     diagnoses: unknown[] | null
     prescriptionData: Record<string, unknown> | null
-    exams: Record<string, string[]> | null
+    exams: Record<string, string[] | string> | null
     images: { url: string; description: string }[] | null
     billing: Record<string, unknown> | null
   }
@@ -84,7 +84,8 @@ export default function AtencionDetailClient({
 }: Props) {
   const dt = new Date(attention.datetime)
   const fecha = dt.toISOString().slice(0, 10)
-  const hora = dt.toTimeString().slice(0, 5)
+  // Use UTC time to match how it was saved (ISO string without timezone = UTC on server)
+  const hora = dt.toISOString().slice(11, 16)
 
   const prescriptionData = attention.prescriptionData as {
     items?: PrescriptionItem[]
@@ -135,6 +136,12 @@ export default function AtencionDetailClient({
     examEvolutionNotes: explorationRaw?.examEvolutionNotes ?? '',
     billing: billingData?.items ?? [],
     billingStatus: billingData?.status ?? 'Pendiente',
+    // Restore otrosExams from namespaced keys stored in the exams JSON
+    otrosExams: Object.fromEntries(
+      Object.entries(attention.exams ?? {})
+        .filter(([k]) => k.endsWith('__otros'))
+        .map(([k, v]) => [k.replace('__otros', ''), String(v)])
+    ),
   }
 
   return (

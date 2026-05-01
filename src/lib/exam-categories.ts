@@ -125,7 +125,7 @@ export const IMAGING_CATEGORIES: ExamCategory[] = [
       'Abdominal completa', 'Pélvica', 'Obstétrica', 'Renal y vías urinarias', 'Vesical',
       'Tiroides y paratiroides', 'Partes blandas', 'Doppler venoso miembros inferiores',
       'Doppler arterial', 'Testicular', 'Mamaria bilateral', 'Cuello', 'Inguinal',
-      'Doppler renal', 'Transvaginal',
+      'Doppler renal', 'Transvaginal', 'Ecografía mamaria unilateral',
     ],
   },
   {
@@ -152,7 +152,6 @@ export const IMAGING_CATEGORIES: ExamCategory[] = [
     label: 'MAMOGRAFÍA',
     exams: [
       'Mamografía bilateral', 'Mamografía unilateral derecha', 'Mamografía unilateral izquierda',
-      'Ecografía mamaria bilateral', 'Ecografía mamaria unilateral',
     ],
   },
   {
