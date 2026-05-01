@@ -32,8 +32,8 @@ Esta fue una pérdida catastrófica e irrecuperable de datos de médicos reales.
 - Script: `scripts/backup-db.sh` y `scripts/restore-backup.sh`
 
 ## Stack técnico
-- Next.js 14 App Router, TypeScript, Tailwind CSS
-- Prisma ORM + PostgreSQL (Supabase)
+- Next.js 16 App Router, TypeScript 6, Tailwind CSS 4
+- Prisma ORM 5 + PostgreSQL (Supabase)
 - Supabase Auth
 - **Deploy en Vercel** — push a `main` dispara deploy automático
 
@@ -70,6 +70,27 @@ Workflows activos:
 - SIEMPRE verifica tu trabajo antes de darlo por terminado. Revisa que el código compila, que no hay errores de tipos, y que la lógica tiene sentido.
 - Antes de implementar cualquier cambio, investiga el código existente para entender cómo funciona. No asumas — lee el código primero.
 - NO implementes nada a menos que estés 100% seguro de que va a funcionar. Si tienes dudas, investiga más o pregúntame antes de proceder.
+
+## Vulnerabilidades conocidas y aceptadas
+
+### @signpdf / pdfkit / crypto-js (4 CVEs críticos, sin fix disponible)
+
+**Paquetes afectados** (pineados a versión exacta sin `^`):
+- `@signpdf/placeholder-plain@3.3.0`
+- `@signpdf/signer-p12@3.3.0`
+- `@signpdf/signpdf@3.3.0`
+- `pdfkit` y `crypto-js` son deps transitivas de @signpdf
+
+**Qué hacen**: firma electrónica PAdES-B/T de documentos médicos (recetas, certificados, órdenes de examen) según regulación ecuatoriana AM 0009-2017 con certificados P12 del BCE.
+
+**Código**: `src/lib/firma-ec.ts` + rutas `/api/profile/signature` y `/api/documents/[type]/[id]/download`.
+
+**Mitigación activa**:
+- La firma ejecuta 100% server-side (Node.js), nunca en el browser.
+- No procesa PDFs externos ni subidos por usuarios no autenticados.
+- Los CVEs en pdfkit/crypto-js no tienen exploit conocido en este flujo de uso.
+
+**Acción pendiente**: evaluar migración a servicio SaaS (DocuSign, AWS KMS, o SRI Ecuador API) como proyecto separado. No intentar reescribir la firma CMS/PAdES con node-forge sin un experto criptográfico.
 
 ## Skill routing
 
