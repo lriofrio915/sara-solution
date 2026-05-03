@@ -148,7 +148,7 @@ export default function AtencionDetailClient({
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-          Atención — {dt.toLocaleDateString('es-EC', { dateStyle: 'long' })}
+          Atención — {dt.toLocaleDateString('es-EC', { timeZone: 'UTC', dateStyle: 'long' })}
         </h2>
       </div>
       <AttentionForm

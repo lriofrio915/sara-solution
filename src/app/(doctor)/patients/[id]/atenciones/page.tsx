@@ -173,9 +173,9 @@ export default function AtencionesPage() {
                       className="border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/70 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-3 text-gray-800 dark:text-gray-200 font-medium whitespace-nowrap">
-                        <div>{new Date(a.datetime).toLocaleDateString('es-EC', { dateStyle: 'medium' })}</div>
+                        <div>{new Date(a.datetime).toLocaleDateString('es-EC', { timeZone: 'UTC', dateStyle: 'medium' })}</div>
                         <div className="text-xs text-gray-400">
-                          {new Date(a.datetime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(a.datetime).toISOString().slice(11, 16)}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -213,9 +213,9 @@ export default function AtencionesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                        {new Date(a.datetime).toLocaleDateString('es-EC', { dateStyle: 'medium' })}
+                        {new Date(a.datetime).toLocaleDateString('es-EC', { timeZone: 'UTC', dateStyle: 'medium' })}
                         {' · '}
-                        {new Date(a.datetime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(a.datetime).toISOString().slice(11, 16)}
                       </p>
                       {a.motive && (
                         <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5 truncate">{a.motive}</p>
