@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 interface Patient {
   id: string
@@ -101,12 +102,7 @@ export default function PatientsPage() {
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-        </div>
-      )}
+      {loading && <MedicalLoadingScreen label="Cargando pacientes…" />}
 
       {/* Empty state */}
       {!loading && patients.length === 0 && (

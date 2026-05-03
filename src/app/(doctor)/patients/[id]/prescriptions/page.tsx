@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 interface Medication {
   name: string
@@ -197,13 +198,7 @@ export default function PatientPrescriptionsPage() {
     setEditingRx(null)
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    )
-  }
+  if (loading) return <MedicalLoadingScreen label="Cargando recetas…" />
 
   if (prescriptions.length === 0) {
     return (

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 interface Prescription {
   id: string
@@ -57,11 +58,7 @@ export default function PrescriptionsPage() {
         <Link href="/prescriptions/new" className="btn-primary flex-shrink-0">+ Nueva receta</Link>
       </div>
 
-      {loading && (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-        </div>
-      )}
+      {loading && <MedicalLoadingScreen label="Cargando recetario…" />}
 
       {!loading && items.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 interface Certificate {
   id: string
@@ -34,13 +35,7 @@ export default function PatientCertificadosPage() {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    )
-  }
+  if (loading) return <MedicalLoadingScreen label="Cargando certificados…" />
 
   if (viewingId) {
     return (

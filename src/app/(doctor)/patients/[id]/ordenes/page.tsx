@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 interface ExamOrder {
   id: string
@@ -44,13 +45,7 @@ export default function PatientOrdenesPage() {
       .map((cat) => cat.label)
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    )
-  }
+  if (loading) return <MedicalLoadingScreen label="Cargando órdenes de examen…" />
 
   if (viewingId) {
     return (
