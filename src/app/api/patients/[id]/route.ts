@@ -19,16 +19,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const doctor = await getDoctor(user)
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
-    const [patientCore, appointments, medicalRecords] = await Promise.all([
-      prisma.patient.findFirst({
-        where: { id: params.id, doctorId: doctor.id },
-        select: {
-          id: true, name: true, email: true, phone: true,
-          birthDate: true, bloodType: true, documentId: true,
-          documentType: true, allergies: true, notes: true,
-          authId: true, createdAt: true,
-        },
-      }),
+    const patientCore = await prisma.patient.findFirst({
+      where: { id: params.id, doctorId: doctor.id },
+      select: {
+        id: true, name: true, email: true, phone: true,
+        birthDate: true, bloodType: true, documentId: true,
+        documentType: true, allergies: true, notes: true,
+        authId: true, createdAt: true,
+      },
+    })
+
+    if (!patientCore) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
+
+    const [appointments, medicalRecords] = await Promise.all([
       prisma.appointment.findMany({
         where: { patientId: params.id, doctorId: doctor.id },
         orderBy: { date: 'desc' },
@@ -42,8 +45,6 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         select: { id: true, diagnosis: true, treatment: true, createdAt: true },
       }),
     ])
-
-    if (!patientCore) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
 
     const patient = { ...patientCore, appointments, medicalRecords }
     return NextResponse.json(
