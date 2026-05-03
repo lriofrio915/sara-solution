@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 import { useParams, useRouter } from 'next/navigation'
 
 interface Atencion {
@@ -153,9 +154,7 @@ export default function AtencionesPage() {
       {/* Table */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-spin w-7 h-7 border-4 border-primary border-t-transparent rounded-full" />
-          </div>
+          <MedicalLoadingScreen label="Cargando atenciones…" />
         ) : atenciones.length === 0 ? (
           <div className="py-16 text-center">
             <div className="text-4xl mb-3">🩺</div>

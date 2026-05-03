@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import LineChart from '@/components/charts/LineChart'
+import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
 
 // ─── PAI Ecuador – Esquema de vacunación ─────────────────────────────────────
 
@@ -843,11 +844,7 @@ export default function ControlesPage() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-    </div>
-  )
+  if (loading) return <MedicalLoadingScreen label="Cargando controles…" />
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: 'vacunas',     label: 'Vacunas',     icon: '💉' },

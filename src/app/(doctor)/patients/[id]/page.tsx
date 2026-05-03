@@ -198,10 +198,6 @@ export default function PatientDetailPage() {
   const [accessLoading, setAccessLoading] = useState(false)
   const [credentials, setCredentials] = useState<{ email: string; password: string; reset?: boolean } | null>(null)
   const [revokeConfirm, setRevokeConfirm] = useState(false)
-  // Standalone notes
-  const [notesDraft, setNotesDraft] = useState('')
-  const [noteSaving, setNoteSaving] = useState(false)
-  const [noteSaved, setNoteSaved] = useState(false)
   // Allergy inline input
   const [allergyInput, setAllergyInput] = useState('')
 
@@ -211,31 +207,18 @@ export default function PatientDetailPage() {
       .then((data) => {
         setPatient(data.patient)
         setForm(data.patient)
-        setNotesDraft(data.patient?.notes ?? '')
       })
       .catch(() => setError('Error cargando paciente'))
       .finally(() => setLoading(false))
   }, [id])
 
-  async function handleSaveNote() {
-    setNoteSaving(true)
-    try {
-      const res = await fetch(`/api/patients/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: notesDraft }),
-      })
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Error')
-      const { patient: updated } = await res.json()
-      setPatient((prev) => prev ? { ...prev, notes: updated.notes } : prev)
-      setNoteSaved(true)
-      setTimeout(() => setNoteSaved(false), 2500)
-    } catch {
-      // keep draft, let user retry
-    } finally {
-      setNoteSaving(false)
-    }
-  }
+  // Warn on browser refresh/close while editing
+  useEffect(() => {
+    if (!editing) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [editing])
 
   async function handleSave() {
     setSaving(true)
@@ -452,40 +435,36 @@ export default function PatientDetailPage() {
             )}
           </div>
 
-          {/* Notes — always visible, standalone save */}
+          {/* Notes — editable in edit mode, read-only otherwise */}
           <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
             <p className="text-xs text-gray-400 dark:text-slate-400 mb-1">Notas clínicas</p>
-            <textarea
-              value={notesDraft}
-              onChange={(e) => setNotesDraft(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-              placeholder="Notas internas del médico sobre este paciente..."
-            />
-            <div className="flex items-center gap-3 mt-1.5">
-              <button
-                type="button"
-                onClick={handleSaveNote}
-                disabled={noteSaving}
-                className="btn-primary text-xs py-1.5 px-3 disabled:opacity-60"
-              >
-                {noteSaving ? 'Guardando...' : '💾 Guardar nota'}
-              </button>
-              {noteSaved && (
-                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Guardado</span>
-              )}
-            </div>
+            {editing ? (
+              <textarea
+                value={form.notes ?? ''}
+                onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                placeholder="Notas internas del médico sobre este paciente..."
+              />
+            ) : patient.notes ? (
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{patient.notes}</p>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-slate-500 italic">
+                Sin notas.{' '}
+                <button type="button" onClick={() => setEditing(true)} className="text-primary hover:underline not-italic text-xs">
+                  Agregar →
+                </button>
+              </p>
+            )}
           </div>
         </div>
 
         {/* Appointments */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
               Citas ({patient.appointments.length})
             </h2>
-            <Link href={`/appointments`}
-              className="text-xs text-primary hover:underline">Ver todas →</Link>
           </div>
           {patient.appointments.length === 0 ? (
             <p className="text-sm text-gray-400 py-4 text-center">Sin citas registradas</p>
@@ -629,6 +608,35 @@ export default function PatientDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Floating unsaved-changes bar */}
+      {editing && (
+        <div className="fixed bottom-0 left-0 right-0 md:left-64 z-40 flex items-center justify-between gap-4 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border-t-2 border-amber-400 dark:border-amber-600 shadow-lg">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 flex-shrink-0 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-sm font-medium text-amber-800 dark:text-amber-300 truncate">
+              Cambios sin guardar
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => { setEditing(false); setForm(patient) }}
+              className="text-sm px-3 py-1.5 rounded-xl border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="btn-primary text-sm py-1.5 px-5 disabled:opacity-60"
+            >
+              {saving ? 'Guardando…' : '💾 Guardar'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

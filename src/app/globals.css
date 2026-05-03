@@ -59,6 +59,14 @@
     cursor: pointer;
   }
 
+  /* Date/time picker calendar icon — invert to white in dark mode */
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator,
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.8);
+    cursor: pointer;
+  }
+
   /* Smooth color transitions on all buttons and links by default */
   button,
   a[href] {
