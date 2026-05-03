@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
           birthDate: true,
           bloodType: true,
           documentId: true,
+          allergies: true,
           createdAt: true,
           _count: { select: { appointments: true } },
         },

@@ -30,12 +30,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       select: { vaccineRecords: true, growthRecords: true, pregnancyData: true },
     })
 
-    return NextResponse.json({
-      birthDate: patient.birthDate,
-      vaccineRecords: chart?.vaccineRecords ?? [],
-      growthRecords: chart?.growthRecords ?? [],
-      pregnancyData: chart?.pregnancyData ?? null,
-    })
+    return NextResponse.json(
+      {
+        birthDate: patient.birthDate,
+        vaccineRecords: chart?.vaccineRecords ?? [],
+        growthRecords: chart?.growthRecords ?? [],
+        pregnancyData: chart?.pregnancyData ?? null,
+      },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' } },
+    )
   } catch (err) {
     console.error('GET /api/patients/[id]/controles:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

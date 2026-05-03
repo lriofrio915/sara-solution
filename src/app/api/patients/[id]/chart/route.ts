@@ -30,7 +30,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       where: { patientId: params.id },
     })
 
-    return NextResponse.json({ chart })
+    return NextResponse.json(
+      { chart },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=30' } },
+    )
   } catch (err) {
     console.error('GET /api/patients/[id]/chart:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

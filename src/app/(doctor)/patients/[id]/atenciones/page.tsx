@@ -19,6 +19,7 @@ export default function AtencionesPage() {
   const [atenciones, setAtenciones] = useState<Atencion[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
+  const [allergies, setAllergies] = useState<string[]>([])
 
   // Filters
   const [desde, setDesde] = useState('')
@@ -33,10 +34,15 @@ export default function AtencionesPage() {
       if (filters.desde) params.set('desde', filters.desde)
       if (filters.hasta) params.set('hasta', filters.hasta)
       if (filters.tipo) params.set('tipo', filters.tipo)
-      const res = await fetch(`/api/patients/${id}/atenciones?${params.toString()}`)
-      const data = await res.json()
+      const [atencionesRes, patientRes] = await Promise.all([
+        fetch(`/api/patients/${id}/atenciones?${params.toString()}`),
+        fetch(`/api/patients/${id}`),
+      ])
+      const data = await atencionesRes.json()
+      const patientData = await patientRes.json()
       setAtenciones(data.atenciones ?? [])
       setTotal(data.total ?? 0)
+      setAllergies(patientData.patient?.allergies ?? [])
     } catch {
       setAtenciones([])
     } finally {
@@ -61,6 +67,23 @@ export default function AtencionesPage() {
 
   return (
     <div className="max-w-4xl">
+      {/* Allergy reminder banner */}
+      {allergies.length > 0 && (
+        <div className="mb-4 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-2xl flex items-start gap-2">
+          <span className="text-base flex-shrink-0 mt-0.5">🚨</span>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-1">Alergias del paciente</p>
+            <div className="flex flex-wrap gap-1.5">
+              {allergies.map((a) => (
+                <span key={a} className="px-2.5 py-1 bg-orange-100 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-700 text-orange-800 dark:text-orange-300 rounded-full text-xs font-medium">
+                  {a}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">

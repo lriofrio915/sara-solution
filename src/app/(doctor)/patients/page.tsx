@@ -12,6 +12,7 @@ interface Patient {
   birthDate: string | null
   bloodType: string
   documentId: string | null
+  allergies: string[]
   createdAt: string
   _count: { appointments: number }
 }
@@ -147,10 +148,22 @@ export default function PatientsPage() {
                 i < patients.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''
               } hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors`}>
 
-              {/* Name + age */}
+              {/* Name + age + allergies */}
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{p.name}</p>
                 <p className="text-gray-400 text-xs mt-0.5">{calcAge(p.birthDate)}</p>
+                {p.allergies && p.allergies.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {p.allergies.slice(0, 3).map((a) => (
+                      <span key={a} className="px-1.5 py-0.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-400 rounded text-[10px] font-medium leading-none">
+                        ⚠️ {a}
+                      </span>
+                    ))}
+                    {p.allergies.length > 3 && (
+                      <span className="text-[10px] text-orange-500 dark:text-orange-400 font-medium">+{p.allergies.length - 3}</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Contact */}

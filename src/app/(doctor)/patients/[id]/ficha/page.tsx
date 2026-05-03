@@ -301,12 +301,8 @@ export default function FichaPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [patRes, chartRes] = await Promise.all([
-        fetch(`/api/patients/${id}`),
-        fetch(`/api/patients/${id}/chart`),
-      ])
-      const { patient: p } = await patRes.json()
-      const { chart: c } = await chartRes.json()
+      const res = await fetch(`/api/patients/${id}/ficha-data`)
+      const { patient: p, chart: c } = await res.json()
       setPatient(p)
       if (c) {
         setChart({
