@@ -8,9 +8,20 @@ import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 import DemoSection from '@/components/landing/DemoSection'
 
 export const metadata: Metadata = {
-  title: 'Sara — Publica en redes mientras atiendes pacientes',
+  title: 'Sara Medical — Gestiona tu consultorio con IA | Agenda, Fichas y Marketing',
   description:
-    'Sara publica tu contenido en Instagram, Facebook, TikTok y LinkedIn con IA mientras tú atiendes pacientes. Agenda inteligente, fichas médicas y recetas digitales incluidas.',
+    'Agenda inteligente 24/7, fichas y recetas digitales, Marketing Suite IA para Instagram, Facebook, TikTok y LinkedIn. Todo en un solo lugar. Prueba gratis 21 días, sin tarjeta.',
+  openGraph: {
+    title: 'Sara Medical — Tu consultorio en autopiloto',
+    description: 'Agenda, fichas médicas, recetas digitales y marketing con IA. El asistente para médicos independientes.',
+    url: 'https://www.consultorio.site',
+    siteName: 'Sara Medical',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sara Medical — Tu consultorio en autopiloto',
+    description: 'Agenda, fichas médicas, recetas digitales y marketing con IA para médicos.',
+  },
 }
 
 // ─── Hero ──────────────────────────────────────────────────────────────────────
@@ -33,18 +44,18 @@ function Hero() {
         <div className="text-white">
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-7">
             <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-            Asistente IA para médicos
+            Asistente IA para médicos independientes
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6">
-            Sara publica en redes{' '}
+            Gestiona tu consulta.{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-blue-200">
-              mientras atiendes pacientes
+              Publica en redes. Todo en piloto automático.
             </span>
           </h1>
 
           <p className="text-lg sm:text-xl text-white/75 leading-relaxed mb-10 max-w-lg">
-            Marketing con IA para Instagram, Facebook, TikTok y LinkedIn. Más agenda inteligente, fichas médicas y recetas digitales — todo en una sola plataforma.
+            Sara maneja tu agenda, fichas médicas y recetas digitales — y publica tu contenido en Instagram, TikTok y LinkedIn mientras tú te concentras en tus pacientes.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -225,6 +236,108 @@ function Problems() {
               </div>
               <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3">{p.title}</h3>
               <p className="text-gray-500 text-sm leading-relaxed">{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Perfiles ──────────────────────────────────────────────────────────────────
+
+const profiles = [
+  {
+    emoji: '🩺',
+    title: 'Para el médico',
+    subtitle: 'Gestión completa de tu consulta',
+    items: [
+      'Agenda inteligente 24/7 con recordatorios',
+      'Fichas médicas, recetas y certificados digitales',
+      'IA clínica 360° antes de cada consulta',
+      'Marketing Suite IA para 4 redes sociales',
+      'Web médica profesional con tu subdominio',
+      'Informes de rendimiento y retención',
+    ],
+    gradient: 'from-blue-50 to-teal-50',
+    border: 'border-blue-100',
+    badge: 'bg-blue-100 text-blue-700',
+    check: 'text-blue-600',
+  },
+  {
+    emoji: '👤',
+    title: 'Para tu paciente',
+    subtitle: 'Experiencia digital desde su celular',
+    items: [
+      'Portal propio: historial, citas y recetas',
+      'Reserva de citas en línea sin llamadas',
+      'Recordatorios por WhatsApp automáticos',
+      'Acceso a órdenes de examen y certificados',
+      'Encuesta de satisfacción post-consulta',
+      'Chat con Sara IA para preguntas previas',
+    ],
+    gradient: 'from-teal-50 to-emerald-50',
+    border: 'border-teal-100',
+    badge: 'bg-teal-100 text-teal-700',
+    check: 'text-teal-600',
+  },
+  {
+    emoji: '🗂️',
+    title: 'Para tu asistente',
+    subtitle: 'Control total sin complejidad',
+    items: [
+      'Panel multi-consultorio desde una sola cuenta',
+      'Gestión de agenda y pacientes completa',
+      'Generación de recetas y documentos',
+      'Recordatorios manuales con un clic',
+      'Acceso configurado sin datos sensibles',
+      'Coordinación de citas entre especialistas',
+    ],
+    gradient: 'from-violet-50 to-indigo-50',
+    border: 'border-violet-100',
+    badge: 'bg-violet-100 text-violet-700',
+    check: 'text-violet-600',
+  },
+]
+
+function Profiles() {
+  return (
+    <section className="py-24 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-14">
+          <span className="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+            Una plataforma, tres beneficiados
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Sara trabaja para{' '}
+            <span className="text-primary">todos en tu consultorio</span>
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-xl mx-auto">
+            No es solo una herramienta para el médico. Sara transforma la experiencia de todos los que forman parte de tu práctica.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-6">
+          {profiles.map((p) => (
+            <div
+              key={p.title}
+              className={`bg-gradient-to-br ${p.gradient} border ${p.border} rounded-2xl p-7 hover:-translate-y-1 transition-transform duration-200`}
+            >
+              <div className={`w-12 h-12 rounded-2xl ${p.badge} flex items-center justify-center text-2xl mb-4`}>
+                {p.emoji}
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">{p.title}</h3>
+              <p className="text-sm text-gray-500 mb-5">{p.subtitle}</p>
+              <ul className="space-y-2.5">
+                {p.items.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-gray-700">
+                    <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${p.check}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
@@ -687,20 +800,80 @@ function HowItWorks() {
   )
 }
 
+// ─── ROI ───────────────────────────────────────────────────────────────────────
+
+const roiStats = [
+  {
+    icon: '🕐',
+    metric: '3h → 10 min',
+    label: 'en redes sociales por semana',
+    desc: 'La mayoría de médicos pasa horas creando contenido. Sara lo hace en segundos.',
+  },
+  {
+    icon: '📅',
+    metric: '0 llamadas',
+    label: 'para llenar tu agenda',
+    desc: 'Tus pacientes reservan 24/7 desde su celular. Sin secretaria, sin whatsapps interminables.',
+  },
+  {
+    icon: '📄',
+    metric: '< 30 seg',
+    label: 'por receta o certificado',
+    desc: 'Sara recuerda medicamentos frecuentes y formatea todo correctamente. Un clic y listo.',
+  },
+  {
+    icon: '🤖',
+    metric: '24/7',
+    label: 'tu asistente IA en WhatsApp',
+    desc: 'Sara responde preguntas de pacientes potenciales aunque tú estés en consulta.',
+  },
+]
+
+function ROISection() {
+  return (
+    <section className="py-24 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-14">
+          <span className="inline-block bg-green-50 text-green-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+            Resultados reales
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Lo que cambia cuando usas{' '}
+            <span className="text-primary">Sara</span>
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-xl mx-auto">
+            No es marketing. Es lo que reportan los médicos que ya trabajan con Sara cada día.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {roiStats.map((s) => (
+            <div key={s.metric} className="bg-white rounded-2xl border border-gray-100 p-7 hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+              <div className="text-3xl mb-4">{s.icon}</div>
+              <p className="text-2xl font-extrabold text-gray-900 mb-0.5">{s.metric}</p>
+              <p className="text-xs font-semibold text-primary mb-3">{s.label}</p>
+              <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Pricing ───────────────────────────────────────────────────────────────────
 
 const plans = [
   {
     name: 'Pro Mensual',
     price: '$29',
-    priceOld: '$89',
     period: '/mes',
     desc: 'Todo el poder de Sara Medical para tu consultorio, sin compromisos.',
-    highlight: false,
-    badge: null,
-    badgeBg: '',
-    checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2',
-    priceNormalText: 'Precio normal: $89/mes',
+    highlight: true,
+    badge: '⭐ Más popular',
+    badgeBg: 'bg-primary',
+    checkoutUrl: 'https://pay.hotmart.com/X104843203F?checkoutMode=2&offDiscount=TRIAL21',
+    launchBadge: '🚀 Precio de lanzamiento · Sube pronto',
     features: [
       { icon: '👥', text: 'Pacientes, citas y fichas clínicas ilimitadas.' },
       { icon: '🤖', text: 'Sara IA en WhatsApp Business — atiende 24/7.' },
@@ -709,36 +882,12 @@ const plans = [
       { icon: '🌐', text: 'Web médica profesional incluida.' },
       { icon: '📋', text: 'Portal del paciente en su celular.' },
     ],
-    cta: 'Elegir Plan Mensual',
-    ctaStyle: 'border-2 border-primary text-primary hover:bg-primary hover:text-white',
-  },
-  {
-    name: 'Pro Anual',
-    price: '$249',
-    priceOld: '$1,068',
-    priceMonthly: '$20.75',
-    period: '/año',
-    savings: 'Ahorras $99 al año vs precio normal',
-    desc: 'La forma más inteligente de crecer tu consultorio.',
-    highlight: true,
-    badge: '⭐ Mejor oferta',
-    badgeBg: 'bg-accent',
-    checkoutUrl: 'https://pay.hotmart.com/H104994063B?checkoutMode=2',
-    features: [
-      { icon: '✔', text: 'Todo lo del Plan Pro Mensual incluido.' },
-      { icon: '💰', text: 'Solo $20.75/mes — ahorras $99 al año.' },
-      { icon: '🎁', text: 'Onboarding personalizado 1:1 incluido.' },
-      { icon: '🚀', text: 'Acceso anticipado a nuevas funcionalidades IA.' },
-      { icon: '⚡', text: 'Soporte VIP con respuesta prioritaria todo el año.' },
-      { icon: '🎯', text: 'Canal directo de feedback que impacta el roadmap del producto.' },
-    ],
-    cta: 'Elegir Plan Anual',
-    ctaStyle: 'bg-white text-blue-700 font-bold hover:bg-blue-50',
+    cta: 'Empezar 21 días gratis',
+    ctaStyle: 'bg-white text-primary font-bold hover:bg-blue-50',
   },
   {
     name: 'Enterprise',
     price: '$129',
-    priceOld: '$199',
     period: '/mes',
     priceSubtitle: 'hasta 5 médicos',
     priceNote: '+$20/mes por médico adicional',
@@ -748,14 +897,14 @@ const plans = [
     badgeBg: '',
     checkoutUrl: 'https://pay.hotmart.com/N104843955S?checkoutMode=2',
     features: [
-      { icon: '✔', text: 'Todo el Plan PRO para cada médico incluido.' },
+      { icon: '✔', text: 'Todo el Plan Pro para cada médico incluido.' },
       { icon: '🏥', text: 'Hasta 5 médicos — sedes adicionales bajo cotización.' },
       { icon: '👥', text: 'Asistentes ilimitadas por médico.' },
-      { icon: '🎨', text: 'White Label: tu marca, tu dominio personalizado.' },
-      { icon: '🎁', text: 'Onboarding asistido para cada médico del equipo.' },
+      { icon: '🎨', text: 'White-label: tu marca, tu dominio personalizado.' },
+      { icon: '🎁', text: 'Onboarding dedicado para cada médico del equipo.' },
       { icon: '⚡', text: 'Soporte VIP — respuesta en menos de 2 horas.' },
     ],
-    cta: 'Elegir Plan Enterprise',
+    cta: 'Contratar Enterprise',
     ctaStyle: 'border-2 border-gray-200 text-gray-700 hover:border-primary hover:text-primary',
   },
 ]
@@ -781,13 +930,13 @@ function Pricing() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6 items-stretch">
+        <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.name}
               className={`relative flex flex-col rounded-2xl p-8 transition-all duration-200 ${
                 plan.highlight
-                  ? 'text-white shadow-2xl shadow-primary/40 scale-[1.04] ring-2 ring-white/20'
+                  ? 'text-white shadow-2xl shadow-primary/40 scale-[1.02] ring-2 ring-white/20'
                   : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
               }`}
               style={plan.highlight ? { background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' } : {}}
@@ -798,21 +947,18 @@ function Pricing() {
                 </div>
               )}
 
-              <div className="mb-6">
-                <div className="mb-2">
-                  <span className="inline-block bg-green-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
-                    🎉 70% OFF — Precio de Lanzamiento
-                  </span>
-                </div>
+              <div className="mb-6 mt-1">
+                {'launchBadge' in plan && plan.launchBadge && (
+                  <div className="mb-3">
+                    <span className="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                      {plan.launchBadge as string}
+                    </span>
+                  </div>
+                )}
                 <p className={`font-bold text-lg mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                   {plan.name}
                 </p>
 
-                {'priceOld' in plan && plan.priceOld && (
-                  <span className={`text-base font-medium line-through ${plan.highlight ? 'text-blue-300' : 'text-gray-400'}`}>
-                    {plan.priceOld as string}
-                  </span>
-                )}
                 <div className="flex items-end gap-1 mb-1">
                   <span className={`text-4xl font-extrabold ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
                     {plan.price}
@@ -825,33 +971,15 @@ function Pricing() {
                   </span>
                 </div>
 
-                {/* Pro Anual: mostrar equivalente mensual + ahorro */}
-                {'priceMonthly' in plan && plan.priceMonthly && (
-                  <div className="mb-2">
-                    <span className="inline-flex items-center gap-1 bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                      ≈ {plan.priceMonthly as string}/mes · 💰 {(plan as { savings?: string }).savings}
-                    </span>
-                  </div>
-                )}
-
-                {'priceNormalText' in plan && plan.priceNormalText && (
-                  <p className={`text-xs mt-0.5 mb-1 ${plan.highlight ? 'text-blue-300' : 'text-gray-400'}`}>
-                    {plan.priceNormalText as string}
-                  </p>
-                )}
-
                 {'priceNote' in plan && plan.priceNote && (
                   <div className="mt-1.5 mb-2">
-                    <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-                      </svg>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${plan.highlight ? 'bg-white/15 text-blue-100' : 'bg-primary/10 text-primary'}`}>
                       {plan.priceNote as string}
                     </span>
                   </div>
                 )}
 
-                <p className={`text-sm ${plan.highlight ? 'text-blue-100' : 'text-gray-500'}`}>
+                <p className={`text-sm mt-1 ${plan.highlight ? 'text-blue-100' : 'text-gray-500'}`}>
                   {plan.desc}
                 </p>
               </div>
@@ -1153,19 +1281,90 @@ function Footer() {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
+const jsonLdSoftware = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Sara Medical',
+  operatingSystem: 'Web',
+  applicationCategory: 'HealthApplication',
+  description: 'Plataforma de gestión médica con IA para médicos independientes. Agenda inteligente, fichas, recetas digitales y Marketing Suite para 4 redes sociales.',
+  url: 'https://www.consultorio.site',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Pro Mensual',
+      price: '29',
+      priceCurrency: 'USD',
+      description: 'Pacientes ilimitados, Sara IA, Marketing Suite, Web médica profesional.',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Enterprise',
+      price: '129',
+      priceCurrency: 'USD',
+      description: 'Hasta 5 médicos, white-label, soporte VIP, panel centralizado.',
+    },
+  ],
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.9',
+    ratingCount: '200',
+    bestRating: '5',
+  },
+}
+
+const jsonLdFaq = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Necesito tarjeta de crédito para el trial?',
+      acceptedAnswer: { '@type': 'Answer', text: 'No. Los 21 días de prueba son completamente gratis, sin tarjeta. Solo te registras con tu correo.' },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cuánto cuesta Sara Medical?',
+      acceptedAnswer: { '@type': 'Answer', text: 'El Plan Pro Mensual cuesta $29/mes (precio de lanzamiento). Incluye pacientes ilimitados, agenda inteligente, fichas, recetas, Marketing Suite IA y web médica profesional. Enterprise para clínicas desde $129/mes.' },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Puedo cancelar en cualquier momento?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Sí. Cancelas desde Hotmart y no se cobra el siguiente mes. Tu acceso continúa hasta el final del período ya pagado.' },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Sara reemplaza a un community manager?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Sara genera posts con IA y los publica automáticamente en Instagram, Facebook, TikTok y LinkedIn. La mayoría de médicos reduce su tiempo en redes de 3 horas a 10 minutos por semana.' },
+    },
+  ],
+}
+
 export default function LandingPage() {
   return (
     <>
+      <Script
+        id="ld-software"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }}
+      />
+      <Script
+        id="ld-faq"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
+      />
       <AuthErrorRedirect />
       <NavHeader />
       <main>
         <Hero />
+        <Profiles />
         <Problems />
         <Features />
         <MarketingSuite />
         <Testimonials />
         <KnowledgeBase />
         <HowItWorks />
+        <ROISection />
         <Pricing />
         <DemoSection />
         <CTAFinal />

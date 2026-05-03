@@ -7,7 +7,7 @@ import { Check, X } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Precios — Sara Medical | Planes para tu consultorio',
   description:
-    'Sara Medical automatiza tu agenda, recetas digitales y marketing en redes sociales con IA. Desde $0 gratis. Plan Pro desde $29/mes. Prueba 21 días sin tarjeta.',
+    'Sara Medical automatiza tu agenda, recetas digitales y marketing con IA. Plan Pro $29/mes. Enterprise para clínicas con múltiples médicos. Prueba 21 días sin tarjeta.',
   openGraph: {
     title: 'Precios — Sara Medical',
     description:
@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     siteName: 'Sara Medical',
   },
 }
+
+const ENTERPRISE_HOTMART = 'https://pay.hotmart.com/N104843955S?checkoutMode=2'
 
 const FREE_FEATURES = [
   { label: '3 pacientes', included: true },
@@ -38,7 +40,20 @@ const PRO_FEATURES = [
   { label: 'Autopilot: publica mientras atiendes pacientes', included: true },
   { label: 'Web médica profesional incluida', included: true },
   { label: 'CIE-10 y ICD-11 integrado', included: true },
+  { label: 'Portal del paciente incluido', included: true },
   { label: 'Soporte prioritario', included: true },
+]
+
+const ENTERPRISE_FEATURES = [
+  { label: 'Todo el Plan Pro para cada médico', included: true },
+  { label: 'Hasta 5 médicos incluidos', included: true },
+  { label: '+$20/mes por médico adicional', included: true },
+  { label: 'Panel centralizado multi-médico', included: true },
+  { label: 'Asistentes ilimitadas por médico', included: true },
+  { label: 'White-label (tu marca, tu dominio)', included: true },
+  { label: 'Onboarding dedicado para tu equipo', included: true },
+  { label: 'Soporte VIP — respuesta en menos de 2 horas', included: true },
+  { label: 'Acceso anticipado a nuevas funcionalidades', included: true },
 ]
 
 const FAQS = [
@@ -52,15 +67,15 @@ const FAQS = [
   },
   {
     q: '¿Puedo cancelar en cualquier momento?',
-    a: 'Sí. Plan mensual: cancelas desde Hotmart y no se cobra el siguiente mes. Plan anual: el acceso continúa hasta el final del período.',
+    a: 'Sí. Cancelas desde Hotmart y no se cobra el siguiente mes. Tu acceso continúa hasta el final del período ya pagado.',
   },
   {
     q: '¿Qué pasa con mis datos si no me suscribo?',
     a: 'Tu información está guardada de forma segura. Si te suscribes después, recuperas acceso inmediato a toda tu información.',
   },
   {
-    q: '¿El Marketing Suite reemplaza mi community manager?',
-    a: 'Sara genera los posts con IA y los publica automáticamente. La mayoría de médicos reduce su tiempo en redes de 3 horas a 10 minutos por semana.',
+    q: '¿El plan Enterprise es para clínicas?',
+    a: 'Sí. Enterprise está diseñado para clínicas con múltiples médicos y centros de salud. Incluye panel centralizado multi-médico, white-label y soporte VIP. Contáctanos para un plan a tu medida.',
   },
 ]
 
@@ -96,14 +111,14 @@ export default function PricingPage() {
             🎁 21 días de prueba gratis · Sin tarjeta
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
-            Sara publica tu contenido
+            Un plan para cada etapa
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
-              mientras atiendes pacientes
+              de tu práctica médica
             </span>
           </h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto">
-            Agenda, fichas, recetas, marketing en 4 redes sociales y asistente IA para WhatsApp. Todo en un solo lugar.
+            Desde el médico independiente que recién digitaliza su consulta hasta la clínica con múltiples especialistas. Sara crece contigo.
           </p>
         </div>
 
@@ -141,19 +156,21 @@ export default function PricingPage() {
           </div>
 
           {/* PRO MENSUAL */}
-          <div className="bg-white rounded-2xl border-2 border-primary p-7 flex flex-col shadow-lg shadow-primary/10">
-            <div className="mb-6">
-              <span className="inline-block bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full mb-2">Más popular</span>
-              <div className="mb-2">
-                <span className="inline-block bg-green-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">🎉 70% OFF — Precio de Lanzamiento</span>
+          <div className="bg-white rounded-2xl border-2 border-primary p-7 flex flex-col shadow-lg shadow-primary/10 relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1.5 rounded-full shadow whitespace-nowrap">
+              ⭐ Más popular
+            </div>
+            <div className="mb-6 mt-2">
+              <div className="mb-3">
+                <span className="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                  🚀 Precio de lanzamiento · Sube pronto
+                </span>
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-1">Pro Mensual</h2>
               <div className="flex items-end gap-1.5 mb-1">
-                <span className="text-xl font-medium text-gray-400 line-through">$89</span>
                 <span className="text-4xl font-extrabold text-gray-900">$29</span>
                 <span className="text-gray-400 text-sm mb-1">/mes</span>
               </div>
-              <p className="text-xs text-gray-400 mb-1">Precio normal: $89/mes</p>
               <p className="text-sm text-gray-400">Sin compromisos. Cancela cuando quieras.</p>
             </div>
             <ul className="space-y-2.5 mb-8 flex-1">
@@ -174,51 +191,46 @@ export default function PricingPage() {
             </a>
           </div>
 
-          {/* PRO ANUAL */}
+          {/* ENTERPRISE */}
           <div
             className="relative rounded-2xl p-7 flex flex-col text-white shadow-2xl shadow-blue-900/20 ring-1 ring-white/10"
-            style={{ background: 'linear-gradient(160deg, #1E40AF 0%, #0D9488 100%)' }}
+            style={{ background: 'linear-gradient(160deg, #1E3A8A 0%, #0F766E 100%)' }}
           >
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-              ⭐ Mejor oferta — Ahorras $99 al año
-            </div>
             <div className="mb-6">
-              <div className="mb-2">
-                <span className="inline-block bg-green-400 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">🎉 70% OFF — Precio de Lanzamiento</span>
-              </div>
-              <h2 className="text-xl font-bold mb-1">Pro Anual</h2>
+              <span className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+                🏥 Para clínicas
+              </span>
+              <h2 className="text-xl font-bold mb-1">Enterprise</h2>
               <div className="flex items-end gap-1.5 mb-1">
-                <span className="text-xl font-medium text-blue-300 line-through">$1,068</span>
-                <span className="text-4xl font-extrabold">$249</span>
-                <span className="text-blue-200 text-sm mb-1">/año</span>
+                <span className="text-4xl font-extrabold">$129</span>
+                <span className="text-blue-200 text-sm mb-1">/mes</span>
               </div>
-              <p className="text-blue-200 text-sm">≈ $20.75/mes · 💰 Ahorras $99 al año vs precio normal</p>
+              <p className="text-blue-200 text-sm mb-1">hasta 5 médicos incluidos</p>
+              <div className="inline-flex items-center gap-1 bg-white/15 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                +$20/mes por médico adicional
+              </div>
             </div>
             <ul className="space-y-2.5 mb-8 flex-1">
-              <li className="flex items-start gap-2.5 text-sm text-blue-100">
-                <Check size={16} className="flex-shrink-0 mt-0.5 text-teal-300" />
-                Todo lo del Plan Pro Mensual
-              </li>
-              <li className="flex items-start gap-2.5 text-sm text-blue-100">
-                <Check size={16} className="flex-shrink-0 mt-0.5 text-teal-300" />
-                Onboarding personalizado incluido ($150 de valor)
-              </li>
-              <li className="flex items-start gap-2.5 text-sm text-blue-100">
-                <Check size={16} className="flex-shrink-0 mt-0.5 text-teal-300" />
-                Soporte VIP prioritario todo el año
-              </li>
-              <li className="flex items-start gap-2.5 text-sm text-blue-100">
-                <Check size={16} className="flex-shrink-0 mt-0.5 text-teal-300" />
-                Acceso anticipado a nuevas funcionalidades
-              </li>
+              {ENTERPRISE_FEATURES.map((f, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm text-blue-100">
+                  <Check size={16} className="flex-shrink-0 mt-0.5 text-teal-300" />
+                  {f.label}
+                </li>
+              ))}
             </ul>
             <a
-              href={HOTMART.annual}
+              href={ENTERPRISE_HOTMART}
               target="_blank"
               rel="noopener noreferrer"
               className="block text-center py-3.5 px-6 rounded-xl bg-white text-blue-700 font-bold hover:bg-blue-50 transition-colors text-sm"
             >
-              Elegir Plan Anual →
+              Contratar Enterprise →
+            </a>
+            <a
+              href="mailto:soporte@consultorio.site?subject=Plan%20Enterprise%20-%20Consulta"
+              className="block text-center py-2 px-6 text-blue-300 hover:text-white transition-colors text-xs mt-2"
+            >
+              ¿Tienes preguntas? Escríbenos →
             </a>
           </div>
         </div>
@@ -228,10 +240,10 @@ export default function PricingPage() {
           <p className="text-gray-400 text-sm mb-4 font-medium uppercase tracking-wider">Usado por médicos en Ecuador</p>
           <div className="flex flex-wrap justify-center gap-8">
             {[
+              { stat: '+200', label: 'médicos activos' },
               { stat: '21 días', label: 'Trial gratis, sin tarjeta' },
               { stat: '< 1 min', label: 'Activación automática post-pago' },
-              { stat: '4 redes', label: 'Instagram, Facebook, TikTok, LinkedIn' },
-              { stat: '24/7', label: 'Sara IA en WhatsApp Business' },
+              { stat: '4.9/5', label: 'valoración media' },
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <p className="text-2xl font-extrabold text-gray-900">{item.stat}</p>
