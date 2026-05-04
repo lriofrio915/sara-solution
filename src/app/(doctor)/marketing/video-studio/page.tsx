@@ -81,13 +81,28 @@ export default function VideoStudioPage() {
     setStatus('uploading')
     setError(null)
 
-    const fd = new FormData()
-    fd.append('file', f)
     try {
-      const res = await fetch('/api/marketing/video-studio/upload', { method: 'POST', body: fd })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Error al subir')
-      setFileUrl(data.url)
+      // Step 1: get signed upload URL from server (tiny request, no body size issue)
+      const urlRes = await fetch('/api/marketing/video-studio/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: f.name, contentType: f.type || 'video/mp4' }),
+      })
+      const urlData = await urlRes.json()
+      if (!urlRes.ok) throw new Error(urlData.error ?? 'Error obteniendo URL de subida')
+
+      // Step 2: upload directly to Supabase (bypasses Next.js/Vercel body limit)
+      const uploadRes = await fetch(urlData.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': urlData.contentType },
+        body: f,
+      })
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text()
+        throw new Error(`Error al subir: ${uploadRes.status} ${errText.slice(0, 120)}`)
+      }
+
+      setFileUrl(urlData.publicUrl)
       setStatus('uploaded')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al subir el video')
