@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { ExternalLink, RefreshCw } from "lucide-react"
 
-const CARRUSEL_URL = "http://localhost:3002"
+const CARRUSEL_URL = process.env.NEXT_PUBLIC_CARRUSEL_URL ?? "http://localhost:3002"
 
 export default function CarruselPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")

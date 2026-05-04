@@ -35,7 +35,7 @@ const nextConfig = {
       // OpenRouter (Sara chat público), Facebook Graph (OAuth callback flow client-side si aplica).
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.posthog.com https://eu-assets.i.posthog.com https://openrouter.ai https://graph.facebook.com",
       "frame-ancestors 'self'",
-      "frame-src 'self'",
+      "frame-src 'self' https://*.fly.dev",
       "form-action 'self'",
       "base-uri 'self'",
       "object-src 'none'",
