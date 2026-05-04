@@ -329,7 +329,7 @@ export default function VideoStudioPage() {
               </div>
               <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Preview en vivo</p>
               <p className="text-gray-400 dark:text-slate-500 text-xs text-center px-8">
-                Describe tu video y haz clic en "Generar con IA" para ver el preview aquí
+                Describe tu video y haz clic en &ldquo;Generar con IA&rdquo; para ver el preview aquí
               </p>
             </div>
           )}
@@ -400,7 +400,7 @@ export default function VideoStudioPage() {
                   {result.title && (
                     <div className="rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1">Título principal</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">"{result.title}"</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">&ldquo;{result.title}&rdquo;</p>
                       {result.subtitle && <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{result.subtitle}</p>}
                     </div>
                   )}
@@ -414,7 +414,7 @@ export default function VideoStudioPage() {
                   {result.cta && (
                     <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
                       <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">CTA · aparece a los {result.ctaAt}s</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">"{result.cta}"</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">&ldquo;{result.cta}&rdquo;</p>
                     </div>
                   )}
                   {result.escenas?.map((e, i) => (

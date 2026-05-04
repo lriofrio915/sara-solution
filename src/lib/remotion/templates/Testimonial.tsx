@@ -38,7 +38,7 @@ export const Testimonial: React.FC<VideoParams> = (props) => {
         lineHeight: 1,
         userSelect: 'none',
       }}>
-        "
+        &ldquo;
       </div>
 
       {/* Main quote */}

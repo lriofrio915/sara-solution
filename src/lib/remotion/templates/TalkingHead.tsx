@@ -95,6 +95,23 @@ function CtaBand({ text, primaryColor, delay = 0 }: { text: string; primaryColor
   )
 }
 
+function SubtitleOverlay({ text, light }: { text: string; light: boolean }) {
+  const frame = useCurrentFrame()
+  return (
+    <div style={{
+      color: light ? 'rgba(255,255,255,0.9)' : 'rgba(26,31,28,0.7)',
+      fontFamily: 'system-ui',
+      fontSize: 44,
+      textAlign: 'center',
+      padding: '0 60px',
+      fontWeight: 400,
+      opacity: interpolate(frame, [0, 15], [0, 1]),
+    }}>
+      {text}
+    </div>
+  )
+}
+
 export const TalkingHead: React.FC<VideoParams> = (props) => {
   const { fps, durationInFrames } = useVideoConfig()
   const {
@@ -128,17 +145,7 @@ export const TalkingHead: React.FC<VideoParams> = (props) => {
       {subtitle && (
         <Sequence from={fps} durationInFrames={Math.min(fps * 3, durationInFrames - fps)}>
           <AbsoluteFill style={{ justifyContent: 'flex-start', alignItems: 'center', paddingTop: 200 }}>
-            <div style={{
-              color: videoUrl ? 'rgba(255,255,255,0.9)' : 'rgba(26,31,28,0.7)',
-              fontFamily: 'system-ui',
-              fontSize: 44,
-              textAlign: 'center',
-              padding: '0 60px',
-              fontWeight: 400,
-              opacity: interpolate(useCurrentFrame(), [0, 15], [0, 1]),
-            }}>
-              {subtitle}
-            </div>
+            <SubtitleOverlay text={subtitle} light={!!videoUrl} />
           </AbsoluteFill>
         </Sequence>
       )}
