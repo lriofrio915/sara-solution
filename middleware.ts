@@ -141,8 +141,11 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Do not add any logic between createServerClient and getUser()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Use getSession() — reads JWT from cookie, no network round-trip.
+  // getUser() caused 200-800ms delay on every Link navigation (Supabase server validation).
+  // Server components and API routes that need security use getUser() in their own handlers.
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   const isPatient = user?.user_metadata?.role === 'patient'
 
