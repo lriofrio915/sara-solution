@@ -1,13 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: [
-      '@prisma/client',
-      'prisma',
-      '@sparticuz/chromium',
-      'puppeteer-core',
-    ],
-  },
+  serverExternalPackages: [
+    '@prisma/client',
+    'prisma',
+    '@sparticuz/chromium',
+    'puppeteer-core',
+    '@remotion/renderer',
+    '@remotion/bundler',
+    '@remotion/studio',
+    'remotion',
+  ],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ibb.co' },
