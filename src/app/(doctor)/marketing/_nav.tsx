@@ -68,6 +68,16 @@ const tabs = [
     label: 'Biblioteca',
     icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>📚</span>,
   },
+  {
+    href: '/marketing/video-studio',
+    label: 'Video Studio',
+    icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>🎬</span>,
+  },
+  {
+    href: '/marketing/carrusel',
+    label: 'Carrusel IG',
+    icon: (active: boolean) => <span className={`text-base ${active ? 'text-primary' : 'text-gray-400'}`}>🎠</span>,
+  },
 ]
 
 export default function MarketingNav() {
