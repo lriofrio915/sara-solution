@@ -14,8 +14,12 @@ export const dynamic = 'force-dynamic'
 export default async function DoctorLayout({ children }: { children: React.ReactNode }) {
   try {
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) redirect('/login')
+    // getSession() reads JWT from cookie — no network round-trip.
+    // getUser() was causing 200-800ms delay on every navigation (Supabase server validation).
+    // API routes that handle sensitive data still call getUser() in their own handlers.
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user ?? null
+    if (!user) redirect('/login')
 
     // Read the active doctor cookie (set by /api/assistant/switch-doctor)
     const cookieStore = await cookies()
@@ -62,17 +66,18 @@ export default async function DoctorLayout({ children }: { children: React.React
     let assistantDoctors = null
 
     if (doctorWithRole.role === 'ASSISTANT') {
-      const member = await prisma.doctorMember.findFirst({
-        where: { authId: user.id, doctorId: doctorWithRole.id },
-        select: { name: true, avatarUrl: true },
-      })
+      // Parallelize: member info + switcher list are independent queries
+      const [member, allDoctors] = await Promise.all([
+        prisma.doctorMember.findFirst({
+          where: { authId: user.id, doctorId: doctorWithRole.id },
+          select: { name: true, avatarUrl: true },
+        }),
+        getAssistantDoctors(user.id),
+      ])
       if (member) {
         sidebarName = member.name.trim().split(/\s+/).map(toTitle).slice(0, 2).join(' ')
         sidebarAvatarUrl = member.avatarUrl
       }
-
-      // Load switcher doctors only if there are multiple
-      const allDoctors = await getAssistantDoctors(user.id)
       if (allDoctors.length > 1) {
         assistantDoctors = allDoctors
       }
