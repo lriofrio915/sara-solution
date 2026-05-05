@@ -3,21 +3,39 @@
 import { useState, useEffect, useRef } from "react"
 import { ExternalLink, RefreshCw } from "lucide-react"
 
-const CARRUSEL_URL = process.env.NEXT_PUBLIC_CARRUSEL_URL ?? "http://localhost:3002"
+const BASE_URL = process.env.NEXT_PUBLIC_CARRUSEL_URL ?? "http://localhost:3002"
 
 export default function CarruselPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
+  const [iframeSrc, setIframeSrc] = useState<string | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const checkAndLoad = () => {
+  const initAndLoad = async () => {
     setStatus("loading")
-    fetch(CARRUSEL_URL, { mode: "no-cors" })
-      .then(() => setStatus("ready"))
-      .catch(() => setStatus("error"))
+    setIframeSrc(null)
+    try {
+      await fetch(BASE_URL, { mode: "no-cors" })
+      // Fetch a short-lived credits token so open-carrusel can deduct credits
+      let ct = ""
+      try {
+        const res = await fetch("/api/marketing/credits/token")
+        if (res.ok) {
+          const data = await res.json()
+          ct = data.token ?? ""
+        }
+      } catch { /* token optional — open-carrusel still works without it */ }
+
+      const url = ct ? `${BASE_URL}?ct=${encodeURIComponent(ct)}` : BASE_URL
+      setIframeSrc(url)
+      setStatus("ready")
+    } catch {
+      setStatus("error")
+    }
   }
 
   useEffect(() => {
-    checkAndLoad()
+    initAndLoad()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -29,14 +47,14 @@ export default function CarruselPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={checkAndLoad}
+            onClick={initAndLoad}
             className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Recargar
           </button>
           <a
-            href={CARRUSEL_URL}
+            href={BASE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors"
@@ -61,7 +79,7 @@ export default function CarruselPage() {
               cd ~/Desktop/open-carrusel{"\n"}npm run dev
             </code>
             <button
-              onClick={checkAndLoad}
+              onClick={initAndLoad}
               className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Reintentar
@@ -77,10 +95,10 @@ export default function CarruselPage() {
         </div>
       )}
 
-      {status === "ready" && (
+      {status === "ready" && iframeSrc && (
         <iframe
           ref={iframeRef}
-          src={CARRUSEL_URL}
+          src={iframeSrc}
           className="flex-1 w-full border-0 rounded-xl shadow-sm"
           title="Open Carrusel"
           allow="clipboard-read; clipboard-write"
