@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic'
 import { useState, useRef, useCallback } from 'react'
 import {
   Sparkles, Download, Film, Clock, Layers,
-  AlertCircle, CheckCircle, Loader2, LayoutList, Play,
+  AlertCircle, CheckCircle, Loader2, Play,
+  Pencil, RotateCcw, Palette,
 } from 'lucide-react'
 import type { VideoParams } from '@/lib/remotion/types'
 
@@ -65,6 +66,9 @@ export default function VideoStudioPage() {
   const [rendering, setRendering] = useState(false)
   const [activeTab, setActiveTab] = useState<'preview' | 'storyboard'>('preview')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const patch = (updates: Partial<GeneratedResult>) =>
+    setResult(prev => prev ? { ...prev, ...updates } : prev)
 
   const handleFile = useCallback(async (f: File) => {
     if (!f.name.match(/\.(mp4|mov|webm|avi|m4v)$/i) && !f.type.startsWith('video/')) {
@@ -397,7 +401,9 @@ export default function VideoStudioPage() {
                         ? 'border-primary text-primary'
                         : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700'
                     }`}>
-                    {tab === 'preview' ? <><Play className="w-3 h-3" /> Preview</> : <><LayoutList className="w-3 h-3" /> Storyboard</>}
+                    {tab === 'preview'
+                      ? <><Play className="w-3 h-3" /> Preview</>
+                      : <><Pencil className="w-3 h-3" /> Editar</>}
                   </button>
                 ))}
               </div>
@@ -409,44 +415,173 @@ export default function VideoStudioPage() {
                 </div>
               )}
 
-              {/* Storyboard tab */}
+              {/* Edit tab */}
               {activeTab === 'storyboard' && (
-                <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
-                  {result.title && (
-                    <div className="rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-1">Título principal</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">&ldquo;{result.title}&rdquo;</p>
-                      {result.subtitle && <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{result.subtitle}</p>}
+                <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
+
+                  {/* Template */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-2">Template</p>
+                    <div className="flex gap-2">
+                      {(['talking_head', 'announcement', 'testimonial'] as const).map(t => (
+                        <button key={t} onClick={() => patch({ template: t })}
+                          className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                            result.template === t
+                              ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                              : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-slate-400 hover:border-primary/40'
+                          }`}>
+                          {TEMPLATE_LABELS[t]}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  {result.lowerThird && (
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Lower Third</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{result.lowerThird.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">{result.lowerThird.role}</p>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-1 block">Título principal</label>
+                    <input
+                      value={result.title}
+                      onChange={e => patch({ title: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      placeholder="Título del video"
+                    />
+                  </div>
+
+                  {/* Subtitle */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-1 block">Subtítulo <span className="normal-case font-normal">(opcional)</span></label>
+                    <input
+                      value={result.subtitle ?? ''}
+                      onChange={e => patch({ subtitle: e.target.value || null })}
+                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      placeholder="Texto secundario..."
+                    />
+                  </div>
+
+                  {/* Lower Third */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500">Lower Third</p>
+                      <button
+                        onClick={() => patch({ lowerThird: result.lowerThird ? null : { name: 'Tu nombre', role: 'Nutricionista' } })}
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-all ${
+                          result.lowerThird
+                            ? 'border-rose-200 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20'
+                            : 'border-primary/30 text-primary hover:bg-primary/5'
+                        }`}>
+                        {result.lowerThird ? 'Quitar' : '+ Agregar'}
+                      </button>
                     </div>
-                  )}
-                  {result.cta && (
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">CTA · aparece a los {result.ctaAt}s</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">&ldquo;{result.cta}&rdquo;</p>
-                    </div>
-                  )}
-                  {result.escenas?.map((e, i) => (
-                    <div key={i} className="rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 px-4 py-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Escena {e.numero}</p>
-                        <span className="text-[10px] font-mono text-gray-400">{e.inicio}s → {e.fin}s</span>
+                    {result.lowerThird && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          value={result.lowerThird.name}
+                          onChange={e => patch({ lowerThird: { ...result.lowerThird!, name: e.target.value } })}
+                          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                          placeholder="Nombre"
+                        />
+                        <input
+                          value={result.lowerThird.role}
+                          onChange={e => patch({ lowerThird: { ...result.lowerThird!, role: e.target.value } })}
+                          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                          placeholder="Cargo"
+                        />
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-slate-300">{e.descripcion}</p>
+                    )}
+                  </div>
+
+                  {/* CTA */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500">Llamada a la acción (CTA)</p>
+                      <button
+                        onClick={() => patch({ cta: result.cta ? null : 'Agenda tu consulta' })}
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-all ${
+                          result.cta
+                            ? 'border-rose-200 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20'
+                            : 'border-primary/30 text-primary hover:bg-primary/5'
+                        }`}>
+                        {result.cta ? 'Quitar' : '+ Agregar'}
+                      </button>
                     </div>
-                  ))}
-                  {result.notas && (
-                    <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-4 py-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-amber-600 mb-1">Notas de edición</p>
-                      <p className="text-xs text-amber-700 dark:text-amber-300">{result.notas}</p>
+                    {result.cta !== null && result.cta !== undefined && (
+                      <div className="flex gap-2">
+                        <input
+                          value={result.cta}
+                          onChange={e => patch({ cta: e.target.value })}
+                          className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                          placeholder="Texto del botón"
+                        />
+                        <div className="flex items-center gap-1.5 border border-gray-200 dark:border-gray-700 rounded-lg px-3 bg-white dark:bg-gray-800">
+                          <span className="text-[10px] text-gray-400 whitespace-nowrap">a los</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={result.duration - 1}
+                            value={result.ctaAt ?? 0}
+                            onChange={e => patch({ ctaAt: Math.max(0, parseInt(e.target.value) || 0) })}
+                            className="w-10 text-sm text-center text-gray-900 dark:text-white bg-transparent focus:outline-none"
+                          />
+                          <span className="text-[10px] text-gray-400">s</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Colors */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-2 flex items-center gap-1">
+                      <Palette className="w-3 h-3" /> Colores
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { key: 'primaryColor', label: 'Principal' },
+                        { key: 'bgColor', label: 'Fondo' },
+                        { key: 'textColor', label: 'Texto' },
+                      ] as const).map(({ key, label }) => (
+                        <label key={key} className="flex flex-col items-center gap-1.5 cursor-pointer group">
+                          <div className="relative w-full h-9 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="absolute inset-0" style={{ background: result[key] }} />
+                            <input
+                              type="color"
+                              value={result[key]}
+                              onChange={e => patch({ [key]: e.target.value })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                          </div>
+                          <span className="text-[10px] text-gray-500 dark:text-slate-400">{label}</span>
+                          <span className="text-[9px] font-mono text-gray-400 dark:text-slate-500">{result[key]}</span>
+                        </label>
+                      ))}
                     </div>
-                  )}
+                  </div>
+
+                  {/* Regenerate with new prompt */}
+                  <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-2 flex items-center gap-1">
+                      <RotateCcw className="w-3 h-3" /> Regenerar con IA
+                    </p>
+                    <textarea
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      rows={3}
+                      placeholder="Ajusta el prompt o escribe uno nuevo..."
+                      className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors mb-2"
+                    />
+                    <button
+                      onClick={handleGenerate}
+                      disabled={generating || description.trim().length < 10}
+                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                        !generating && description.trim().length >= 10
+                          ? 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed border border-transparent'
+                      }`}
+                    >
+                      {generating
+                        ? <><Loader2 className="w-3 h-3 animate-spin" /> Generando...</>
+                        : <><Sparkles className="w-3 h-3" /> Regenerar con IA</>}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
