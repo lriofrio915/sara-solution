@@ -8,6 +8,10 @@ import {
   Pencil, RotateCcw, Palette,
 } from 'lucide-react'
 import type { VideoParams } from '@/lib/remotion/types'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile, toBlobURL } from '@ffmpeg/util'
+
+const ffmpeg = new FFmpeg()
 
 // Player dynamically loaded — no SSR (Remotion needs browser APIs)
 const VideoStudioPlayer = dynamic(() => import('@/components/marketing/VideoStudioPlayer'), {
@@ -65,25 +69,77 @@ export default function VideoStudioPage() {
   const [dragging, setDragging] = useState(false)
   const [rendering, setRendering] = useState(false)
   const [activeTab, setActiveTab] = useState<'preview' | 'storyboard'>('preview')
+  const [compressing, setCompressing] = useState(false)
+  const [compressionProgress, setCompressionProgress] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const patch = (updates: Partial<GeneratedResult>) =>
     setResult(prev => prev ? { ...prev, ...updates } : prev)
 
-  const handleFile = useCallback(async (f: File) => {
-    if (!f.name.match(/\.(mp4|mov|webm|avi|m4v)$/i) && !f.type.startsWith('video/')) {
+  async function compressVideo(file: File): Promise<File> {
+    if (!ffmpeg.loaded) {
+      await ffmpeg.load({
+        coreURL: await toBlobURL(
+          'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/esm/ffmpeg-core.js',
+          'text/javascript',
+        ),
+        wasmURL: await toBlobURL(
+          'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/esm/ffmpeg-core.wasm',
+          'application/wasm',
+        ),
+      })
+    }
+    ffmpeg.on('progress', ({ progress }) =>
+      setCompressionProgress(Math.min(99, Math.round(progress * 100)))
+    )
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'mp4'
+    const inputName = `input.${ext}`
+    await ffmpeg.writeFile(inputName, await fetchFile(file))
+    await ffmpeg.exec([
+      '-i', inputName,
+      '-vcodec', 'libx264', '-crf', '28',
+      '-acodec', 'aac', '-ar', '44100',
+      '-preset', 'ultrafast',
+      '-movflags', '+faststart',
+      'output.mp4',
+    ])
+    const raw = await ffmpeg.readFile('output.mp4')
+    setCompressionProgress(100)
+    const part = typeof raw === 'string' ? raw : (raw as Uint8Array<ArrayBuffer>)
+    const blob = new Blob([part], { type: 'video/mp4' })
+    return new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' })
+  }
+
+  const handleFile = useCallback(async (rawFile: File) => {
+    if (!rawFile.name.match(/\.(mp4|mov|webm|avi|m4v)$/i) && !rawFile.type.startsWith('video/')) {
       setError('Formato no soportado. Usa MP4, MOV, WebM o AVI.')
       return
     }
-    if (f.size > 500 * 1024 * 1024) {
-      setError('El video no puede superar 500 MB.')
-      return
-    }
-    setFile(f)
+    setFile(rawFile)
     setFileUrl(null)
     setResult(null)
-    setStatus('uploading')
     setError(null)
+
+    let f = rawFile
+
+    // Compress if > 45MB (Supabase free tier limit is 50MB)
+    if (rawFile.size > 45 * 1024 * 1024) {
+      setCompressing(true)
+      setCompressionProgress(0)
+      setStatus('uploading')
+      try {
+        f = await compressVideo(rawFile)
+        setFile(f)
+      } catch (e) {
+        setCompressing(false)
+        setError(e instanceof Error ? e.message : 'Error al comprimir el video')
+        setStatus('error')
+        return
+      }
+      setCompressing(false)
+    }
+
+    setStatus('uploading')
 
     try {
       // Step 1: get signed upload URL from server (tiny request, no body size issue)
@@ -215,13 +271,13 @@ export default function VideoStudioPage() {
                   Sube tu video crudo
                 </p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">
-                  MP4 · MOV · WebM — máx 500 MB — o describe sin video
+                  MP4 · MOV · WebM · AVI — videos grandes se comprimen automáticamente
                 </p>
               </div>
             ) : (
               <div className="p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  {status === 'uploading'
+                  {compressing || status === 'uploading'
                     ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
                     : status === 'uploaded'
                     ? <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -229,14 +285,28 @@ export default function VideoStudioPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{file.name}</p>
-                  <p className="text-xs text-gray-400">{fmtSize(file.size)} · {status === 'uploading' ? 'Subiendo...' : 'Listo'}</p>
+                  {compressing ? (
+                    <div className="mt-1 space-y-1">
+                      <p className="text-xs text-primary font-medium">Comprimiendo... {compressionProgress}%</p>
+                      <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-300"
+                          style={{ width: `${compressionProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400">{fmtSize(file.size)} · {status === 'uploading' ? 'Subiendo...' : 'Listo'}</p>
+                  )}
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setFile(null); setFileUrl(null); setStatus('idle'); setResult(null) }}
-                  className="text-xs text-gray-400 hover:text-rose-500 transition-colors px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                >
-                  Quitar
-                </button>
+                {!compressing && status !== 'uploading' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setFile(null); setFileUrl(null); setStatus('idle'); setResult(null) }}
+                    className="text-xs text-gray-400 hover:text-rose-500 transition-colors px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                  >
+                    Quitar
+                  </button>
+                )}
               </div>
             )}
           </div>
