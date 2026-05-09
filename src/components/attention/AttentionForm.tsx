@@ -222,7 +222,7 @@ export default function AttentionForm({
     const timeout = setTimeout(async () => {
       setCie10Loading(true)
       try {
-        const res = await fetch(`/api/cie10?q=${encodeURIComponent(cie10Query)}`)
+        const res = await fetch(`/api/icd11?q=${encodeURIComponent(cie10Query)}`)
         const data = await res.json()
         setCie10Results(data.results ?? [])
       } catch {
@@ -756,7 +756,7 @@ export default function AttentionForm({
           {activeTab === 1 && (
             <div className="space-y-4">
               <div className="relative">
-                <label className="label text-xs">Buscar diagnóstico CIE-10</label>
+                <label className="label text-xs">Buscar diagnóstico CIE-10 / ICD-11</label>
                 <input
                   className="input text-sm"
                   value={cie10Query}
