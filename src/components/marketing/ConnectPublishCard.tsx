@@ -106,6 +106,7 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
   const tokenExpired = tokenDaysLeft !== null && tokenDaysLeft <= 0
   const tokenExpiringSoon = tokenDaysLeft !== null && tokenDaysLeft > 0 && tokenDaysLeft <= 7
 
+
   async function handlePublish() {
     if (!postId) return
     setPublishing(true)
@@ -194,6 +195,7 @@ export default function ConnectPublishCard({ platform, postId, onPublished }: Pr
           Tu cuenta de {cfg.label} necesita reconectarse para seguir publicando.
         </p>
       )}
+
 
       {error && (
         <p className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-1.5">{error}</p>

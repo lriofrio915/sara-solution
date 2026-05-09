@@ -746,6 +746,8 @@ function DoctorProfileContent() {
     }
   }
 
+
+
   if (!profile) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
@@ -2683,6 +2685,8 @@ function DoctorProfileContent() {
           </button>
         </div>
       </div>)}
+
+
 
       {/* ── ZONA DE PELIGRO (tab Cuenta) ─────────────────── */}
       {activeTab === 'cuenta' && (
