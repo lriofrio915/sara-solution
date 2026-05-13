@@ -5,7 +5,7 @@
  *   - 24h before  (marker: wa:{id})
  *   - 2h before   (marker: wa:2h:{id})
  *
- * Run this endpoint every hour via cron.
+ * Run this endpoint once daily via cron (08:00 AM Ecuador time).
  */
 
 import { NextRequest, NextResponse } from 'next/server'

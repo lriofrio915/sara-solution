@@ -6,7 +6,7 @@ name: Satisfaction Surveys
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 8:00 PM Ecuador (UTC-5)
+    - cron: '0 * * * *'  # Cada hora (UTC) — el handler busca citas completadas hace ~2h
   workflow_dispatch:
 
 jobs:
