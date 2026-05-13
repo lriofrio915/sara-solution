@@ -14,14 +14,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const result = await prisma.doctor.updateMany({
-    where: {
-      plan: 'TRIAL',
-      trialEndsAt: { lt: new Date() },
-    },
-    data: { plan: 'FREE' },
-  })
+  try {
+    const result = await prisma.doctor.updateMany({
+      where: {
+        plan: 'TRIAL',
+        trialEndsAt: { lt: new Date() },
+      },
+      data: { plan: 'FREE' },
+    })
 
-  console.log(`[cron/trial-expiry] Expired ${result.count} trial(s)`)
-  return NextResponse.json({ expired: result.count })
+    console.log(`[cron/trial-expiry] Expired ${result.count} trial(s)`)
+    return NextResponse.json({ expired: result.count })
+  } catch (err) {
+    console.error('GET /api/cron/trial-expiry:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
 }

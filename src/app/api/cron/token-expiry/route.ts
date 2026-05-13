@@ -28,57 +28,62 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const now = new Date()
-  const warnCutoff = new Date(now.getTime() + WARN_DAYS * 24 * 60 * 60 * 1000)
+  try {
+    const now = new Date()
+    const warnCutoff = new Date(now.getTime() + WARN_DAYS * 24 * 60 * 60 * 1000)
 
-  // Fetch all doctors with socialTokens set
-  const doctors = await prisma.doctor.findMany({
-    where: { socialTokens: { not: null } },
-    select: { id: true, name: true, email: true, socialTokens: true },
-  })
+    // Fetch all doctors with socialTokens set
+    const doctors = await prisma.doctor.findMany({
+      where: { socialTokens: { not: null } },
+      select: { id: true, name: true, email: true, socialTokens: true },
+    })
 
-  let notified = 0
-  let errors = 0
+    let notified = 0
+    let errors = 0
 
-  for (const doctor of doctors) {
-    let tokens: SocialTokens = {}
-    try {
-      tokens = JSON.parse(doctor.socialTokens!) as SocialTokens
-    } catch {
-      continue
-    }
+    for (const doctor of doctors) {
+      let tokens: SocialTokens = {}
+      try {
+        tokens = JSON.parse(doctor.socialTokens!) as SocialTokens
+      } catch {
+        continue
+      }
 
-    const expiring: string[] = []
+      const expiring: string[] = []
 
-    for (const platform of PLATFORMS) {
-      const t = tokens[platform]
-      if (!t?.accessToken || !t?.expiresAt) continue
+      for (const platform of PLATFORMS) {
+        const t = tokens[platform]
+        if (!t?.accessToken || !t?.expiresAt) continue
 
-      const expiresAt = new Date(t.expiresAt)
-      if (expiresAt <= warnCutoff && expiresAt > now) {
-        const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        expiring.push(`${platform}:${daysLeft}`)
+        const expiresAt = new Date(t.expiresAt)
+        if (expiresAt <= warnCutoff && expiresAt > now) {
+          const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          expiring.push(`${platform}:${daysLeft}`)
+        }
+      }
+
+      if (expiring.length === 0) continue
+
+      // Build human-readable platform list and minimum days
+      const platformNames = expiring.map(e => {
+        const [p] = e.split(':')
+        return p.charAt(0).toUpperCase() + p.slice(1)
+      })
+      const minDays = Math.min(...expiring.map(e => parseInt(e.split(':')[1])))
+
+      try {
+        await sendTokenExpiryEmail(doctor.email, doctor.name, platformNames, minDays)
+        notified++
+        console.log(`[cron/token-expiry] Notified ${doctor.email} (${platformNames.join(', ')}, ${minDays}d left)`)
+      } catch (err) {
+        errors++
+        console.error(`[cron/token-expiry] Failed to email ${doctor.email}:`, err)
       }
     }
 
-    if (expiring.length === 0) continue
-
-    // Build human-readable platform list and minimum days
-    const platformNames = expiring.map(e => {
-      const [p] = e.split(':')
-      return p.charAt(0).toUpperCase() + p.slice(1)
-    })
-    const minDays = Math.min(...expiring.map(e => parseInt(e.split(':')[1])))
-
-    try {
-      await sendTokenExpiryEmail(doctor.email, doctor.name, platformNames, minDays)
-      notified++
-      console.log(`[cron/token-expiry] Notified ${doctor.email} (${platformNames.join(', ')}, ${minDays}d left)`)
-    } catch (err) {
-      errors++
-      console.error(`[cron/token-expiry] Failed to email ${doctor.email}:`, err)
-    }
+    return NextResponse.json({ notified, errors, checked: doctors.length })
+  } catch (err) {
+    console.error('GET /api/cron/token-expiry:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
-
-  return NextResponse.json({ notified, errors, checked: doctors.length })
 }

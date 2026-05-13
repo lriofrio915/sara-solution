@@ -16,6 +16,7 @@ jobs:
       - name: Trigger satisfaction-surveys endpoint
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --max-time 30 --connect-timeout 10 \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.APP_URL }}/api/cron/satisfaction-surveys")
           HTTP_BODY=$(echo "$RESPONSE" | head -n -1)

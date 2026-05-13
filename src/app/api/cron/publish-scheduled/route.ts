@@ -1,7 +1,7 @@
 /**
  * GET /api/cron/publish-scheduled
  * Publishes all SocialPosts with status=SCHEDULED and scheduledAt <= now.
- * Configured to run every 15 minutes via Vercel Cron.
+ * Configured to run hourly via GitHub Actions.
  *
  * Requires header: x-cron-secret: $CRON_SECRET
  */
@@ -87,77 +87,82 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
-  const now = new Date()
+  try {
+    const now = new Date()
 
-  // Buscar todos los posts con scheduledAt <= now y status = SCHEDULED
-  const duePosts = await prisma.socialPost.findMany({
-    where: { status: 'SCHEDULED', scheduledAt: { lte: now } },
-    include: { doctor: { select: { socialTokens: true } } },
-    take: 50, // procesar hasta 50 por ejecución
-  })
+    // Buscar todos los posts con scheduledAt <= now y status = SCHEDULED
+    const duePosts = await prisma.socialPost.findMany({
+      where: { status: 'SCHEDULED', scheduledAt: { lte: now } },
+      include: { doctor: { select: { socialTokens: true } } },
+      take: 50, // procesar hasta 50 por ejecución
+    })
 
-  if (duePosts.length === 0) {
-    return NextResponse.json({ processed: 0, message: 'Nada que publicar' })
-  }
-
-  const results: { id: string; status: string; error?: string }[] = []
-
-  for (const post of duePosts) {
-    let tokens: Record<string, { accessToken?: string; userId?: string }> = {}
-    if (post.doctor.socialTokens) {
-      try { tokens = JSON.parse(post.doctor.socialTokens) } catch { /* ignore */ }
+    if (duePosts.length === 0) {
+      return NextResponse.json({ processed: 0, message: 'Nada que publicar' })
     }
 
-    const externalIds: Record<string, string> = (post.externalIds as Record<string, string>) ?? {}
-    const errors: string[] = []
+    const results: { id: string; status: string; error?: string }[] = []
 
-    try {
-      const platform = post.targetPlatform
-
-      if ((platform === 'INSTAGRAM' || platform === 'BOTH') && tokens.instagram?.accessToken) {
-        try {
-          const extId = await publishInstagram(tokens.instagram.accessToken, tokens.instagram.userId!, post.content, post.imageUrl)
-          externalIds.instagram = extId
-        } catch (e) { errors.push(`IG: ${e instanceof Error ? e.message : 'Error'}`) }
+    for (const post of duePosts) {
+      let tokens: Record<string, { accessToken?: string; userId?: string }> = {}
+      if (post.doctor.socialTokens) {
+        try { tokens = JSON.parse(post.doctor.socialTokens) } catch { /* ignore */ }
       }
 
-      if ((platform === 'FACEBOOK' || platform === 'BOTH') && tokens.facebook?.accessToken) {
-        try {
-          const extId = await publishFacebook(tokens.facebook.accessToken, tokens.facebook.userId!, post.content, post.imageUrl)
-          externalIds.facebook = extId
-        } catch (e) { errors.push(`FB: ${e instanceof Error ? e.message : 'Error'}`) }
+      const externalIds: Record<string, string> = (post.externalIds as Record<string, string>) ?? {}
+      const errors: string[] = []
+
+      try {
+        const platform = post.targetPlatform
+
+        if ((platform === 'INSTAGRAM' || platform === 'BOTH') && tokens.instagram?.accessToken) {
+          try {
+            const extId = await publishInstagram(tokens.instagram.accessToken, tokens.instagram.userId!, post.content, post.imageUrl)
+            externalIds.instagram = extId
+          } catch (e) { errors.push(`IG: ${e instanceof Error ? e.message : 'Error'}`) }
+        }
+
+        if ((platform === 'FACEBOOK' || platform === 'BOTH') && tokens.facebook?.accessToken) {
+          try {
+            const extId = await publishFacebook(tokens.facebook.accessToken, tokens.facebook.userId!, post.content, post.imageUrl)
+            externalIds.facebook = extId
+          } catch (e) { errors.push(`FB: ${e instanceof Error ? e.message : 'Error'}`) }
+        }
+
+        if (platform === 'LINKEDIN' && tokens.linkedin?.accessToken) {
+          try {
+            const extId = await publishLinkedIn(tokens.linkedin.accessToken, tokens.linkedin.userId!, post.content)
+            externalIds.linkedin = extId
+          } catch (e) { errors.push(`LI: ${e instanceof Error ? e.message : 'Error'}`) }
+        }
+
+        const allFailed = errors.length > 0 && Object.keys(externalIds).filter(k => !Object.keys((post.externalIds as Record<string, string>) ?? {}).includes(k)).length === 0
+        const newStatus = allFailed ? 'FAILED' : 'PUBLISHED'
+
+        await prisma.socialPost.update({
+          where: { id: post.id },
+          data: {
+            status: newStatus,
+            publishedAt: allFailed ? undefined : new Date(),
+            externalIds,
+          },
+        })
+
+        results.push({ id: post.id, status: newStatus, error: errors.length ? errors.join('; ') : undefined })
+      } catch (err) {
+        console.error(`[CRON PUBLISH] post ${post.id}:`, err)
+        await prisma.socialPost.update({ where: { id: post.id }, data: { status: 'FAILED' } })
+        results.push({ id: post.id, status: 'FAILED', error: err instanceof Error ? err.message : 'Error' })
       }
-
-      if (platform === 'LINKEDIN' && tokens.linkedin?.accessToken) {
-        try {
-          const extId = await publishLinkedIn(tokens.linkedin.accessToken, tokens.linkedin.userId!, post.content)
-          externalIds.linkedin = extId
-        } catch (e) { errors.push(`LI: ${e instanceof Error ? e.message : 'Error'}`) }
-      }
-
-      const allFailed = errors.length > 0 && Object.keys(externalIds).filter(k => !Object.keys((post.externalIds as Record<string, string>) ?? {}).includes(k)).length === 0
-      const newStatus = allFailed ? 'FAILED' : 'PUBLISHED'
-
-      await prisma.socialPost.update({
-        where: { id: post.id },
-        data: {
-          status: newStatus,
-          publishedAt: allFailed ? undefined : new Date(),
-          externalIds,
-        },
-      })
-
-      results.push({ id: post.id, status: newStatus, error: errors.length ? errors.join('; ') : undefined })
-    } catch (err) {
-      console.error(`[CRON PUBLISH] post ${post.id}:`, err)
-      await prisma.socialPost.update({ where: { id: post.id }, data: { status: 'FAILED' } })
-      results.push({ id: post.id, status: 'FAILED', error: err instanceof Error ? err.message : 'Error' })
     }
+
+    const published = results.filter(r => r.status === 'PUBLISHED').length
+    const failed    = results.filter(r => r.status === 'FAILED').length
+
+    console.log(`[CRON PUBLISH] ${published} publicados, ${failed} fallidos`)
+    return NextResponse.json({ processed: duePosts.length, published, failed, results })
+  } catch (err) {
+    console.error('GET /api/cron/publish-scheduled:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
-
-  const published = results.filter(r => r.status === 'PUBLISHED').length
-  const failed    = results.filter(r => r.status === 'FAILED').length
-
-  console.log(`[CRON PUBLISH] ${published} publicados, ${failed} fallidos`)
-  return NextResponse.json({ processed: duePosts.length, published, failed, results })
 }
