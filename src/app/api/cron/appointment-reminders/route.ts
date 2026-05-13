@@ -37,7 +37,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('x-cron-secret')
-  if (secret !== process.env.CRON_SECRET) {
+  if (secret !== process.env.CRON_SECRET?.trim()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
