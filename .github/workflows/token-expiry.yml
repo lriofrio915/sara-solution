@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Trigger token-expiry endpoint
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
+          RESPONSE=$(curl -s -L -w "\n%{http_code}" \
             --max-time 30 --connect-timeout 10 \
             -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.APP_URL }}/api/cron/token-expiry")
