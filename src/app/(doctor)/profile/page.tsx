@@ -19,6 +19,8 @@ interface DoctorProfile {
   bio: string | null
   avatarUrl: string | null
   bannerUrl: string | null
+  clinicLogo: string | null
+  website: string | null
   address: string | null
   whatsapp: string | null
   schedules: string | null
@@ -139,8 +141,12 @@ function DoctorProfileContent() {
   const [copied, setCopied] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [bannerUrl, setBannerUrl] = useState<string | null>(null)
+  const [clinicLogo, setClinicLogo] = useState<string | null>(null)
+  const [clinicLogoUploading, setClinicLogoUploading] = useState(false)
+  const [website, setWebsite] = useState<string>('')
   const [bannerUploading, setBannerUploading] = useState(false)
   const bannerRef = useRef<HTMLInputElement>(null)
+  const clinicLogoRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingAvail, setSavingAvail] = useState(false)
@@ -284,6 +290,8 @@ function DoctorProfileContent() {
         setProfile(data)
         setAvatarUrl(data.avatarUrl)
         setBannerUrl(data.bannerUrl)
+        setClinicLogo(data.clinicLogo ?? null)
+        setWebsite(data.website ?? '')
         setForm({
           name: data.name ?? '',
           titlePrefix: data.titlePrefix ?? '',
@@ -618,6 +626,35 @@ function DoctorProfileContent() {
     }
   }
 
+  async function handleClinicLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+    setClinicLogoUploading(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()
+      const path = `clinic-logo-${profile.id}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = `${data.publicUrl}?t=${Date.now()}`
+      setClinicLogo(url)
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clinicLogo: url }),
+      })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : JSON.stringify(err)
+      setError(`Error al subir el logo: ${msg}`)
+    } finally {
+      setClinicLogoUploading(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -643,6 +680,8 @@ function DoctorProfileContent() {
           ...form,
           avatarUrl,
           bannerUrl,
+          clinicLogo: clinicLogo || null,
+          website: website.trim() || null,
           slug: form.slug,
           branches: branches.length > 0 ? JSON.stringify(branches.filter((b) => b.address.trim())) : null,
           services: services.length > 0 ? JSON.stringify(services) : null,
@@ -846,6 +885,74 @@ function DoctorProfileContent() {
                 onChange={handleAvatarChange}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Logo del consultorio + Sitio web */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-1">Logo del consultorio</h2>
+            <p className="text-gray-400 text-xs">Aparece en las recetas médicas en lugar de tu foto de perfil. Sube el logo o imagen de tu consultorio/clínica.</p>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="relative w-20 h-20 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+              {clinicLogo ? (
+                <Image src={clinicLogo} alt="Logo consultorio" fill className="object-contain p-1" />
+              ) : (
+                <span className="text-gray-300 dark:text-gray-500 text-3xl">🏥</span>
+              )}
+              {clinicLogoUploading && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => clinicLogoRef.current?.click()}
+                  disabled={clinicLogoUploading}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {clinicLogoUploading ? 'Subiendo...' : clinicLogo ? 'Cambiar logo' : 'Subir logo'}
+                </button>
+                {clinicLogo && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setClinicLogo(null)
+                      await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clinicLogo: null }) })
+                    }}
+                    className="px-3 py-2 text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </div>
+              <p className="text-gray-400 text-xs">PNG con fondo transparente recomendado. Máx 5 MB.</p>
+              <input
+                ref={clinicLogoRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleClinicLogoChange}
+              />
+            </div>
+          </div>
+          {/* Sitio web */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Sitio web <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input
+              type="url"
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+              placeholder="https://miclinica.com"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+            <p className="text-gray-400 text-xs mt-1">Aparecerá en el encabezado de las recetas médicas.</p>
           </div>
         </div>
 

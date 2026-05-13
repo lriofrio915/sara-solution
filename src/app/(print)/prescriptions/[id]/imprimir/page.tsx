@@ -38,6 +38,8 @@ interface PrescriptionData {
     phone: string | null
     address: string | null
     avatarUrl?: string | null
+    clinicLogo?: string | null
+    website?: string | null
     slug?: string | null
     whatsapp?: string | null
     mspCode?: string | null
@@ -153,12 +155,15 @@ export default function PrescriptionPrintPage() {
     ? new Date(data.expiresAt).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' })
     : null
   const { main: mainInstructions, alarmSigns } = extractAlarmSigns(data.instructions)
-  const website = doctor.slug ? `consultorio.site/${doctor.slug}` : null
+  const website = doctor.website ?? (doctor.slug ? `consultorio.site/${doctor.slug}` : null)
+  const logoUrl = doctor.clinicLogo ?? doctor.avatarUrl ?? null
 
-  const dateObj = new Date(data.date)
+  // Parsear fecha sin desfase de zona horaria (la fecha de atención se guarda como UTC midnight)
+  const dateStr = (data.date as string).split('T')[0]
+  const [dy, dm, dd] = dateStr.split('-').map(Number)
   const city = doctor.address?.split(',').slice(-1)[0]?.trim() || ''
-  const dateFormatted = dateObj.toLocaleDateString('es-EC', {
-    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
+  const dateFormatted = new Date(dy, dm - 1, dd).toLocaleDateString('es-EC', {
+    day: 'numeric', month: 'long', year: 'numeric',
   })
 
   const contactPhone = doctor.whatsapp
@@ -244,8 +249,8 @@ export default function PrescriptionPrintPage() {
             <div className="relative flex-1 flex flex-col border-r-2 border-dashed border-gray-300" style={{ minWidth: 0 }}>
               {/* Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" style={{ opacity: 0.07 }}>
-                {doctor.avatarUrl ? (
-                  <Image src={doctor.avatarUrl} alt="" width={160} height={160} className="object-contain" style={{ width: '140px', height: '140px' }} />
+                {logoUrl ? (
+                  <Image src={logoUrl} alt="" width={160} height={160} className="object-contain" style={{ width: '140px', height: '140px' }} />
                 ) : (
                   <span className="font-black text-gray-900" style={{ fontSize: '100px', lineHeight: 1 }}>{initials}</span>
                 )}
@@ -253,8 +258,8 @@ export default function PrescriptionPrintPage() {
 
               {/* Header */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
-                {doctor.avatarUrl ? (
-                  <Image src={doctor.avatarUrl} alt="Logo" width={44} height={44} className="rounded-full object-cover flex-shrink-0" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+                {logoUrl ? (
+                  <Image src={logoUrl} alt="Logo" width={44} height={44} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '44px', height: '44px', borderRadius: doctor.clinicLogo ? '4px' : '50%' }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '44px', height: '44px', backgroundColor: '#2c5282', fontSize: '16px' }}>{initials}</div>
                 )}
@@ -262,6 +267,10 @@ export default function PrescriptionPrintPage() {
                   <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctor.name}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
+                  <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
+                    {contactPhone && <span>{contactPhone}</span>}
+                    {website && <span>{website}</span>}
+                  </div>
                 </div>
                 <div className="flex-shrink-0 border-2 border-blue-300 rounded px-2 py-0.5 text-center" style={{ minWidth: '52px' }}>
                   <p className="text-blue-200" style={{ fontSize: '7px', letterSpacing: '0.1em' }}>RECETA</p>
@@ -299,32 +308,15 @@ export default function PrescriptionPrintPage() {
                 {/* Medications */}
                 <div>
                   <p className="font-bold uppercase tracking-widest mb-2 border-b border-gray-200 pb-1" style={{ fontSize: '9px', color: '#1B3A6B', letterSpacing: '0.12em' }}>Prescripción</p>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {medications.map((med, i) => {
                       const qty = parseInt(med.duration ?? '') || undefined
-                      const qtyStr = qty ? ` #${qty} (${numberToWords(qty)})` : ''
-                      const displayName = med.dci || med.name || '(sin nombre)'
-                      const commercialNote = med.dci && med.name ? ` (${med.name})` : ''
+                      const qtyStr = qty ? ` #${qty}` : ''
+                      const form = med.pharmaceuticalForm || ''
                       return (
-                        <div key={i}>
-                          {/* DCI prominente — ACESS-2023-0030 */}
-                          <p className="font-bold" style={{ color: '#1B3A6B', fontSize: '11px' }}>
-                            Rp. {displayName}{med.dose ? ` ${med.dose}` : ''}{commercialNote}
-                          </p>
-                          {med.pharmaceuticalForm && (
-                            <p className="ml-3 text-gray-600" style={{ fontSize: '9px' }}>
-                              Forma: {med.pharmaceuticalForm}{med.route ? ` — Vía: ${med.route}` : ''}
-                            </p>
-                          )}
-                          {!med.pharmaceuticalForm && med.route && (
-                            <p className="ml-3 text-gray-600" style={{ fontSize: '9px' }}>Vía: {med.route}</p>
-                          )}
-                          {med.frequency && (
-                            <p className="ml-3 text-gray-700">
-                              {med.frequency}{qtyStr}
-                            </p>
-                          )}
-                        </div>
+                        <p key={i} className="font-semibold" style={{ color: '#1B3A6B', fontSize: '11px' }}>
+                          {form ? `${form}${qtyStr}` : `${med.name || med.dci || ''}${qtyStr}`}
+                        </p>
                       )
                     })}
                   </div>
@@ -383,8 +375,8 @@ export default function PrescriptionPrintPage() {
             <div className="relative flex-1 flex flex-col" style={{ minWidth: 0 }}>
               {/* Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" style={{ opacity: 0.07 }}>
-                {doctor.avatarUrl ? (
-                  <Image src={doctor.avatarUrl} alt="" width={160} height={160} className="object-contain" style={{ width: '140px', height: '140px' }} />
+                {logoUrl ? (
+                  <Image src={logoUrl} alt="" width={160} height={160} className="object-contain" style={{ width: '140px', height: '140px' }} />
                 ) : (
                   <span className="font-black text-gray-900" style={{ fontSize: '100px', lineHeight: 1 }}>{initials}</span>
                 )}
@@ -392,8 +384,8 @@ export default function PrescriptionPrintPage() {
 
               {/* Header compact */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
-                {doctor.avatarUrl ? (
-                  <Image src={doctor.avatarUrl} alt="Logo" width={36} height={36} className="rounded-full object-cover flex-shrink-0" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
+                {logoUrl ? (
+                  <Image src={logoUrl} alt="Logo" width={36} height={36} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '36px', height: '36px', borderRadius: doctor.clinicLogo ? '4px' : '50%' }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '36px', height: '36px', backgroundColor: '#2c5282', fontSize: '14px' }}>{initials}</div>
                 )}
@@ -426,19 +418,25 @@ export default function PrescriptionPrintPage() {
                 {/* Instructions */}
                 <div>
                   <p className="font-bold uppercase tracking-widest mb-2 border-b border-gray-200 pb-1" style={{ fontSize: '9px', color: '#1B3A6B', letterSpacing: '0.12em' }}>Indicaciones</p>
-                  {mainInstructions ? (
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{mainInstructions}</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {medications.map((med, i) => (
-                        <p key={i} className="text-gray-700">
-                          <span style={{ color: '#1B3A6B' }} className="font-semibold">{med.name}</span>
-                          {med.dose ? `, ${med.dose}` : ''}
-                          {med.frequency ? `: ${med.frequency}` : ''}
-                          {med.duration ? ` por ${med.duration}` : ''}
-                          {med.notes ? `. ${med.notes}` : '.'}
-                        </p>
-                      ))}
+                  {/* Una línea por medicamento: "Nombre, instrucción" */}
+                  {medications.length > 0 && (
+                    <div className="space-y-1.5 mb-2">
+                      {medications.map((med, i) => {
+                        const medName = med.name || med.dci || ''
+                        return (
+                          <p key={i} className="text-gray-700">
+                            {medName && <span style={{ color: '#1B3A6B' }} className="font-semibold">{medName}{med.frequency ? ', ' : ''}</span>}
+                            {med.frequency || ''}
+                          </p>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {/* Recomendaciones generales */}
+                  {mainInstructions && (
+                    <div>
+                      <p className="font-semibold text-gray-600 mb-0.5" style={{ fontSize: '8px' }}>Recomendaciones:</p>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{mainInstructions}</p>
                     </div>
                   )}
                 </div>

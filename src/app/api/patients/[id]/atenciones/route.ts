@@ -130,17 +130,20 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     // Sync prescription: create a Prescription record if the attention has prescription items
     if (prescriptionData?.items?.length > 0) {
       try {
-        const rxItems = (prescriptionData.items as { medicine: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
+        const rxItems = (prescriptionData.items as { medicine: string; presentation?: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
           name: item.medicine,
+          pharmaceuticalForm: item.presentation ?? '',
           dose: item.dosis ?? '',
           frequency: item.indications ?? '',
           duration: item.quantity ?? '',
           notes: '',
         }))
-        const diagText = Array.isArray(diagnoses)
-          ? (diagnoses as { cie10Desc: string; cie10Code: string }[])
-              .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
-          : null
+        const diagText = prescriptionData.diagnosis
+          ? String(prescriptionData.diagnosis)
+          : Array.isArray(diagnoses)
+            ? (diagnoses as { cie10Desc: string; cie10Code: string }[])
+                .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
+            : null
         const lastRx = await prisma.prescription.findFirst({
           where: { doctorId: doctor.id },
           orderBy: { issuedAt: 'desc' },

@@ -145,6 +145,10 @@ model Doctor {
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
   insurances  String? // JSON: [{name, active, requirements}] — convenios con aseguradoras
 
+  // Logo y web del consultorio
+  clinicLogo String? // Supabase Storage URL del logo del consultorio (para recetas)
+  website    String? // Sitio web opcional del médico (ej. https://miclinica.com)
+
   // Firma Electrónica (BCE / FirmaEC)
   signaturePath    String?  // Supabase Storage path to .p12 (private bucket 'firma-ec')
   signatureIv      String?  // AES-256-GCM IV (hex)

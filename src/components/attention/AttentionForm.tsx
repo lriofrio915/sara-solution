@@ -15,6 +15,7 @@ interface Diagnosis {
 
 interface PrescriptionItem {
   medicine: string
+  presentation: string
   dosis: string
   quantity: string
   indications: string
@@ -57,6 +58,7 @@ interface AttentionData {
   exploration: ExplorationData
   diagnoses: Diagnosis[]
   prescriptionItems: PrescriptionItem[]
+  prescriptionDiagnosis: string
   prescriptionValidUntil: string
   prescriptionNotes: string
   exams: Record<string, string[] | string>
@@ -150,6 +152,24 @@ export default function AttentionForm({
   // Attachment preview
   const [previewAttachment, setPreviewAttachment] = useState<{ url: string; description: string } | null>(null)
 
+  // Presentaciones farmacéuticas (base + custom desde localStorage)
+  const BASE_PRESENTATIONS = ['Tabletas', 'Cápsulas', 'Ampollas', 'Jarabe']
+  const [customPresentations, setCustomPresentations] = useState<string[]>([])
+  const [customPresInput, setCustomPresInput] = useState<Record<number, string>>({})
+  const [showCustomInput, setShowCustomInput] = useState<Record<number, boolean>>({})
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sara_pres_custom')
+      if (saved) setCustomPresentations(JSON.parse(saved))
+    } catch { /* ignore */ }
+  }, [])
+  function addCustomPresentation(value: string) {
+    if (!value.trim()) return
+    const next = [...customPresentations.filter(p => p !== value.trim()), value.trim()]
+    setCustomPresentations(next)
+    localStorage.setItem('sara_pres_custom', JSON.stringify(next))
+  }
+
   // Toast
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -178,6 +198,7 @@ export default function AttentionForm({
     exploration: defaultExploration(),
     diagnoses: [],
     prescriptionItems: [],
+    prescriptionDiagnosis: '',
     prescriptionValidUntil: '',
     prescriptionNotes: `Recomendaciones:\nSignos de Alarma:\nAlergias:${patientSummary?.allergies?.length ? ' ' + patientSummary.allergies.join(', ') : ''}`,
     exams: defaultExams(),
@@ -246,7 +267,7 @@ export default function AttentionForm({
   }
 
   function addPrescriptionItem() {
-    update('prescriptionItems', [...form.prescriptionItems, { medicine: '', dosis: '', quantity: '', indications: '' }])
+    update('prescriptionItems', [...form.prescriptionItems, { medicine: '', presentation: '', dosis: '', quantity: '', indications: '' }])
   }
 
   function removePrescriptionItem(i: number) {
@@ -313,6 +334,7 @@ export default function AttentionForm({
         diagnoses: form.diagnoses,
         prescriptionData: {
           items: form.prescriptionItems,
+          diagnosis: form.prescriptionDiagnosis || null,
           validUntil: form.prescriptionValidUntil || null,
           notes: form.prescriptionNotes || null,
         },
@@ -896,14 +918,35 @@ export default function AttentionForm({
           {/* Tab 3: Prescripción */}
           {activeTab === 2 && (
             <div className="space-y-4">
+
+              {/* Selector de diagnóstico para esta receta */}
+              {form.diagnoses.length > 0 && (
+                <div>
+                  <label className="label text-xs">Diagnóstico para esta Receta</label>
+                  <select
+                    className="input text-sm w-full"
+                    value={form.prescriptionDiagnosis}
+                    onChange={(e) => update('prescriptionDiagnosis', e.target.value)}
+                  >
+                    <option value="">— Sin diagnóstico específico —</option>
+                    {form.diagnoses.map((d, i) => (
+                      <option key={i} value={`${d.cie10Desc} (${d.cie10Code})`}>
+                        {d.cie10Desc} ({d.cie10Code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {form.prescriptionItems.length > 0 && (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto">
-                  <table className="w-full text-sm min-w-[600px]">
+                  <table className="w-full text-sm min-w-[700px]">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[160px]">Presentación del medicamento</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-28">Dosis</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-24">Cantidad</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[150px]">Nombre del medicamento</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[140px]">Presentación</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-24">Dosis</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-20">Cantidad</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[160px]">Indicación</th>
                         <th className="px-3 py-2 w-8"></th>
                       </tr>
@@ -920,8 +963,66 @@ export default function AttentionForm({
                                 next[i] = { ...next[i], medicine: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="Amoxicilina 500mg cápsulas"
+                              placeholder="Metformina"
                             />
+                          </td>
+                          <td className="px-3 py-2">
+                            {showCustomInput[i] ? (
+                              <div className="flex gap-1">
+                                <input
+                                  className="input text-sm py-1 w-full"
+                                  autoFocus
+                                  placeholder="Ej. Supositorios"
+                                  value={customPresInput[i] ?? ''}
+                                  onChange={(e) => setCustomPresInput(prev => ({ ...prev, [i]: e.target.value }))}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = customPresInput[i]?.trim()
+                                      if (val) {
+                                        addCustomPresentation(val)
+                                        const next = [...form.prescriptionItems]
+                                        next[i] = { ...next[i], presentation: val }
+                                        update('prescriptionItems', next)
+                                      }
+                                      setShowCustomInput(prev => ({ ...prev, [i]: false }))
+                                    }
+                                    if (e.key === 'Escape') setShowCustomInput(prev => ({ ...prev, [i]: false }))
+                                  }}
+                                />
+                                <button type="button" className="text-xs text-primary px-1"
+                                  onClick={() => {
+                                    const val = customPresInput[i]?.trim()
+                                    if (val) {
+                                      addCustomPresentation(val)
+                                      const next = [...form.prescriptionItems]
+                                      next[i] = { ...next[i], presentation: val }
+                                      update('prescriptionItems', next)
+                                    }
+                                    setShowCustomInput(prev => ({ ...prev, [i]: false }))
+                                  }}>✓</button>
+                              </div>
+                            ) : (
+                              <select
+                                className="input text-sm py-1 w-full"
+                                value={item.presentation ?? ''}
+                                onChange={(e) => {
+                                  if (e.target.value === '__otros__') {
+                                    setShowCustomInput(prev => ({ ...prev, [i]: true }))
+                                    setCustomPresInput(prev => ({ ...prev, [i]: '' }))
+                                  } else {
+                                    const next = [...form.prescriptionItems]
+                                    next[i] = { ...next[i], presentation: e.target.value }
+                                    update('prescriptionItems', next)
+                                  }
+                                }}
+                              >
+                                <option value="">— Seleccionar —</option>
+                                {[...BASE_PRESENTATIONS, ...customPresentations].map(p => (
+                                  <option key={p} value={p}>{p}</option>
+                                ))}
+                                <option value="__otros__">Otros…</option>
+                              </select>
+                            )}
                           </td>
                           <td className="px-3 py-2">
                             <input
@@ -944,7 +1045,7 @@ export default function AttentionForm({
                                 next[i] = { ...next[i], quantity: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="21"
+                              placeholder="30"
                             />
                           </td>
                           <td className="px-3 py-2">
@@ -956,7 +1057,7 @@ export default function AttentionForm({
                                 next[i] = { ...next[i], indications: e.target.value }
                                 update('prescriptionItems', next)
                               }}
-                              placeholder="1 cada 8h por 7 días"
+                              placeholder="una tableta vía oral luego del desayuno"
                             />
                           </td>
                           <td className="px-3 py-2">
