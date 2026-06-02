@@ -123,3 +123,9 @@ cd ~/.claude/skills/gstack && ./setup --team
 - Al iniciar una nueva sesión, busca y lee estos archivos de memoria para entender dónde te quedaste y qué sigue.
 - Organiza las notas por secciones: "Completado", "En progreso", "Pendiente" y "Decisiones tomadas".
 - Actualiza estos archivos cada vez que completes un bloque significativo de trabajo.
+
+## Health Stack
+
+- typecheck: tsc --noEmit
+- lint: eslint src
+- test: vitest run

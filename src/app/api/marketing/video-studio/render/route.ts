@@ -38,12 +38,10 @@ export async function POST(req: Request) {
 
     const bundleLocation = await bundle({
       entryPoint: path.join(process.cwd(), 'src/lib/remotion/Root.tsx'),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       webpackOverride: (config: any) => config,
     })
 
     const executablePath = await chromium.executablePath()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const browser: any = await puppeteerCore.launch({
       args: chromium.args,
       executablePath,

@@ -35,7 +35,6 @@ export default function CarruselPage() {
 
   useEffect(() => {
     initAndLoad()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
