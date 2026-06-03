@@ -85,7 +85,7 @@ export interface PatientSummary {
 // Imported from shared lib to keep consistent with ÓRDENES section
 import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
 
-const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Facturación']
+const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Certificados', 'Facturación']
 
 function addBusinessDays(date: Date, days: number): string {
   const d = new Date(date)
@@ -115,6 +115,133 @@ function defaultExams(): Record<string, string[]> {
   for (const cat of EXAM_CATEGORIES) exams[cat.key] = []
   for (const cat of IMAGING_CATEGORIES) exams[cat.key] = []
   return exams
+}
+
+// ─── Certificados Tab ─────────────────────────────────────────────────────────
+
+interface CertificadosTabProps {
+  patientId: string
+  attentionId?: string
+  diagnoses: Diagnosis[]
+}
+
+function CertificadosTab({ patientId, attentionId, diagnoses }: CertificadosTabProps) {
+  const [tipo, setTipo] = useState<'reposo' | 'atencion' | 'salud'>('atencion')
+  const [diasReposo, setDiasReposo] = useState('')
+  const [fechaInicio, setFechaInicio] = useState('')
+  const [fechaFin, setFechaFin] = useState('')
+  const [descripcion, setDescripcion] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [certId, setCertId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleGenerar() {
+    if (!attentionId) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const diagText = diagnoses.map(d => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
+      const body: Record<string, unknown> = {
+        tipo,
+        diagnosis: diagText || null,
+        description: descripcion || null,
+      }
+      if (tipo === 'reposo') {
+        body.restDays = diasReposo ? parseInt(diasReposo) : null
+        body.restDateStart = fechaInicio || null
+        body.restDateEnd = fechaFin || null
+      }
+      const res = await fetch(`/api/patients/${patientId}/atenciones/${attentionId}/certificate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error generando certificado')
+      setCertId(data.certificateId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {!attentionId && (
+        <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3">
+          Guarda la atención primero para generar un certificado.
+        </p>
+      )}
+
+      <div>
+        <label className="label text-xs">Tipo de certificado</label>
+        <div className="flex gap-3 mt-1">
+          {(['atencion', 'reposo', 'salud'] as const).map(t => (
+            <label key={t} className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" value={t} checked={tipo === t} onChange={() => setTipo(t)} className="text-primary" />
+              <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                {t === 'atencion' ? 'Atención Médica' : t === 'reposo' ? 'Reposo Médico' : 'Salud'}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {tipo === 'reposo' && (
+        <div className="space-y-3">
+          <div>
+            <label className="label text-xs">Días de reposo</label>
+            <input type="number" min="1" className="input text-sm w-32" value={diasReposo} onChange={e => setDiasReposo(e.target.value)} placeholder="3" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label text-xs">Fecha inicio</label>
+              <input type="date" className="input text-sm" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
+            </div>
+            <div>
+              <label className="label text-xs">Fecha fin</label>
+              <input type="date" className="input text-sm" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="label text-xs">Descripción / Observaciones</label>
+        <textarea
+          className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+          rows={3}
+          value={descripcion}
+          onChange={e => setDescripcion(e.target.value)}
+          placeholder="El paciente estuvo bajo atención médica por..."
+        />
+      </div>
+
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleGenerar}
+          disabled={!attentionId || generating}
+          className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {generating ? 'Generando...' : 'Generar certificado'}
+        </button>
+        {certId && (
+          <a
+            href={`/certificates/${certId}/imprimir`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-primary hover:underline"
+          >
+            Ver certificado →
+          </a>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -1343,8 +1470,17 @@ export default function AttentionForm({
             </div>
           )}
 
-          {/* Tab 6: Facturación */}
+          {/* Tab 6: Certificados */}
           {activeTab === 5 && (
+            <CertificadosTab
+              patientId={patientId}
+              attentionId={attentionId}
+              diagnoses={form.diagnoses}
+            />
+          )}
+
+          {/* Tab 7: Facturación */}
+          {activeTab === 6 && (
             <div className="space-y-4">
               {form.billing.length > 0 && (
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
