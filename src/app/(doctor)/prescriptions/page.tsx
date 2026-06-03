@@ -9,6 +9,7 @@ interface Prescription {
   id: string
   date: string
   diagnosis: string | null
+  attentionId: string | null
   medications: Array<{ name: string; dose: string; frequency: string; duration: string }>
   patient: { id: string; name: string; documentId: string | null }
 }
@@ -55,7 +56,6 @@ export default function PrescriptionsPage() {
             {total > 0 ? `${total} receta${total !== 1 ? 's' : ''} emitida${total !== 1 ? 's' : ''}` : 'Gestión de recetas médicas'}
           </p>
         </div>
-        <Link href="/prescriptions/new" className="btn-primary flex-shrink-0">+ Nueva receta</Link>
       </div>
 
       {loading && <MedicalLoadingScreen label="Cargando recetario…" />}
@@ -64,8 +64,7 @@ export default function PrescriptionsPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">💊</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay recetas aún</h3>
-          <p className="text-gray-500 dark:text-slate-300 mb-6">Emite tu primera receta médica digital.</p>
-          <Link href="/prescriptions/new" className="btn-primary">Nueva receta</Link>
+          <p className="text-gray-500 dark:text-slate-300 mb-6">Las recetas se generan desde la atención del paciente (pestaña Prescripción).</p>
         </div>
       )}
 
@@ -94,6 +93,13 @@ export default function PrescriptionsPage() {
                 {(item.medications as Array<{ name: string }>).slice(0, 2).map(m => m.name).join(', ')}
                 {(item.medications as Array<unknown>).length > 2 && ` +${(item.medications as Array<unknown>).length - 2} más`}
               </div>
+              {item.attentionId && (
+                <button
+                  onClick={() => router.push(`/patients/${item.patient.id}/atenciones/${item.attentionId}`)}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap">
+                  Ver Atención
+                </button>
+              )}
               <button
                 onClick={() => router.push(`/prescriptions/${item.id}/imprimir`)}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">

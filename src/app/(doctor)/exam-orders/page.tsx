@@ -65,7 +65,6 @@ export default function ExamOrdersPage() {
             {total > 0 ? `${total} orden${total !== 1 ? 'es' : ''} emitida${total !== 1 ? 's' : ''}` : 'Solicitudes de exámenes de laboratorio'}
           </p>
         </div>
-        <Link href="/exam-orders/new" className="btn-primary flex-shrink-0">+ Nueva orden</Link>
       </div>
 
       {loading && (
@@ -78,8 +77,7 @@ export default function ExamOrdersPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">🔬</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay órdenes aún</h3>
-          <p className="text-gray-500 dark:text-slate-300 mb-6">Emite tu primera orden de exámenes de laboratorio.</p>
-          <Link href="/exam-orders/new" className="btn-primary">Nueva orden</Link>
+          <p className="text-gray-500 dark:text-slate-300 mb-6">Las órdenes se generan desde la atención del paciente (pestaña Exámenes).</p>
         </div>
       )}
 

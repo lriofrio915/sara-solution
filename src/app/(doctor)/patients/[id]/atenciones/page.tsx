@@ -21,6 +21,7 @@ export default function AtencionesPage() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [allergies, setAllergies] = useState<string[]>([])
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Filters
   const [desde, setDesde] = useState('')
@@ -57,6 +58,18 @@ export default function AtencionesPage() {
 
   function handleSearch() {
     setActiveFilters({ desde, hasta, tipo })
+  }
+
+  async function handleDelete(aid: string) {
+    if (!window.confirm('¿Eliminar esta atención? Esta acción no se puede deshacer.')) return
+    setDeletingId(aid)
+    try {
+      await fetch(`/api/patients/${id}/atenciones/${aid}`, { method: 'DELETE' })
+      setAtenciones(prev => prev.filter(a => a.id !== aid))
+      setTotal(prev => prev - 1)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   function handleClearFilters() {
@@ -185,6 +198,9 @@ export default function AtencionesPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
                       Duración
                     </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-400">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,6 +234,21 @@ export default function AtencionesPage() {
                       <td className="px-4 py-3 text-gray-600 dark:text-slate-300 whitespace-nowrap">
                         {a.durationMins ? `${a.durationMins} min` : '—'}
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
+                            className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors">
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            disabled={deletingId === a.id}
+                            className="px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors disabled:opacity-50">
+                            {deletingId === a.id ? '...' : 'Eliminar'}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -227,12 +258,14 @@ export default function AtencionesPage() {
             {/* Mobile list */}
             <div className="md:hidden divide-y divide-gray-50 dark:divide-gray-700">
               {atenciones.map((a) => (
-                <button
+                <div
                   key={a.id}
-                  onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
-                  className="w-full text-left px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/70 transition-colors"
+                  className="px-4 py-4"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div
+                    className="flex items-start justify-between gap-3 cursor-pointer"
+                    onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
+                  >
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                         {new Date(a.datetime).toLocaleDateString('es-EC', { timeZone: 'UTC', dateStyle: 'medium' })}
@@ -254,7 +287,20 @@ export default function AtencionesPage() {
                       )}
                     </div>
                   </div>
-                </button>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => router.push(`/patients/${id}/atenciones/${a.id}`)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors">
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(a.id)}
+                      disabled={deletingId === a.id}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors disabled:opacity-50">
+                      {deletingId === a.id ? '...' : 'Eliminar'}
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </>

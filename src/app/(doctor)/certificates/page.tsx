@@ -55,7 +55,6 @@ export default function CertificatesPage() {
             {total > 0 ? `${total} certificado${total !== 1 ? 's' : ''} emitido${total !== 1 ? 's' : ''}` : 'Certificados médicos digitales'}
           </p>
         </div>
-        <Link href="/certificates/new" className="btn-primary flex-shrink-0">+ Nuevo certificado</Link>
       </div>
 
       {loading && (
@@ -68,8 +67,7 @@ export default function CertificatesPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
           <p className="text-5xl mb-4">📋</p>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay certificados aún</h3>
-          <p className="text-gray-500 dark:text-slate-300 mb-6">Emite tu primer certificado médico digital.</p>
-          <Link href="/certificates/new" className="btn-primary">Nuevo certificado</Link>
+          <p className="text-gray-500 dark:text-slate-300 mb-6">Los certificados se generan desde la atención del paciente (pestaña Certificados).</p>
         </div>
       )}
 
