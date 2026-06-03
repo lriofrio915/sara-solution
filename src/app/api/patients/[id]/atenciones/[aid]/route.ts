@@ -110,18 +110,18 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
             },
           })
         } else {
-          const lastRx = await prisma.prescription.findFirst({
-            where: { doctorId: doctor.id },
-            orderBy: { issuedAt: 'desc' },
-            select: { rxNumber: true },
+          const updatedDoctor = await prisma.doctor.update({
+            where: { id: doctor.id },
+            data: { prescriptionCounter: { increment: 1 } },
+            select: { prescriptionCounter: true },
           })
-          const nextNum = String((parseInt(lastRx?.rxNumber?.replace(/\D/g, '') ?? '0') || 0) + 1).padStart(3, '0')
+          const rxNumber = `N.${String(updatedDoctor.prescriptionCounter).padStart(3, '0')}`
           await prisma.prescription.create({
             data: {
               patientId: params.id,
               doctorId: doctor.id,
               attentionId: params.aid,
-              rxNumber: `N.${nextNum}`,
+              rxNumber,
               date: body2?.datetime ?? new Date(),
               issuedAt: body2?.datetime ?? new Date(),
               expiresAt: prescriptionData.validUntil ? new Date(prescriptionData.validUntil as string) : null,

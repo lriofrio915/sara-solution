@@ -135,10 +135,18 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
 
             {/* Rest days highlight */}
             {certificate.restDays && certificate.restDays > 0 && (
-              <div className="border-2 border-primary/30 bg-primary/5 rounded-xl p-4 text-center">
+              <div className="border-2 border-primary/30 bg-primary/5 rounded-xl p-4 text-center space-y-1">
                 <p className="text-sm font-semibold text-gray-700">
                   Se recomienda <span className="text-primary text-base font-bold">{certificate.restDays} días</span> de reposo
                 </p>
+                {certificate.restDateStart && (
+                  <p className="text-xs text-gray-600">
+                    Período: {new Date(certificate.restDateStart).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' })}
+                    {certificate.restDateEnd && (
+                      <> — {new Date(certificate.restDateEnd).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' })}</>
+                    )}
+                  </p>
+                )}
               </div>
             )}
           </div>
