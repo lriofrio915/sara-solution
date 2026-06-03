@@ -23,10 +23,15 @@ export async function GET(req: NextRequest) {
     if (!doctor) return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })
 
     const patientId = req.nextUrl.searchParams.get('patientId') ?? undefined
+    const attentionId = req.nextUrl.searchParams.get('attentionId') ?? undefined
     const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get('limit') ?? '50'))
     const page = Math.max(1, parseInt(req.nextUrl.searchParams.get('page') ?? '1'))
 
-    const where = { doctorId: doctor.id, ...(patientId ? { patientId } : {}) }
+    const where = {
+      doctorId: doctor.id,
+      ...(patientId ? { patientId } : {}),
+      ...(attentionId ? { attentionId } : {}),
+    }
 
     const [prescriptions, total] = await Promise.all([
       prisma.prescription.findMany({

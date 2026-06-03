@@ -163,6 +163,21 @@ export default function AttentionForm({
   // Attachment preview
   const [previewAttachment, setPreviewAttachment] = useState<{ url: string; description: string } | null>(null)
 
+  // IDs de documentos vinculados a esta atención (para botones de preview)
+  const [linkedPrescriptionId, setLinkedPrescriptionId] = useState<string | null>(null)
+  const [linkedExamOrderId, setLinkedExamOrderId] = useState<string | null>(null)
+  useEffect(() => {
+    if (!attentionId || !patientId) return
+    fetch(`/api/prescriptions?attentionId=${attentionId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.prescriptions?.[0]?.id) setLinkedPrescriptionId(d.prescriptions[0].id) })
+      .catch(() => {})
+    fetch(`/api/exam-orders?attentionId=${attentionId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.orders?.[0]?.id || d?.examOrders?.[0]?.id) setLinkedExamOrderId(d?.orders?.[0]?.id ?? d?.examOrders?.[0]?.id) })
+      .catch(() => {})
+  }, [attentionId, patientId])
+
   // Presentaciones farmacéuticas (base + custom desde localStorage)
   const BASE_PRESENTATIONS = ['Tabletas', 'Cápsulas', 'Ampollas', 'Jarabe']
   const [customPresentations, setCustomPresentations] = useState<string[]>([])
@@ -1114,6 +1129,25 @@ export default function AttentionForm({
                   onChange={(e) => update('prescriptionNotes', e.target.value)}
                 />
               </div>
+
+              {/* Preview receta */}
+              {attentionId && (
+                <div className="pt-1">
+                  {linkedPrescriptionId ? (
+                    <a
+                      href={`/prescriptions/${linkedPrescriptionId}/imprimir`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      Vista previa receta
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-400">Guarda primero para ver el preview de la receta</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -1161,6 +1195,21 @@ export default function AttentionForm({
                   </details>
                 )
               })}
+
+              {/* Preview orden exámenes */}
+              {attentionId && (
+                <div className="pt-2">
+                  <a
+                    href={`/attention-exams/${attentionId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Vista previa orden de exámenes
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
@@ -1276,6 +1325,21 @@ export default function AttentionForm({
                   </details>
                 )
               })}
+
+              {/* Preview orden imágenes */}
+              {attentionId && (
+                <div className="pt-2">
+                  <a
+                    href={`/attention-images/${attentionId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Vista previa orden de imágenes
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
