@@ -94,6 +94,11 @@ export default function PrescriptionPrintPage() {
   const isDraft = typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('draft') === '1'
 
+  // ?signatureUrl=... signed URL para imagen de firma (generada por el endpoint de download)
+  const signatureUrl = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('signatureUrl')
+    : null
+
   const loadData = useCallback(async () => {
     try {
       const res = await fetch(`/api/prescriptions/${id}`)
@@ -362,7 +367,12 @@ export default function PrescriptionPrintPage() {
               )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
+                  {signatureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={signatureUrl} alt="Firma digital" style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', margin: '0 auto 2px' }} />
+                  ) : (
+                    <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
+                  )}
                   <p className="font-bold text-gray-800">{doctor.name}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
@@ -463,7 +473,12 @@ export default function PrescriptionPrintPage() {
               {/* Signature area */}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
+                  {signatureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={signatureUrl} alt="Firma digital" style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', margin: '0 auto 2px' }} />
+                  ) : (
+                    <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
+                  )}
                   <p className="font-bold text-gray-800">{doctor.name}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}

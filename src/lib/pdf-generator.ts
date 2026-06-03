@@ -60,16 +60,15 @@ export async function generatePdfFromPrintPage(
 
     await page.goto(`${INTERNAL_URL}${path}?pdf=1`, {
       waitUntil: 'networkidle0',
-      timeout: 30_000,
+      timeout: 45_000,
     })
 
     // Emulate print media so @media print styles apply (hides control buttons etc.)
     await page.emulateMediaType('print')
 
     const pdfBuffer = await page.pdf({
-      format: 'A4',
       printBackground: true,
-      margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
+      preferCSSPageSize: true,
     })
 
     return Buffer.from(pdfBuffer)

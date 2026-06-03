@@ -100,13 +100,27 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
       doctor.signatureEncPass
     )
 
-    // 8. Generate PDF — pass ?draft=1 when no signature configured (AM 0009-2017)
+    // 8. Generate signed URL for doctor's signature image (A2: Puppeteer can't access private Supabase storage)
+    let signatureUrl: string | undefined
+    if (hasSignatureConfigured && doctor.signaturePath) {
+      try {
+        const storage = createAdminClient().storage
+        const { data: signedData } = await storage
+          .from('firma-ec')
+          .createSignedUrl(doctor.signaturePath.replace(/^firma-ec\//, ''), 300)
+        if (signedData?.signedUrl) signatureUrl = signedData.signedUrl
+      } catch { /* non-blocking */ }
+    }
+
+    // 9. Generate PDF — pass ?draft=1 when no signature configured (AM 0009-2017)
     const cookieHeader = req.headers.get('cookie') ?? ''
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
-    const pdfPath = hasSignatureConfigured ? printPath : `${printPath}?draft=1`
+    let pdfQuery = hasSignatureConfigured ? '' : '?draft=1'
+    if (signatureUrl) pdfQuery = (pdfQuery ? pdfQuery + '&' : '?') + `signatureUrl=${encodeURIComponent(signatureUrl)}`
+    const pdfPath = `${printPath}${pdfQuery}`
     let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
 
-    // 9. Apply digital signature (required by AM 0009-2017 for legal validity)
+    // 10. Apply digital signature (required by AM 0009-2017 for legal validity)
     let signed = false
     let signWarning: string | undefined
 
