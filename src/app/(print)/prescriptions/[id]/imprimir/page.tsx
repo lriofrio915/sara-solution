@@ -10,11 +10,26 @@ interface Medication {
   dci?: string              // Nombre genérico (DCI) — ACESS-2023-0030
   name?: string             // Nombre comercial
   dose?: string             // Concentración
-  pharmaceuticalForm?: string // Forma farmacéutica
+  pharmaceuticalForm?: string // Forma farmacéutica / Presentación
   route?: string            // Vía de administración
   frequency?: string
   duration?: string
   notes?: string
+}
+
+function calcAge(birthDate: string | null): string | null {
+  if (!birthDate) return null
+  const years = Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+  return `${years} años`
+}
+
+function parseDiagnosis(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.map(String)
+  } catch { /* not JSON */ }
+  return raw.split(';').map(s => s.trim()).filter(Boolean)
 }
 
 interface PrescriptionData {
@@ -161,6 +176,8 @@ export default function PrescriptionPrintPage() {
     : null
   const { main: mainInstructions, alarmSigns } = extractAlarmSigns(data.instructions)
   const website = doctor.website ?? (doctor.slug ? `consultorio.site/${doctor.slug}` : null)
+  const patientAge = calcAge(patient.birthDate)
+  const diagLines = parseDiagnosis(data.diagnosis)
   const logoUrl = doctor.clinicLogo ?? doctor.avatarUrl ?? null
 
   // Parsear fecha sin desfase de zona horaria (la fecha de atención se guarda como UTC midnight)
@@ -294,16 +311,18 @@ export default function PrescriptionPrintPage() {
                 <div className="space-y-1">
                   <p className="text-gray-800">
                     <span className="font-semibold">Nombre del Paciente: </span>{patient.name}
+                    {patientAge && <span className="text-gray-500 ml-1">({patientAge})</span>}
                   </p>
                   {patient.documentId && (
                     <p className="text-gray-800">
                       <span className="font-semibold">CI: </span>{patient.documentId}
                     </p>
                   )}
-                  {data.diagnosis && (
-                    <p className="text-gray-800">
-                      <span className="font-semibold">CIE-10: </span>{data.diagnosis}
-                    </p>
+                  {diagLines.length > 0 && (
+                    <div className="text-gray-800">
+                      <span className="font-semibold">CIE-10: </span>
+                      {diagLines.join(' | ')}
+                    </div>
                   )}
                   <p className="text-gray-800">
                     <span className="font-semibold">Alergias: </span>{allergies}
@@ -313,15 +332,23 @@ export default function PrescriptionPrintPage() {
                 {/* Medications */}
                 <div>
                   <p className="font-bold uppercase tracking-widest mb-2 border-b border-gray-200 pb-1" style={{ fontSize: '9px', color: '#1B3A6B', letterSpacing: '0.12em' }}>Prescripción</p>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {medications.map((med, i) => {
-                      const qty = parseInt(med.duration ?? '') || undefined
-                      const qtyStr = qty ? ` #${qty}` : ''
-                      const form = med.pharmaceuticalForm || ''
+                      const qty = parseInt(med.duration ?? '') || 0
+                      const qtyWords = qty > 0 ? numberToWords(qty) : ''
+                      const qtyLabel = qty > 0 ? `${qty} (${qtyWords})` : ''
+                      const parts = [
+                        med.name || med.dci || '',
+                        med.pharmaceuticalForm || '',
+                        med.dose || '',
+                      ].filter(Boolean)
                       return (
-                        <p key={i} className="font-semibold" style={{ color: '#1B3A6B', fontSize: '11px' }}>
-                          {form ? `${form}${qtyStr}` : `${med.name || med.dci || ''}${qtyStr}`}
-                        </p>
+                        <div key={i}>
+                          <p className="font-semibold" style={{ color: '#1B3A6B', fontSize: '11px' }}>
+                            {parts.join(' | ')}
+                          </p>
+                          {qtyLabel && <p className="text-gray-500" style={{ fontSize: '9px' }}>Cantidad: {qtyLabel}</p>}
+                        </div>
                       )
                     })}
                   </div>

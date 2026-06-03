@@ -78,8 +78,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     // Sync prescription: upsert the linked Prescription record if items exist
     if (prescriptionData?.items?.length > 0) {
       try {
-        const rxItems = (prescriptionData.items as { medicine: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
+        const rxItems = (prescriptionData.items as { medicine: string; presentation?: string; dosis?: string; quantity: string; indications: string }[]).map((item) => ({
           name: item.medicine,
+          pharmaceuticalForm: item.presentation ?? '',
           dose: item.dosis ?? '',
           frequency: item.indications ?? '',
           duration: item.quantity ?? '',
