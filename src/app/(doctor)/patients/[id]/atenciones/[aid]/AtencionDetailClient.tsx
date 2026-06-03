@@ -91,6 +91,7 @@ export default function AtencionDetailClient({
   const prescriptionData = attention.prescriptionData as {
     items?: PrescriptionItem[]
     validUntil?: string
+    nextAppointment?: string
     notes?: string
     diagnosis?: string | string[]
   } | null
@@ -135,6 +136,7 @@ export default function AtencionDetailClient({
       ? prescriptionData.diagnosis as string[]
       : (prescriptionData?.diagnosis ? [prescriptionData.diagnosis as string] : []),
     prescriptionValidUntil: prescriptionData?.validUntil ?? '',
+    prescriptionNextAppointment: prescriptionData?.nextAppointment ?? '',
     prescriptionNotes: prescriptionData?.notes ?? 'Recomendaciones:\nSignos de Alarma:\nAlergias:',
     exams: attention.exams ?? undefined,
     images: attention.images ?? [],

@@ -60,6 +60,7 @@ interface AttentionData {
   prescriptionItems: PrescriptionItem[]
   prescriptionDiagnosis: string[]
   prescriptionValidUntil: string
+  prescriptionNextAppointment: string
   prescriptionNotes: string
   exams: Record<string, string[] | string>
   images: { url: string; description: string }[]
@@ -361,6 +362,7 @@ export default function AttentionForm({
     otrosExams: {},
     ...initialData,
     prescriptionValidUntil: initialData?.prescriptionValidUntil ?? addBusinessDays(new Date(), 5),
+    prescriptionNextAppointment: initialData?.prescriptionNextAppointment ?? '',
   })
 
   // Chronometer
@@ -489,6 +491,7 @@ export default function AttentionForm({
           items: form.prescriptionItems,
           diagnosis: form.prescriptionDiagnosis.length > 0 ? form.prescriptionDiagnosis : null,
           validUntil: form.prescriptionValidUntil || null,
+          nextAppointment: form.prescriptionNextAppointment || null,
           notes: form.prescriptionNotes || null,
         },
         exams: examsWithOtros,
@@ -1237,14 +1240,25 @@ export default function AttentionForm({
                 + Agregar medicamento
               </button>
 
-              <div>
-                <label className="label text-xs">Válida hasta</label>
-                <input
-                  type="date"
-                  className="input text-sm w-48"
-                  value={form.prescriptionValidUntil}
-                  onChange={(e) => update('prescriptionValidUntil', e.target.value)}
-                />
+              <div className="flex gap-4 flex-wrap">
+                <div>
+                  <label className="label text-xs">Válida hasta</label>
+                  <input
+                    type="date"
+                    className="input text-sm w-48"
+                    value={form.prescriptionValidUntil}
+                    onChange={(e) => update('prescriptionValidUntil', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs">Próxima cita</label>
+                  <input
+                    type="date"
+                    className="input text-sm w-48"
+                    value={form.prescriptionNextAppointment}
+                    onChange={(e) => update('prescriptionNextAppointment', e.target.value)}
+                  />
+                </div>
               </div>
 
               <div>

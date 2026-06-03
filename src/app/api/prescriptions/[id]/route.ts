@@ -30,7 +30,17 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     })
     if (!prescription) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    return NextResponse.json({ prescription, doctor })
+    let nextAppointment: string | null = null
+    if (prescription.attentionId) {
+      const attention = await prisma.attention.findFirst({
+        where: { id: prescription.attentionId },
+        select: { prescriptionData: true },
+      })
+      const pd = attention?.prescriptionData as Record<string, unknown> | null
+      nextAppointment = (pd?.nextAppointment as string) ?? null
+    }
+
+    return NextResponse.json({ prescription: { ...prescription, nextAppointment }, doctor })
   } catch (err) {
     console.error('GET /api/prescriptions/[id]:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

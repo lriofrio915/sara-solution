@@ -58,7 +58,8 @@ export async function generatePdfFromPrintPage(
       await page.setCookie(...cookies)
     }
 
-    await page.goto(`${INTERNAL_URL}${path}?pdf=1`, {
+    const sep = path.includes('?') ? '&' : '?'
+    await page.goto(`${INTERNAL_URL}${path}${sep}pdf=1`, {
       waitUntil: 'networkidle0',
       timeout: 45_000,
     })

@@ -14,7 +14,11 @@ export default function PrintButton({ downloadUrl }: Props) {
     setDownloading(true)
     try {
       const res = await fetch(downloadUrl)
-      if (!res.ok) throw new Error('Error al generar PDF')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        const detail = (body as { detail?: string }).detail ?? ''
+        throw new Error(detail || 'Error al generar PDF')
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const cd = res.headers.get('Content-Disposition') ?? ''
@@ -26,8 +30,9 @@ export default function PrintButton({ downloadUrl }: Props) {
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
       console.error(err)
-      alert('No se pudo generar el PDF. Intente de nuevo.')
+      alert(`No se pudo generar el PDF.\n${msg}`)
     } finally {
       setDownloading(false)
     }

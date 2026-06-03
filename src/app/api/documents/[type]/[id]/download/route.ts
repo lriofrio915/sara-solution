@@ -169,6 +169,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
     return response
   } catch (err) {
     console.error('GET /api/documents/[type]/[id]/download:', err)
-    return NextResponse.json({ error: 'Error generando PDF' }, { status: 500 })
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Error generando PDF', detail }, { status: 500 })
   }
 }

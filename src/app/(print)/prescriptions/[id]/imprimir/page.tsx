@@ -40,6 +40,7 @@ interface PrescriptionData {
   instructions: string | null
   rxNumber?: string | null
   expiresAt?: string | null
+  nextAppointment?: string | null
   patient: {
     name: string
     documentId: string | null
@@ -101,7 +102,6 @@ export default function PrescriptionPrintPage() {
   const { id } = useParams<{ id: string }>()
   const [data, setData] = useState<PrescriptionData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [nextAppointment, setNextAppointment] = useState('')
   const [downloading, setDownloading] = useState(false)
   const [signWarning, setSignWarning] = useState<string | null>(null)
 
@@ -132,7 +132,11 @@ export default function PrescriptionPrintPage() {
     setDownloading(true)
     try {
       const res = await fetch(`/api/documents/prescriptions/${id}/download`)
-      if (!res.ok) throw new Error('Error al generar PDF')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        const detail = (body as { detail?: string }).detail ?? ''
+        throw new Error(detail || 'Error al generar PDF')
+      }
       // Mostrar advertencia de firma si el PDF no pudo firmarse
       const warning = res.headers.get('X-Sign-Warning')
       if (warning) setSignWarning(warning)
@@ -147,8 +151,9 @@ export default function PrescriptionPrintPage() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
       console.error(err)
-      alert('No se pudo generar el PDF. Intente de nuevo.')
+      alert(`No se pudo generar el PDF.\n${msg}`)
     } finally {
       setDownloading(false)
     }
@@ -225,16 +230,6 @@ export default function PrescriptionPrintPage() {
           {patient.name}
         </Link>
         <div className="flex-1" />
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">Próxima cita:</label>
-          <input
-            type="text"
-            value={nextAppointment}
-            onChange={(e) => setNextAppointment(e.target.value)}
-            placeholder="ej. 15 de abril, 10:00"
-            className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 w-44"
-          />
-        </div>
         <button
           onClick={handleDownload}
           disabled={downloading}
@@ -489,8 +484,10 @@ export default function PrescriptionPrintPage() {
                 {/* Next appointment */}
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
                   <p className="font-semibold text-gray-800">Próxima Cita:</p>
-                  {nextAppointment ? (
-                    <p className="text-gray-700">{nextAppointment}</p>
+                  {data.nextAppointment ? (
+                    <p className="text-gray-700">
+                      {new Date(data.nextAppointment + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
                   ) : (
                     <p className="text-gray-400 italic">__________________________</p>
                   )}
