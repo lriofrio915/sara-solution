@@ -357,6 +357,7 @@ model ExamOrder {
   patientId     String
   doctorId      String
   appointmentId String?
+  attentionId   String?
   date          DateTime @default(now())
   exams         Json     // { hematologia: [...], bioquimica: [...], ... }
   otrosExams    String?  @db.Text
@@ -368,10 +369,12 @@ model ExamOrder {
   patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  attention   Attention?   @relation(fields: [attentionId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
   @@index([doctorId])
   @@index([appointmentId])
+  @@index([attentionId])
   @@index([doctorId, date])
 }
 
@@ -761,9 +764,10 @@ model Attention {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patient    Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  doctor     Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient          Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor           Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   diagnosisRecords Diagnosis[]
+  examOrders       ExamOrder[]
 
   @@index([patientId])
   @@index([doctorId])

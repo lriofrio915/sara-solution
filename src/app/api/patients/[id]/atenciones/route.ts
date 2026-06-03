@@ -170,6 +170,26 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       }
     }
 
+    // Sync exam order: create an ExamOrder record if the attention has exam selections
+    const hasExams = exams && Object.values(exams as Record<string, unknown>)
+      .some(v => Array.isArray(v) && v.length > 0)
+    if (hasExams) {
+      try {
+        await prisma.examOrder.create({
+          data: {
+            patientId: params.id,
+            doctorId: doctor.id,
+            attentionId: attention.id,
+            exams: exams as Record<string, string[]>,
+            date: attention.datetime,
+          },
+        })
+      } catch (examErr) {
+        console.error('Error creating exam order from attention:', examErr)
+        // Non-blocking: don't fail attention creation if exam order sync fails
+      }
+    }
+
     return NextResponse.json({ attention }, { status: 201 })
   } catch (err) {
     console.error('POST /api/patients/[id]/atenciones:', err)

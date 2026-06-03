@@ -9,6 +9,7 @@ interface ExamOrder {
   id: string
   date: string
   exams: Record<string, string[]>
+  attentionId: string | null
   patient: { id: string; name: string; documentId: string | null }
 }
 
@@ -83,18 +84,16 @@ export default function ExamOrdersPage() {
 
       {!loading && items.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wide">
             <span>Fecha</span>
             <span>Paciente</span>
             <span>Categorías</span>
             <span className="text-center">Exámenes</span>
             <span />
-            <span />
           </div>
           {items.map((item, i) => (
             <div key={item.id}
-              onClick={() => router.push(`/exam-orders/${item.id}/imprimir`)}
-              className={`flex flex-col md:grid md:grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center cursor-pointer ${
+              className={`flex flex-col md:grid md:grid-cols-[auto_1fr_1fr_auto_auto] gap-2 md:gap-4 px-6 py-4 items-start md:items-center ${
                 i < items.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''
               } hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors`}>
               <div className="text-sm text-gray-500 dark:text-slate-300 whitespace-nowrap">
@@ -108,17 +107,26 @@ export default function ExamOrdersPage() {
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold">
                 {countExams(item.exams)}
               </span>
-              <button
-                onClick={(e) => { e.stopPropagation(); router.push(`/exam-orders/${item.id}/imprimir`) }}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">
-                Ver / Imprimir
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleDelete(item.id) }}
-                disabled={deletingId === item.id}
-                className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors disabled:opacity-50">
-                {deletingId === item.id ? '...' : 'Eliminar'}
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {item.attentionId && (
+                  <button
+                    onClick={() => router.push(`/patients/${item.patient.id}/atenciones/${item.attentionId}`)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap">
+                    Ver Atención
+                  </button>
+                )}
+                <button
+                  onClick={() => router.push(`/exam-orders/${item.id}/imprimir`)}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">
+                  Ver / Imprimir
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  disabled={deletingId === item.id}
+                  className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors disabled:opacity-50">
+                  {deletingId === item.id ? '...' : 'Eliminar'}
+                </button>
+              </div>
             </div>
           ))}
         </div>
