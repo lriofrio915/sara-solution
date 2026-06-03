@@ -58,7 +58,7 @@ interface AttentionData {
   exploration: ExplorationData
   diagnoses: Diagnosis[]
   prescriptionItems: PrescriptionItem[]
-  prescriptionDiagnosis: string
+  prescriptionDiagnosis: string[]
   prescriptionValidUntil: string
   prescriptionNotes: string
   exams: Record<string, string[] | string>
@@ -86,6 +86,17 @@ export interface PatientSummary {
 import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
 
 const TABS = ['Exploración', 'Diagnóstico', 'Prescripción', 'Exámenes', 'Imágenes', 'Facturación']
+
+function addBusinessDays(date: Date, days: number): string {
+  const d = new Date(date)
+  let added = 0
+  while (added < days) {
+    d.setDate(d.getDate() + 1)
+    const dow = d.getDay()
+    if (dow !== 0 && dow !== 6) added++
+  }
+  return d.toISOString().slice(0, 10)
+}
 
 function defaultExploration(): ExplorationData {
   return {
@@ -198,8 +209,7 @@ export default function AttentionForm({
     exploration: defaultExploration(),
     diagnoses: [],
     prescriptionItems: [],
-    prescriptionDiagnosis: '',
-    prescriptionValidUntil: '',
+    prescriptionDiagnosis: [],
     prescriptionNotes: `Recomendaciones:\nSignos de Alarma:\nAlergias:${patientSummary?.allergies?.length ? ' ' + patientSummary.allergies.join(', ') : ''}`,
     exams: defaultExams(),
     images: [],
@@ -208,6 +218,7 @@ export default function AttentionForm({
     billingStatus: 'Pendiente',
     otrosExams: {},
     ...initialData,
+    prescriptionValidUntil: initialData?.prescriptionValidUntil ?? addBusinessDays(new Date(), 5),
   })
 
   // Chronometer
@@ -334,7 +345,7 @@ export default function AttentionForm({
         diagnoses: form.diagnoses,
         prescriptionData: {
           items: form.prescriptionItems,
-          diagnosis: form.prescriptionDiagnosis || null,
+          diagnosis: form.prescriptionDiagnosis.length > 0 ? form.prescriptionDiagnosis : null,
           validUntil: form.prescriptionValidUntil || null,
           notes: form.prescriptionNotes || null,
         },
@@ -919,22 +930,32 @@ export default function AttentionForm({
           {activeTab === 2 && (
             <div className="space-y-4">
 
-              {/* Selector de diagnóstico para esta receta */}
+              {/* Multi-select diagnósticos para esta receta */}
               {form.diagnoses.length > 0 && (
                 <div>
-                  <label className="label text-xs">Diagnóstico para esta Receta</label>
-                  <select
-                    className="input text-sm w-full"
-                    value={form.prescriptionDiagnosis}
-                    onChange={(e) => update('prescriptionDiagnosis', e.target.value)}
-                  >
-                    <option value="">— Sin diagnóstico específico —</option>
-                    {form.diagnoses.map((d, i) => (
-                      <option key={i} value={`${d.cie10Desc} (${d.cie10Code})`}>
-                        {d.cie10Desc} ({d.cie10Code})
-                      </option>
-                    ))}
-                  </select>
+                  <label className="label text-xs">Diagnósticos para esta Receta</label>
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    {form.diagnoses.map((d, i) => {
+                      const val = `${d.cie10Desc} (${d.cie10Code})`
+                      const checked = form.prescriptionDiagnosis.includes(val)
+                      return (
+                        <label key={i} className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const next = checked
+                                ? form.prescriptionDiagnosis.filter(v => v !== val)
+                                : [...form.prescriptionDiagnosis, val]
+                              update('prescriptionDiagnosis', next)
+                            }}
+                            className="rounded border-gray-300 dark:border-gray-600 text-primary"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{d.cie10Desc} <span className="text-gray-400">({d.cie10Code})</span></span>
+                        </label>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -945,7 +966,7 @@ export default function AttentionForm({
                       <tr className="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[150px]">Nombre del medicamento</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[140px]">Presentación</th>
-                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-24">Dosis</th>
+                        <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-24">Concentración</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium w-20">Cantidad</th>
                         <th className="px-3 py-2 text-left text-xs text-gray-500 dark:text-slate-300 font-medium min-w-[160px]">Indicación</th>
                         <th className="px-3 py-2 w-8"></th>

@@ -89,10 +89,13 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
           where: { id: params.aid },
           select: { diagnoses: true, datetime: true },
         })
-        const diagText = Array.isArray(body2?.diagnoses)
-          ? (body2.diagnoses as { cie10Desc: string; cie10Code: string }[])
-              .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
-          : null
+        const selectedDiag = prescriptionData.diagnosis
+        const diagText = selectedDiag
+          ? (Array.isArray(selectedDiag) ? selectedDiag.join('; ') : String(selectedDiag))
+          : (Array.isArray(body2?.diagnoses)
+              ? (body2.diagnoses as { cie10Desc: string; cie10Code: string }[])
+                  .map((d) => `${d.cie10Desc} (${d.cie10Code})`).join('; ')
+              : null)
 
         const existingRx = await prisma.prescription.findFirst({ where: { attentionId: params.aid } })
         if (existingRx) {

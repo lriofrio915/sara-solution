@@ -92,6 +92,7 @@ export default function AtencionDetailClient({
     items?: PrescriptionItem[]
     validUntil?: string
     notes?: string
+    diagnosis?: string | string[]
   } | null
 
   const billingData = attention.billing as {
@@ -130,6 +131,9 @@ export default function AtencionDetailClient({
     } : undefined,
     diagnoses: (attention.diagnoses as Diagnosis[]) ?? [],
     prescriptionItems: prescriptionData?.items ?? [],
+    prescriptionDiagnosis: Array.isArray(prescriptionData?.diagnosis)
+      ? prescriptionData.diagnosis as string[]
+      : (prescriptionData?.diagnosis ? [prescriptionData.diagnosis as string] : []),
     prescriptionValidUntil: prescriptionData?.validUntil ?? '',
     prescriptionNotes: prescriptionData?.notes ?? 'Recomendaciones:\nSignos de Alarma:\nAlergias:',
     exams: attention.exams ?? undefined,
