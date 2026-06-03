@@ -64,6 +64,30 @@ const gearItems = [
   { href: '/integraciones', icon: Plug,       label: 'Integraciones' },
 ]
 
+// ─── Notification dismissal (localStorage, TTL 24h) ────────────
+
+type NotificationItem = {
+  id: string
+  type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge' | 'credit_approved'
+  label: string
+  href: string
+  createdAt?: string
+}
+
+const DISMISS_KEY = 'notif_dismissed'
+const DISMISS_TTL = 24 * 60 * 60 * 1000
+
+function getDismissed(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(DISMISS_KEY) ?? '{}') } catch { return {} }
+}
+function saveDismissed(map: Record<string, number>) {
+  localStorage.setItem(DISMISS_KEY, JSON.stringify(map))
+}
+function purgeDismissed(map: Record<string, number>): Record<string, number> {
+  const now = Date.now()
+  return Object.fromEntries(Object.entries(map).filter(([, ts]) => now - ts < DISMISS_TTL))
+}
+
 // ─── Props ─────────────────────────────────────────────────────
 
 interface Props {
@@ -86,7 +110,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
   const [bellOpen, setBellOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const [notifCount, setNotifCount] = useState(0)
-  const [notifItems, setNotifItems] = useState<{ type: string; label: string; href: string; createdAt?: string }[]>([])
+  const [notifItems, setNotifItems] = useState<NotificationItem[]>([])
   const pathname = usePathname()
   const router = useRouter()
   const gearRef = useRef<HTMLDivElement>(null)
@@ -118,8 +142,12 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
       fetch('/api/notifications/count')
         .then(r => r.json())
         .then(d => {
-          if (d?.count !== undefined) setNotifCount(d.count)
-          if (d?.items) setNotifItems(d.items)
+          if (d?.items) {
+            const dismissed = purgeDismissed(getDismissed())
+            const filtered = (d.items as NotificationItem[]).filter(it => !dismissed[it.id])
+            setNotifItems(filtered)
+            setNotifCount(filtered.length)
+          }
         })
         .catch(() => {})
     }
@@ -184,6 +212,9 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                   key={i}
                   href={item.href}
                   onClick={() => {
+                    const map = purgeDismissed(getDismissed())
+                    map[item.id] = Date.now()
+                    saveDismissed(map)
                     setNotifItems(prev => prev.filter((_, idx) => idx !== i))
                     setNotifCount(prev => Math.max(0, prev - 1))
                     setBellOpen(false)

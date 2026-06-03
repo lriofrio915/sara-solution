@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 type NotificationItem = {
+  id: string
   type: 'appointment' | 'reminder' | 'whatsapp' | 'credit_recharge' | 'credit_approved'
   label: string
   href: string
@@ -65,16 +66,16 @@ export async function GET() {
 
   for (const appt of appointments) {
     const d = new Date(appt.date)
-    items.push({ type: 'appointment', label: `Cita sin confirmar: ${d.toLocaleDateString('es-EC', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`, href: '/appointments', createdAt: d.toISOString() })
+    items.push({ id: `appointment:${appt.id}`, type: 'appointment', label: `Cita sin confirmar: ${d.toLocaleDateString('es-EC', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`, href: '/appointments', createdAt: d.toISOString() })
   }
 
   for (const rem of reminders) {
-    items.push({ type: 'reminder', label: `Recordatorio vencido: ${rem.title}`, href: '/reminders', createdAt: new Date(rem.dueDate).toISOString() })
+    items.push({ id: `reminder:${rem.id}`, type: 'reminder', label: `Recordatorio vencido: ${rem.title}`, href: '/reminders', createdAt: new Date(rem.dueDate).toISOString() })
   }
 
   for (const conv of conversations) {
     const phone = conv.title ?? 'Paciente'
-    items.push({ type: 'whatsapp', label: `WhatsApp esperando respuesta: ${phone}`, href: '/integraciones/conversaciones', createdAt: new Date(conv.updatedAt).toISOString() })
+    items.push({ id: `whatsapp:${conv.id}`, type: 'whatsapp', label: `WhatsApp esperando respuesta: ${phone}`, href: '/integraciones/conversaciones', createdAt: new Date(conv.updatedAt).toISOString() })
   }
 
   let creditRecharges: { id: string; credits: number; createdAt: Date; doctor: { name: string } }[] = []
@@ -86,7 +87,7 @@ export async function GET() {
       orderBy: { createdAt: 'asc' },
     })
     for (const r of creditRecharges) {
-      items.push({ type: 'credit_recharge', label: `Recarga pendiente: ${r.doctor.name} — ${r.credits} cr.`, href: '/admin/credits', createdAt: r.createdAt.toISOString() })
+      items.push({ id: `credit_recharge:${r.id}`, type: 'credit_recharge', label: `Recarga pendiente: ${r.doctor.name} — ${r.credits} cr.`, href: '/admin/credits', createdAt: r.createdAt.toISOString() })
     }
   }
 
@@ -102,6 +103,7 @@ export async function GET() {
     })
     for (const r of approvedRecharges) {
       items.push({
+        id: `credit_approved:${r.id}`,
         type: 'credit_approved',
         label: `¡${r.credits} créditos acreditados en tu cuenta!`,
         href: '/marketing',
