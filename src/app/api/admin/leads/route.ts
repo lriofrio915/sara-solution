@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import { parseBody } from '@/lib/validation/parseBody'
 import { LeadCreateSchema } from '@/lib/validation/schemas/lead'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +11,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.email !== SUPERADMIN_EMAIL) {
+  if (!user || !isSuperAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.email !== SUPERADMIN_EMAIL) {
+  if (!user || !isSuperAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

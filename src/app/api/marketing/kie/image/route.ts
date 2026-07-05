@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import { createImageTask, SARA_CREDIT_COSTS } from '@/lib/kie-ai'
 import OpenAI from 'openai'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
 type BrandProfile = {
   clinicName: string | null
@@ -38,7 +37,7 @@ async function getAuth() {
     },
   })
   if (!doctor) return null
-  return { doctor, isAdmin: user.email === SUPERADMIN_EMAIL }
+  return { doctor, isAdmin: isSuperAdminEmail(user.email) }
 }
 
 const STYLE_DESCRIPTIONS: Record<string, string> = {

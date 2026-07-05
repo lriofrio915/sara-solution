@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +9,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.email !== SUPERADMIN_EMAIL) {
+  if (!user || !isSuperAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

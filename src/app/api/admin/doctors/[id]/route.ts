@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import { Plan } from '@prisma/client'
 
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 const VALID_PLANS: Plan[] = ['FREE', 'TRIAL', 'PRO_MENSUAL', 'PRO_ANUAL', 'ENTERPRISE']
 
 async function authorize() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== SUPERADMIN_EMAIL) return null
+  if (!user || !isSuperAdminEmail(user.email)) return null
   return user
 }
 

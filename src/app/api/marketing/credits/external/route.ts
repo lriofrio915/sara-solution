@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createHmac } from 'crypto'
+import { timingSafeStringEqual } from '@/lib/timingSafeEqual'
 
-const SECRET = process.env.CREDITS_SECRET ?? 'default_secret'
+function getSecret(): string {
+  const secret = process.env.CREDITS_SECRET
+  if (!secret) throw new Error('CREDITS_SECRET no configurado')
+  return secret
+}
+
 const CAROUSEL_COST = 5
 const TTL_MS = 2 * 60 * 60 * 1000 // 2 hours
 
 export async function POST(req: Request) {
   const apiKey = req.headers.get('x-carrusel-key')
-  if (!apiKey || apiKey !== process.env.CREDITS_SECRET) {
+  if (!timingSafeStringEqual(apiKey, process.env.CREDITS_SECRET)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
@@ -28,8 +34,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Token expirado' }, { status: 401 })
   }
 
-  const expected = createHmac('sha256', SECRET).update(`${doctorId}:${ts}`).digest('hex')
-  if (sig !== expected) {
+  const expected = createHmac('sha256', getSecret()).update(`${doctorId}:${ts}`).digest('hex')
+  if (!timingSafeStringEqual(sig, expected)) {
     return NextResponse.json({ error: 'Firma inválida' }, { status: 401 })
   }
 

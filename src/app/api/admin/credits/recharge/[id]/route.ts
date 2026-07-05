@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import { sendWA } from '@/lib/whatsapp'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== SUPERADMIN_EMAIL) {
+  if (!user || !isSuperAdminEmail(user.email)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 

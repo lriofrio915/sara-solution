@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import OpenAI from 'openai'
 
 export const dynamic = 'force-dynamic'
@@ -23,8 +24,6 @@ function getClient() {
     },
   })
 }
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
 const FOCUS_ANGLES = [
   'enfermedades frecuentes y su manejo',
@@ -86,7 +85,7 @@ export async function GET(request: Request) {
     const client = getClient()
 
     // ── Modo Admin: Luis Riofrio → temas de marketing de Sara Medical ──────────
-    if (user.email === SUPERADMIN_EMAIL) {
+    if (isSuperAdminEmail(user.email)) {
       const angle = ADMIN_FOCUS_ANGLES[Math.floor(Math.random() * ADMIN_FOCUS_ANGLES.length)]
       const platformDesc = ADMIN_PLATFORM_CONTEXT[platform] || ADMIN_PLATFORM_CONTEXT.linkedin
       const formatDesc = PLATFORM_FORMAT[platform] || PLATFORM_FORMAT.linkedin

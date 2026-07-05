@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (user?.email !== 'lriofrio915@gmail.com')
+  if (!isSuperAdminEmail(user?.email))
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const apiKey = process.env.KIE_AI_API_KEY

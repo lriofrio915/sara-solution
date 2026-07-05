@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 
 type NotificationItem = {
   id: string
@@ -79,7 +80,7 @@ export async function GET() {
   }
 
   let creditRecharges: { id: string; credits: number; createdAt: Date; doctor: { name: string } }[] = []
-  if (user.email === 'lriofrio915@gmail.com') {
+  if (isSuperAdminEmail(user.email)) {
     creditRecharges = await prisma.creditRecharge.findMany({
       where: { status: 'PENDING' },
       select: { id: true, credits: true, createdAt: true, doctor: { select: { name: true } } },
@@ -93,7 +94,7 @@ export async function GET() {
 
   // Créditos aprobados en las últimas 24h (solo para médicos no-admin)
   let approvedRecharges: { id: string; credits: number; approvedAt: Date | null }[] = []
-  if (user.email !== 'lriofrio915@gmail.com') {
+  if (!isSuperAdminEmail(user.email)) {
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
     approvedRecharges = await prisma.creditRecharge.findMany({
       where: { doctorId: doctor.id, status: 'APPROVED', approvedAt: { gte: since24h } },

@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeStringEqual } from '@/lib/timingSafeEqual'
 import { prisma } from '@/lib/prisma'
 import { sendWA } from '@/lib/whatsapp'
 
@@ -37,7 +38,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('x-cron-secret')
-  if (secret !== process.env.CRON_SECRET?.trim()) {
+  if (!timingSafeStringEqual(secret, process.env.CRON_SECRET?.trim())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

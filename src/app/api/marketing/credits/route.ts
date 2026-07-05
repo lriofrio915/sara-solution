@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 
 async function getUser() {
   const supabase = await createClient()
@@ -15,7 +14,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   // Superadmin: return real kie.ai pool balance
-  if (user.email === SUPERADMIN_EMAIL) {
+  if (isSuperAdminEmail(user.email)) {
     const apiKey = process.env.KIE_AI_API_KEY
     if (!apiKey) return NextResponse.json({ credits: 0, transactions: [] })
     try {

@@ -9,6 +9,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
     // ── 3. Auto-configure webhook ────────────────────────────────────────────
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.INTERNAL_APP_URL ?? ''
     if (appUrl) {
-      const isAdmin = user.email === 'lriofrio915@gmail.com'
+      const isAdmin = isSuperAdminEmail(user.email)
       const webhookUrl = `${appUrl}/api/webhooks/${isAdmin ? 'nexus' : 'whatsapp-evolution'}`
       fetch(evolutionUrl(`/webhook/set/${instanceName}`), {
         method: 'POST',

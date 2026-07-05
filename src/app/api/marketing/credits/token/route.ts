@@ -3,7 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { createHmac } from 'crypto'
 
-const SECRET = process.env.CREDITS_SECRET ?? 'default_secret'
+function getSecret(): string {
+  const secret = process.env.CREDITS_SECRET
+  if (!secret) throw new Error('CREDITS_SECRET no configurado')
+  return secret
+}
 
 export async function GET() {
   const supabase = await createClient()
@@ -18,7 +22,7 @@ export async function GET() {
 
   const ts = Date.now()
   const payload = `${doctor.id}:${ts}`
-  const sig = createHmac('sha256', SECRET).update(payload).digest('hex')
+  const sig = createHmac('sha256', getSecret()).update(payload).digest('hex')
   const token = `${doctor.id}.${ts}.${sig}`
 
   return NextResponse.json({ token })

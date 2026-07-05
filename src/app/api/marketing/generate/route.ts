@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { isSuperAdminEmail } from '@/lib/superadmin'
 import { generateMarketingContent } from '@/lib/marketing-ai'
-
-const SUPERADMIN_EMAIL = 'lriofrio915@gmail.com'
 
 async function getUser() {
   const supabase = await createClient()
@@ -32,7 +31,7 @@ export async function POST(req: Request) {
 
   // ── Contexto de marca para Luis (admin Sara Medical) ───────────────────────
   let brandContext
-  if (user.email === SUPERADMIN_EMAIL) {
+  if (isSuperAdminEmail(user.email)) {
     brandContext = {
       clinicName: 'Sara Medical',
       doctorName: 'Luis Riofrio',
