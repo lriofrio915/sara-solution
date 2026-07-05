@@ -17,9 +17,12 @@
 - Deploy manual a producción OK (`vercel --prod`), estado Ready.
 - Smoke tests en producción: `/api/debug` → 404; portal OTP paso 1 devuelve `sent:true` + challenge (señuelo para email inexistente); cron sin secret → 401.
 
+### Completado (verificación final)
+- Auto-deploy confirmado funcionando de nuevo tras el fix de memoria.
+- Descarga de PDF firmado en producción: primero falló con 500 ("@sparticuz/chromium/bin does not exist") — el file tracing de Next no incluía los binarios brotli de Chromium. Fix `d9c767a`: `outputFileTracingIncludes` en next.config.js para `/api/documents/**`. Nota: esto nunca funcionó en producción (Puppeteer se configuró el 3-jun y los deploys estaban rotos desde entonces).
+- Test E2E post-fix (cuenta tefybel@gmail.com, sesión via magic link admin, autorizado por el usuario): HTTP 200 en 12.4s, X-Signed: true, PDF 160KB con /ByteRange y firma pkcs7 embebida. 2048 MB suficientes.
+
 ### Pendiente
-- Confirmar que pushes futuros vuelven a disparar auto-deploy (el fix de memoria debería bastar; si no, revisar integración GitHub App en Vercel → Settings → Git).
-- Verificar que la descarga de PDF firmado funciona con 2048 MB (antes pedía 3009; si falla por memoria, considerar plan Pro o optimizar la firma).
 - npm audit reporta 33 vulns restantes (1 low, 21 moderate, 7 high, 4 critical): mayormente @signpdf/pdfkit/crypto-js (aceptadas, ver CLAUDE.md) + cadena @remotion (bundler/studio). Evaluar actualización de @remotion en sesión aparte.
 
 ### Decisiones tomadas
