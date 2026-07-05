@@ -10,6 +10,12 @@ const nextConfig = {
     '@remotion/studio',
     'remotion',
   ],
+  // Los binarios brotli de Chromium no son requires JS, así que el file tracing
+  // no los detecta; sin esto la función de descarga de PDF falla en Vercel con
+  // "The input directory .../@sparticuz/chromium/bin does not exist".
+  outputFileTracingIncludes: {
+    '/api/documents/**': ['./node_modules/@sparticuz/chromium/bin/**'],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ibb.co' },
