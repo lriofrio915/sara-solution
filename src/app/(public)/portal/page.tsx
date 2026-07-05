@@ -46,11 +46,13 @@ type PortalResult =
 
 export default function PatientPortalPage() {
   const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [challenge, setChallenge] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PortalResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSearch(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -65,11 +67,43 @@ export default function PatientPortalPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? 'Error buscando citas')
+        throw new Error(body.error ?? 'Error enviando el código')
+      }
+
+      const data: { sent: boolean; challenge: string } = await res.json()
+      setChallenge(data.challenge)
+      setCode('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    if (!challenge) return
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch('/api/patient-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, challenge }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? 'Error verificando el código')
       }
 
       const data: PortalResult = await res.json()
       setResult(data)
+      if (data.found) {
+        setChallenge(null)
+        setCode('')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error inesperado')
     } finally {
@@ -105,33 +139,78 @@ export default function PatientPortalPage() {
         {!result?.found && (
           <div className="max-w-md mx-auto">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Correo electrónico
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tucorreo@ejemplo.com"
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                  />
-                </div>
+              {!challenge ? (
+                <form onSubmit={handleSendCode} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Correo electrónico
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tucorreo@ejemplo.com"
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                    />
+                  </div>
 
-                {error && (
-                  <p className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">{error}</p>
-                )}
+                  {error && (
+                    <p className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">{error}</p>
+                  )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-60 text-sm"
-                >
-                  {loading ? 'Buscando...' : 'Ver mis citas'}
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-60 text-sm"
+                  >
+                    {loading ? 'Enviando...' : 'Enviarme un código'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyCode} className="space-y-4">
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-800">
+                    Si <strong>{email}</strong> está registrado con un médico, recibirás un
+                    código de 6 dígitos por correo. Revisa también tu carpeta de spam.
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Código de verificación
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 text-center text-lg tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-red-600 text-sm bg-red-50 p-3 rounded-xl">{error}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading || code.length !== 6}
+                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors disabled:opacity-60 text-sm"
+                  >
+                    {loading ? 'Verificando...' : 'Ver mis citas'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setChallenge(null); setCode(''); setError(null) }}
+                    className="w-full text-sm text-gray-400 hover:text-gray-600 underline"
+                  >
+                    Usar otro correo
+                  </button>
+                </form>
+              )}
 
               {result && !result.found && (
                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-800">
@@ -167,7 +246,7 @@ export default function PatientPortalPage() {
                 Tus citas programadas
               </h2>
               <button
-                onClick={() => { setResult(null); setEmail('') }}
+                onClick={() => { setResult(null); setEmail(''); setChallenge(null); setCode('') }}
                 className="text-sm text-gray-400 hover:text-gray-600 underline"
               >
                 Buscar con otro correo

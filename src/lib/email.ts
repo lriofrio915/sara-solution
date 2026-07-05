@@ -156,6 +156,42 @@ export async function sendWelcomeEmail(email: string, name: string) {
   })
 }
 
+export async function sendPortalCodeEmail(email: string, code: string) {
+  await getResend().emails.send({
+    from: 'Sara Medical <noreply@consultorio.site>',
+    to: email,
+    subject: `${code} es tu código para ver tus citas`,
+    html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f4f7fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1E3A8A 0%,#0F766E 100%);border-radius:16px 16px 0 0;padding:28px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:800;">Portal del Paciente</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#ffffff;border-radius:0 0 16px 16px;padding:32px 40px;text-align:center;">
+            <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">
+              Usa este código para ver tus citas programadas. Es válido por 10 minutos.
+            </p>
+            <p style="margin:0 0 20px;font-size:32px;font-weight:800;letter-spacing:8px;color:#1E3A8A;">${code}</p>
+            <p style="color:#9ca3af;font-size:13px;margin:0;">
+              Si no solicitaste este código, ignora este correo.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  })
+}
+
 export async function sendAppointmentConfirmation(
   email: string,
   patientName: string,

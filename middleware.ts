@@ -64,6 +64,7 @@ async function applyRateLimit(request: NextRequest, pathname: string): Promise<N
   else if (pathname === '/api/landing-chat')                   limiter = limits.public
   else if (pathname === '/api/contact')                        limiter = limits.public
   else if (pathname === '/api/leads/public')                   limiter = limits.public
+  else if (pathname === '/api/patient-portal')                 limiter = limits.public
   else if (pathname.startsWith('/api/public/'))                limiter = limits.public
 
   if (!limiter) return null
@@ -213,6 +214,7 @@ export const config = {
     '/api/landing-chat',
     '/api/contact',
     '/api/leads/public',
+    '/api/patient-portal',
     '/api/public/:path*',
   ],
 }
