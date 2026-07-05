@@ -10,11 +10,17 @@
 - Typecheck limpio tras `rm -rf .next` (el fallo anterior era cache obsoleto que referenciaba la ruta debug borrada).
 - `npm run build` OK. Vitest: 137/137 verdes.
 
+### Completado (continuación, misma sesión)
+- Push a main hecho (`464f264`, luego `bcbf067`).
+- Env vars verificadas en Vercel Production: `CRON_SECRET` y `CREDITS_SECRET` existen.
+- **Root cause de deploys rotos desde Jun 3**: `vercel.json` pedía `memory: 3009` para la ruta de descarga de PDF (commit `af0eed0`); el plan Hobby limita a 2048 MB, todos los deploys fallaban. Fix: `bcbf067` baja a 2048.
+- Deploy manual a producción OK (`vercel --prod`), estado Ready.
+- Smoke tests en producción: `/api/debug` → 404; portal OTP paso 1 devuelve `sent:true` + challenge (señuelo para email inexistente); cron sin secret → 401.
+
 ### Pendiente
-- **PUSH NO REALIZADO** — `git push origin main` bloqueado (requiere autorización explícita porque dispara deploy a producción en Vercel). 3 commits locales esperando push.
-- **Antes/justo después del push**: verificar en Vercel que existen `CREDITS_SECRET` y `CRON_SECRET` (y opcionalmente `PORTAL_OTP_SECRET`). Si falta `CREDITS_SECRET`, el endpoint de marketing credits fallará (antes usaba el fallback inseguro `'default_secret'`).
+- Confirmar que pushes futuros vuelven a disparar auto-deploy (el fix de memoria debería bastar; si no, revisar integración GitHub App en Vercel → Settings → Git).
+- Verificar que la descarga de PDF firmado funciona con 2048 MB (antes pedía 3009; si falla por memoria, considerar plan Pro o optimizar la firma).
 - npm audit reporta 33 vulns restantes (1 low, 21 moderate, 7 high, 4 critical): mayormente @signpdf/pdfkit/crypto-js (aceptadas, ver CLAUDE.md) + cadena @remotion (bundler/studio). Evaluar actualización de @remotion en sesión aparte.
-- Smoke test post-deploy del portal OTP (enviar código a email de prueba).
 
 ### Decisiones tomadas
 - Commits divididos en 3 temáticos (portal OTP / hardening secrets / deps) en vez de uno solo.
