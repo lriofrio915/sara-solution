@@ -83,5 +83,9 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.4"
+  },
+  "overrides": {
+    "pdfkit": "0.10.0",
+    "crypto-js": "3.3.0"
   }
 }
