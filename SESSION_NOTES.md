@@ -28,8 +28,19 @@
 - npm audit: 33 → 29 vulns. Las 29 restantes son la cadena @signpdf/pdfkit/crypto-js aceptada y documentada en CLAUDE.md (sin fix; plan a largo plazo: migrar firma a SaaS).
 - Verificado: typecheck, build y 137/137 tests OK. Deploy automático Ready en producción, sitio responde 200.
 
+### Completado (fix descarga PDF = página de login)
+- Reporte del usuario: al descargar el PDF de una receta, el archivo contenía la página de login en vez del documento.
+- **Root cause real** (verificado con test E2E, distinto a la hipótesis inicial de rotación de tokens): `NEXT_PUBLIC_APP_URL` es el apex `https://consultorio.site`, pero Vercel responde 307 a nivel de edge hacia `https://www.consultorio.site`. Puppeteer seteaba las cookies de sesión host-only para el apex → tras el redirect a `www` no se enviaban → middleware redirigía a `/login` → el PDF capturaba la página de login. (El E2E de la 1:53 llamaba a la API por `www` pero Puppeteer internamente iba al apex; el redirect apex→www es lo que rompe.)
+- Fixes (commits `95f30d4` y `253c9db`):
+  - `pdf-generator.ts`: cookie con dominio `.consultorio.site` (punto inicial, `www.` recortado) → sobrevive el 307 en ambas direcciones. También `secure` en https.
+  - `pdf-generator.ts`: guard post-`goto` — si la URL final es `/login`, lanza error descriptivo (500 con detail) en vez de devolver silenciosamente un PDF de login.
+  - `pdf-generator.ts`: `INTERNAL_URL` ahora usa `NEXT_PUBLIC_APP_URL` también fuera de Vercel (antes caía a `localhost:3001`).
+  - `route.ts` (download): el header Cookie para Puppeteer se construye desde `cookies()` de Next (valores post-refresh de `getUser()`) en vez del header crudo del request — elimina la fragilidad de access token expirado + refresh token rotado en sesiones >1h.
+- Verificación E2E en producción (script `test-pdf-fix.mjs`, cuenta tefybel@gmail.com): sesión fresca Y sesión con `expires_at` vencido (fuerza refresh+rotación) → ambas HTTP 200, X-Signed: true, PDF 344KB con /ByteRange + pkcs7, contenido verificado con pdftotext (receta real, no login). PDFs de prueba borrados del scratchpad (PHI).
+
 ### Pendiente
 - Nada urgente. Vulns restantes (29) son las aceptadas de @signpdf/pdfkit/crypto-js.
+- Opcional: definir `INTERNAL_APP_URL=https://www.consultorio.site` en Vercel para ahorrar el 307 apex→www en cada generación de PDF (hoy funciona igual sin ella).
 
 ### Decisiones tomadas
 - Commits divididos en 3 temáticos (portal OTP / hardening secrets / deps) en vez de uno solo.
