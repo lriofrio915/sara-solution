@@ -7,6 +7,7 @@
  * Supported types: prescriptions | certificates | exam-orders
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
@@ -113,7 +114,14 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
     }
 
     // 9. Generate PDF — pass ?draft=1 when no signature configured (AM 0009-2017)
-    const cookieHeader = req.headers.get('cookie') ?? ''
+    // Read cookies from the request store, NOT the raw header: if getUser()
+    // refreshed an expired access token (rotating the refresh token), the raw
+    // header still carries the stale session and Puppeteer would be redirected
+    // to /login by the middleware/PrintLayout.
+    const cookieStore = await cookies()
+    const cookieHeader = cookieStore.getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join('; ')
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
     let pdfQuery = hasSignatureConfigured ? '' : '?draft=1'
     if (signatureUrl) pdfQuery = (pdfQuery ? pdfQuery + '&' : '?') + `signatureUrl=${encodeURIComponent(signatureUrl)}`

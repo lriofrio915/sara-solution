@@ -7,9 +7,8 @@ import puppeteer from 'puppeteer-core'
 
 const IS_VERCEL = !!process.env.VERCEL
 const CHROME_PATH = process.env.CHROME_PATH ?? '/usr/bin/google-chrome'
-// In Vercel use the public URL; in dev/VPS use localhost directly
 const INTERNAL_URL = process.env.INTERNAL_APP_URL
-  ?? (IS_VERCEL ? process.env.NEXT_PUBLIC_APP_URL : null)
+  ?? process.env.NEXT_PUBLIC_APP_URL
   ?? 'http://localhost:3001'
 
 async function getChromiumArgs(): Promise<{ executablePath: string; args: string[] }> {
@@ -53,7 +52,12 @@ export async function generatePdfFromPrintPage(
       const url = new URL(INTERNAL_URL)
       const cookies = cookieHeader.split(';').map((c) => {
         const [name, ...rest] = c.trim().split('=')
-        return { name: name.trim(), value: rest.join('=').trim(), domain: url.hostname }
+        return {
+          name: name.trim(),
+          value: rest.join('=').trim(),
+          domain: url.hostname,
+          secure: url.protocol === 'https:',
+        }
       })
       await page.setCookie(...cookies)
     }
@@ -63,6 +67,14 @@ export async function generatePdfFromPrintPage(
       waitUntil: 'networkidle0',
       timeout: 45_000,
     })
+
+    // If auth failed, middleware/PrintLayout redirect to /login. Fail loudly
+    // instead of silently returning a PDF of the login page.
+    if (new URL(page.url()).pathname.startsWith('/login')) {
+      throw new Error(
+        `Print page redirected to login (${page.url()}) — session cookies rejected by middleware/PrintLayout`
+      )
+    }
 
     // Emulate print media so @media print styles apply (hides control buttons etc.)
     await page.emulateMediaType('print')
