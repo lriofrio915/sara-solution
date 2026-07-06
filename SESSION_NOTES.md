@@ -38,9 +38,11 @@
   - `route.ts` (download): el header Cookie para Puppeteer se construye desde `cookies()` de Next (valores post-refresh de `getUser()`) en vez del header crudo del request — elimina la fragilidad de access token expirado + refresh token rotado en sesiones >1h.
 - Verificación E2E en producción (script `test-pdf-fix.mjs`, cuenta tefybel@gmail.com): sesión fresca Y sesión con `expires_at` vencido (fuerza refresh+rotación) → ambas HTTP 200, X-Signed: true, PDF 344KB con /ByteRange + pkcs7, contenido verificado con pdftotext (receta real, no login). PDFs de prueba borrados del scratchpad (PHI).
 
+### Completado (INTERNAL_APP_URL)
+- `INTERNAL_APP_URL=https://www.consultorio.site` agregada en Vercel Production (`vercel env add`) + `vercel redeploy` → Ready. Puppeteer ya no pasa por el 307 apex→www. E2E re-verificado: ambos tests PASS (200, X-Signed: true).
+
 ### Pendiente
 - Nada urgente. Vulns restantes (29) son las aceptadas de @signpdf/pdfkit/crypto-js.
-- Opcional: definir `INTERNAL_APP_URL=https://www.consultorio.site` en Vercel para ahorrar el 307 apex→www en cada generación de PDF (hoy funciona igual sin ella).
 
 ### Decisiones tomadas
 - Commits divididos en 3 temáticos (portal OTP / hardening secrets / deps) en vez de uno solo.
