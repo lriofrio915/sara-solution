@@ -22,9 +22,15 @@
 - Descarga de PDF firmado en producción: primero falló con 500 ("@sparticuz/chromium/bin does not exist") — el file tracing de Next no incluía los binarios brotli de Chromium. Fix `d9c767a`: `outputFileTracingIncludes` en next.config.js para `/api/documents/**`. Nota: esto nunca funcionó en producción (Puppeteer se configuró el 3-jun y los deploys estaban rotos desde entonces).
 - Test E2E post-fix (cuenta tefybel@gmail.com, sesión via magic link admin, autorizado por el usuario): HTTP 200 en 12.4s, X-Signed: true, PDF 160KB con /ByteRange y firma pkcs7 embebida. 2048 MB suficientes.
 
+### Completado (update de remotion)
+- remotion 4.0.457 → 4.0.484 (core, bundler, player, renderer — misma versión exacta). Commit `fb4703e`.
+- Elimina las 2 advisories de `ws` (GHSA-58qx-3vcg-4xpx memory disclosure, GHSA-96hv-2xvq-fx4p DoS) que entraban vía @remotion/renderer → studio → bundler. `ws` ahora 8.21.0.
+- npm audit: 33 → 29 vulns. Las 29 restantes son la cadena @signpdf/pdfkit/crypto-js aceptada y documentada en CLAUDE.md (sin fix; plan a largo plazo: migrar firma a SaaS).
+- Verificado: typecheck, build y 137/137 tests OK. Deploy automático Ready en producción, sitio responde 200.
+
 ### Pendiente
-- npm audit reporta 33 vulns restantes (1 low, 21 moderate, 7 high, 4 critical): mayormente @signpdf/pdfkit/crypto-js (aceptadas, ver CLAUDE.md) + cadena @remotion (bundler/studio). Evaluar actualización de @remotion en sesión aparte.
+- Nada urgente. Vulns restantes (29) son las aceptadas de @signpdf/pdfkit/crypto-js.
 
 ### Decisiones tomadas
 - Commits divididos en 3 temáticos (portal OTP / hardening secrets / deps) en vez de uno solo.
-- No se tocaron deps de @remotion — fuera de alcance del sweep de seguridad.
+- Deps de @remotion actualizadas después del sweep, a pedido del usuario (ver bloque "update de remotion").
