@@ -50,12 +50,18 @@ export async function generatePdfFromPrintPage(
     // Forward the auth cookies so the print page can authenticate
     if (cookieHeader) {
       const url = new URL(INTERNAL_URL)
+      // Leading dot = domain cookie: survives the Vercel edge 307 between the
+      // apex and www hosts (a host-only cookie set for the apex is not sent
+      // to www.<domain> and the print page redirects to /login).
+      const cookieDomain = url.hostname.includes('.')
+        ? '.' + url.hostname.replace(/^www\./, '')
+        : url.hostname
       const cookies = cookieHeader.split(';').map((c) => {
         const [name, ...rest] = c.trim().split('=')
         return {
           name: name.trim(),
           value: rest.join('=').trim(),
-          domain: url.hostname,
+          domain: cookieDomain,
           secure: url.protocol === 'https:',
         }
       })
