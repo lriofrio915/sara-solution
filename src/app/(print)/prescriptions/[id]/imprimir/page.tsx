@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
 import Image from 'next/image'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface Medication {
   dci?: string              // Nombre genérico (DCI) — ACESS-2023-0030
@@ -49,6 +50,7 @@ interface PrescriptionData {
   }
   doctor: {
     name: string
+    titlePrefix?: string | null
     specialty: string
     email: string
     phone: string | null
@@ -98,6 +100,44 @@ function extractAlarmSigns(instructions: string | null): { main: string; alarmSi
   return { main: instructions, alarmSigns: '' }
 }
 
+/**
+ * Sello visual de firma electrónica al estilo FirmaEC: QR + titular + fecha.
+ * El QR codifica los datos de verificación (misma convención que las
+ * aplicaciones de firma del sistema FirmaEC); la firma criptográfica PAdES
+ * se aplica al PDF después del render.
+ */
+function FirmaStamp({ signedBy, signedAt }: { signedBy: string; signedAt: string | null }) {
+  const fecha = signedAt
+    ? new Date(signedAt).toLocaleString('es-EC', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        timeZone: 'America/Guayaquil',
+      })
+    : null
+  const qrData =
+    `FIRMADO POR: ${signedBy.toUpperCase()}\n` +
+    `RAZON: Documento médico firmado electrónicamente\n` +
+    (fecha ? `FECHA: ${fecha}\n` : '') +
+    `VALIDAR CON: www.firmadigital.gob.ec\n` +
+    `FIRMA DIGITAL - FirmaEC`
+  return (
+    <div className="inline-flex items-center gap-2.5 text-left mb-1">
+      <QRCodeSVG value={qrData} size={54} level="M" className="flex-shrink-0" />
+      <div>
+        <p style={{ fontSize: '7px', color: '#4a5568' }}>Firmado electrónicamente por:</p>
+        <p className="font-bold" style={{ fontSize: '11px', color: '#111827', lineHeight: 1.25, maxWidth: '130px' }}>
+          {signedBy.toUpperCase()}
+        </p>
+        {fecha && (
+          <p style={{ fontSize: '6.5px', color: '#6b7280', marginTop: '2px' }}>
+            {fecha}<br />Validar en www.firmadigital.gob.ec
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function PrescriptionPrintPage() {
   const { id } = useParams<{ id: string }>()
   const [data, setData] = useState<PrescriptionData | null>(null)
@@ -114,6 +154,11 @@ export default function PrescriptionPrintPage() {
   // de renderizar; aquí solo se dibuja el sello visual estándar.
   const signedBy = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('signedBy')
+    : null
+
+  // ?signedAt=... ISO timestamp de la firma (lo pasa el endpoint de download)
+  const signedAt = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('signedAt')
     : null
 
   const loadData = useCallback(async () => {
@@ -176,6 +221,8 @@ export default function PrescriptionPrintPage() {
   const patient = data.patient
   const medications = Array.isArray(data.medications) ? data.medications : []
   const initials = getInitials(doctor.name)
+  // "Dra. Stéfanny Medrano" — el prefijo (Dr./Dra./etc.) se configura en Perfil
+  const doctorDisplayName = doctor.titlePrefix ? `${doctor.titlePrefix} ${doctor.name}` : doctor.name
   const rxNumber = data.rxNumber ?? '—'
   const allergies = patient.allergies?.filter(Boolean).join(', ') || 'Sin alergias conocidas'
   const expiresFormatted = data.expiresAt
@@ -278,12 +325,12 @@ export default function PrescriptionPrintPage() {
               {/* Header */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={44} height={44} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '44px', height: '44px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
+                  <Image src={logoUrl} alt="Logo" width={64} height={64} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '64px', height: '64px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '44px', height: '44px', backgroundColor: '#2c5282', fontSize: '16px' }}>{initials}</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctor.name}</p>
+                  <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctorDisplayName}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
@@ -392,15 +439,11 @@ export default function PrescriptionPrintPage() {
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
                   {signedBy ? (
-                    /* Sello visual FirmaEC — la firma criptográfica se aplica al PDF después */
-                    <div className="mx-auto mb-1 text-left inline-block" style={{ border: '1px solid #94a3b8', borderRadius: '3px', padding: '4px 10px' }}>
-                      <p style={{ fontSize: '7px', color: '#4a5568' }}>Firmado electrónicamente por:</p>
-                      <p className="font-bold" style={{ fontSize: '9px', color: '#1a202c', lineHeight: 1.3 }}>{signedBy.toUpperCase()}</p>
-                    </div>
+                    <FirmaStamp signedBy={signedBy} signedAt={signedAt} />
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
-                  <p className="font-bold text-gray-800">{doctor.name}</p>
+                  <p className="font-bold text-gray-800">{doctorDisplayName}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                   {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}
@@ -422,12 +465,12 @@ export default function PrescriptionPrintPage() {
               {/* Header compact */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={36} height={36} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '36px', height: '36px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
+                  <Image src={logoUrl} alt="Logo" width={52} height={52} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '52px', height: '52px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '36px', height: '36px', backgroundColor: '#2c5282', fontSize: '14px' }}>{initials}</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctor.name}</p>
+                  <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctorDisplayName}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
@@ -503,15 +546,11 @@ export default function PrescriptionPrintPage() {
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
                   {signedBy ? (
-                    /* Sello visual FirmaEC — la firma criptográfica se aplica al PDF después */
-                    <div className="mx-auto mb-1 text-left inline-block" style={{ border: '1px solid #94a3b8', borderRadius: '3px', padding: '4px 10px' }}>
-                      <p style={{ fontSize: '7px', color: '#4a5568' }}>Firmado electrónicamente por:</p>
-                      <p className="font-bold" style={{ fontSize: '9px', color: '#1a202c', lineHeight: 1.3 }}>{signedBy.toUpperCase()}</p>
-                    </div>
+                    <FirmaStamp signedBy={signedBy} signedAt={signedAt} />
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
-                  <p className="font-bold text-gray-800">{doctor.name}</p>
+                  <p className="font-bold text-gray-800">{doctorDisplayName}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                   {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}

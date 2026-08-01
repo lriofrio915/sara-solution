@@ -148,7 +148,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
       .join('; ')
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
     const pdfQuery = signedBy
-      ? `?signedBy=${encodeURIComponent(signedBy)}`
+      ? `?signedBy=${encodeURIComponent(signedBy)}&signedAt=${encodeURIComponent(new Date().toISOString())}`
       : '?draft=1'
     const pdfPath = `${printPath}${pdfQuery}`
     let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
