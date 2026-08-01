@@ -1,5 +1,24 @@
 # Session Notes
 
+## Sesión 2026-08-01 — Revisión de estado + deps + fix firma visual en receta
+
+### Completado
+- Revisión completa de estado: typecheck/lint/tests/build verdes sobre `d5e4d3f`; crons y backups diarios OK en GitHub Actions (informe entregado como artifact al usuario).
+- **Deps**: next 16.2.4 → 16.2.12 (+ eslint-config-next). Las advisories de next NO desaparecen — el fix vive en la línea 16.3 (aún preview); re-evaluar cuando salga estable. `npm audit fix` para transitivas (fast-uri, form-data, protobufjs, undici, js-yaml, brace-expansion, etc.). Eliminado `mercadopago` (0 imports en todo el repo — dependencia huérfana). npm audit: 30 → **7** (4 = cadena @signpdf aceptada; 3 = next/postcss/sharp sin fix estable).
+- **Fix firma rota en PDF de receta** (reporte del usuario con captura): el endpoint de download generaba una signed URL al **.p12** (certificado PKCS#12, no imagen) y la pasaba como `signatureUrl` → `<img src=p12>` → icono de imagen rota. Nunca existió una imagen de firma en storage; `signaturePath` siempre fue el certificado. Fix en `download/route.ts`: el P12 se descarga/valida ANTES de renderizar, se extrae el CN del certificado y se pasa `?signedBy=<CN>`; la página de impresión dibuja el sello textual estándar FirmaEC ("Firmado electrónicamente por: NOMBRE"). Bonus: el P12 ya no se descarga dos veces; si el certificado es ilegible, el PDF sale como draft con advertencia.
+- **Logo blanco en header de receta** (pedido del usuario): `filter: brightness(0) invert(1)` sobre el clinicLogo en los dos headers azules (#1B3A6B). Solo aplica a clinicLogo, no a la foto del médico; la marca de agua conserva el color original.
+- README.md reescrito con datos reales: Next 16, dominio consultorio.site, planes FREE/TRIAL/PRO_MENSUAL($29)/PRO_ANUAL($249)/ENTERPRISE($129), Hotmart+Stripe, OpenRouter/DeepSeek, crons, seguridad.
+
+### Pendiente
+- Verificar en producción la receta descargada: sello "Firmado electrónicamente por" + logo blanco (el sandbox no alcanza consultorio.site).
+- Punto 5 del plan de negocio (testimonio real de médico para /pricing y /upgrade + funnel de onboarding por WhatsApp) — necesita input del usuario; preguntado al cierre de la sesión.
+- Migración db push → migraciones versionadas (deferred desde abril).
+
+### Decisiones tomadas
+- El sello visual de firma es TEXTO (convención FirmaEC), no imagen: no existe imagen de firma manuscrita en el sistema y el .p12 no contiene una.
+- next se sube a 16.2.12 aunque no limpia las advisories (8 patches de fixes); el salto a 16.3 se hará cuando sea estable.
+- mercadopago eliminado en vez de actualizado: cero uso en el código.
+
 ## Sesión 2026-07-06 — Cierre del hardening de seguridad
 
 ### Completado

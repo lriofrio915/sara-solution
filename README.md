@@ -1,8 +1,8 @@
-# MedSara - Plataforma Médica Inteligente
+# Sara Medical (MedSara) — Plataforma Médica Inteligente
 
-**MedSara** es un SaaS médico multi-tenant construido para la Dra. Stéfanny Medrano, especialista en Medicina Interna. Combina gestión clínica moderna con Sara, una asistente médica IA disponible 24/7.
+SaaS médico multi-tenant para consultorios privados en LatAm (Ecuador, mercado principal). Combina gestión clínica completa con **Sara**, una asistente médica IA disponible 24/7, y un módulo de marketing con IA para redes sociales.
 
-> **Dominio**: [doctoramedranointernista.com](https://doctoramedranointernista.com)
+> **Producción**: [www.consultorio.site](https://www.consultorio.site) — deploy automático en Vercel al hacer push a `main`.
 
 ---
 
@@ -10,260 +10,119 @@
 
 | Capa | Tecnología |
 |------|------------|
-| Frontend | Next.js 14 (App Router) + TypeScript |
-| Estilos | Tailwind CSS |
+| Frontend | Next.js 16 (App Router) + TypeScript + React 19 |
+| Estilos | Tailwind CSS 4 |
 | Base de datos | PostgreSQL via Supabase |
-| ORM | Prisma |
-| Autenticación | Supabase Auth |
-| IA | OpenRouter + DeepSeek Chat v3 |
-| Pagos | Stripe |
-| Deploy | Vercel (recomendado) |
+| ORM | Prisma 5 |
+| Autenticación | Supabase Auth (doctores) + OTP (portal de pacientes) |
+| IA (Sara) | OpenRouter (DeepSeek Chat v3 por defecto) |
+| IA (marketing) | OpenRouter + kie.ai (imágenes/video) + Remotion |
+| PDFs | Puppeteer (@sparticuz/chromium) + firma electrónica PAdES (@signpdf, FirmaEC/BCE) |
+| Pagos | Hotmart (webhook con activación automática de plan) + Stripe |
+| Email | Resend |
+| Rate limiting | Upstash Redis |
+| Analytics / errores | PostHog |
+| Deploy | Vercel |
 
 ---
 
-## Estructura del Proyecto
+## Módulos
 
-```
-src/
-├── app/
-│   ├── (public)/          # Landing pages públicas
-│   │   └── page.tsx       # Landing page de la Dra. Medrano
-│   ├── (auth)/            # Autenticación
-│   │   ├── layout.tsx     # Layout con branding
-│   │   ├── login/         # Inicio de sesión
-│   │   └── register/      # Registro de doctor
-│   ├── (doctor)/          # Panel médico (protegido)
-│   │   ├── layout.tsx     # Sidebar de navegación
-│   │   ├── dashboard/     # Resumen y estadísticas
-│   │   ├── patients/      # Gestión de pacientes
-│   │   ├── appointments/  # Gestión de citas
-│   │   └── sara/          # Chat con Sara IA
-│   ├── (patient)/         # Portal del paciente
-│   │   └── dashboard/     # Panel del paciente
-│   └── api/
-│       └── sara/          # API routes del agente Sara
-│           ├── route.ts   # Endpoint principal
-│           └── tools/     # Handlers de tools de Sara
-├── components/
-│   ├── ui/                # Componentes base reutilizables
-│   └── sara/              # Componentes del agente Sara
-├── lib/
-│   ├── sara.ts            # Lógica del agente Sara (OpenRouter)
-│   ├── prisma.ts          # Cliente Prisma singleton
-│   ├── utils.ts           # Utilidades compartidas
-│   └── supabase/          # Clientes Supabase (client/server)
-├── types/
-│   └── index.ts           # Tipos TypeScript del proyecto
-└── prisma/
-    └── schema.prisma      # Schema de base de datos completo
-```
+### Núcleo clínico
+- **Pacientes**: ficha, historial, controles, gráficas de signos vitales
+- **Atenciones**: registro de consultas con CIE-10/ICD-11, diagnósticos, notas
+- **Recetas**: numeración automática atómica, PDF firmado electrónicamente
+- **Órdenes de examen**: por categoría (hematología, bioquímica, imagen, etc.)
+- **Certificados médicos**: emisión y descarga con firma digital
+- **Agenda**: citas, recordatorios automáticos (24h/2h antes), recepción
+- **Equipo**: asistentes con permisos (incluye permiso de firma)
+
+### Documentos firmados (AM 0009-2017)
+Los PDFs de recetas, certificados y órdenes se generan server-side con Puppeteer y se firman con el certificado P12 del médico (FirmaEC/BCE). Código en `src/lib/firma-ec.ts`, `src/lib/pdf-generator.ts` y `/api/documents/[type]/[id]/download`.
+
+### Sara IA
+- Chat embebido (FAB) con memorias persistentes por médico
+- Chat público por perfil de médico (`/[slug]/chat`) y agendamiento
+- Registro de preguntas sin respuesta para mejora continua
+
+### Marketing
+- Generación de posts con IA: Instagram, Facebook, TikTok, LinkedIn
+- Autopilot (publicación programada), calendario, librería, branding
+- OAuth real con Meta y LinkedIn; video studio con Remotion
+
+### Portal del paciente
+- `/mi-salud` con acceso por OTP: citas, recetas, exámenes, certificados
+
+### Negocio y compliance
+- Admin (super-admin), leads, referidos, analytics, onboarding
+- `/pricing` pública; upgrade con Hotmart
+- ARCO (exportar/eliminar datos), FHIR R4, consentimientos, cifrado AES-256-GCM de tokens OAuth
 
 ---
 
-## Modelos de Base de Datos
+## Planes
 
-### Doctor
-Representa a un médico en el sistema (multi-tenant: cada doctor tiene su espacio aislado).
-- `slug`: Identificador único para URL (ej: `dra-medrano`)
-- `plan`: Plan de suscripción (FREE, BASIC, PRO, ENTERPRISE)
-- `authId`: Vincula con usuario de Supabase Auth
+| Plan | Precio | Descripción |
+|------|--------|-------------|
+| FREE | $0 | Acceso básico (post-trial) |
+| TRIAL | — | 21 días con acceso PRO completo, sin tarjeta |
+| PRO_MENSUAL | $29/mes | Acceso completo |
+| PRO_ANUAL | $249/año | Acceso completo |
+| ENTERPRISE | $129/mes | Clínicas: multi-médico (+$20/mes por médico adicional) |
 
-### Patient
-Pacientes de un doctor específico.
-- Soporte para alergias (array), tipo de sangre, fecha de nacimiento
-- Identificación por cédula/pasaporte
-
-### Appointment
-Citas médicas con soporte para múltiples tipos:
-- `IN_PERSON`: Presencial
-- `TELECONSULT`: Videollamada
-- `HOME_VISIT`: Domicilio
-- `EMERGENCY`: Emergencia
-- `FOLLOW_UP`: Seguimiento
-
-### MedicalRecord
-Historia clínica con signos vitales (JSON), síntomas y adjuntos.
-
-### Prescription
-Recetas digitales con lista de medicamentos (JSON con dosis/frecuencia/duración).
-
-### SaraConversation
-Historial de conversaciones con la IA, vinculadas opcionalmente a un paciente.
-
-### Reminder
-Recordatorios con prioridades y categorías.
-
-### SocialPost
-Gestión de publicaciones en redes sociales para marketing médico.
-
----
-
-## Agente Sara
-
-Sara es la asistente IA de MedSara, powered por DeepSeek Chat v3 via OpenRouter.
-
-### Tools disponibles
-
-| Tool | Descripción |
-|------|-------------|
-| `register_patient` | Registra un nuevo paciente |
-| `schedule_appointment` | Agenda una cita médica |
-| `get_patient_record` | Obtiene el historial de un paciente |
-| `update_medical_record` | Crea/actualiza un registro médico |
-| `create_prescription` | Crea una receta digital |
-| `create_reminder` | Crea un recordatorio |
-| `search_patients` | Busca pacientes en el sistema |
-
-### Flujo del agente
-
-```
-Usuario → API /api/sara → askSara() → OpenRouter (DeepSeek)
-                                           ↓
-                              Sara decide qué tools usar
-                                           ↓
-                          Tool calls → /api/sara/tools/{tool}
-                                           ↓
-                              Resultado → respuesta final
-```
-
----
-
-## Configuración Inicial
-
-### 1. Clonar y preparar
-
-```bash
-git clone [repo]
-cd stefanny-medrano
-npm install
-cp .env.example .env
-```
-
-### 2. Configurar variables de entorno
-
-Edita `.env` con tus credenciales:
-
-- **Supabase**: Crea un proyecto en [supabase.com](https://supabase.com)
-- **OpenRouter**: Crea cuenta en [openrouter.ai](https://openrouter.ai)
-- **Stripe**: Crea cuenta en [stripe.com](https://stripe.com)
-
-### 3. Inicializar la base de datos
-
-```bash
-# Generar cliente Prisma
-npm run db:generate
-
-# Aplicar schema a la base de datos
-npm run db:push
-
-# Opcional: abrir Prisma Studio
-npm run db:studio
-```
-
-### 4. Ejecutar en desarrollo
-
-```bash
-npm run dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000)
-
----
-
-## Rutas de la Aplicación
-
-| Ruta | Descripción | Acceso |
-|------|-------------|--------|
-| `/` | Landing page de la Dra. Medrano | Público |
-| `/login` | Inicio de sesión | Público |
-| `/register` | Registro de nuevo doctor | Público |
-| `/dashboard` | Panel principal del doctor | Protegido |
-| `/patients` | Lista de pacientes | Protegido |
-| `/patients/new` | Registrar nuevo paciente | Protegido |
-| `/patients/[id]` | Perfil de paciente | Protegido |
-| `/appointments` | Calendario de citas | Protegido |
-| `/appointments/new` | Nueva cita | Protegido |
-| `/sara` | Chat con Sara IA | Protegido |
-| `/patient/dashboard` | Portal del paciente | Paciente |
-
----
-
-## Planes de Suscripción
-
-| Plan | Precio | Pacientes | Citas/mes | Sara IA |
-|------|--------|-----------|-----------|---------|
-| FREE | $0 | 20 | 50 | Básica |
-| BASIC | $29/mes | 200 | 500 | Completa |
-| PRO | $79/mes | Ilimitado | Ilimitado | + Recetas PDF |
-| ENTERPRISE | Custom | Ilimitado | Ilimitado | + API acceso |
+La activación automática ocurre vía webhook de Hotmart (`/api/webhooks/hotmart`).
 
 ---
 
 ## Desarrollo
 
-### Comandos útiles
+### Setup
 
 ```bash
-npm run dev        # Servidor de desarrollo
-npm run build      # Build de producción
-npm run lint       # Linting
-npm run db:studio  # Prisma Studio (UI para BD)
-npm run db:migrate # Crear migración nueva
+git clone git@github.com:lriofrio915/sara-solution.git
+cd sara-solution
+npm install
+cp .env.example .env   # completar credenciales
+npm run dev
 ```
 
-### Implementar herramientas de Sara
+### Comandos
 
-Para conectar Sara con la base de datos real, implementa los handlers en:
-```
-src/app/api/sara/tools/[tool-name]/route.ts
+```bash
+npm run dev          # Servidor de desarrollo
+npm run build        # Build de producción
+npm run typecheck    # tsc --noEmit
+npm run lint         # eslint src
+npm run test         # vitest (unit + integración + seguridad)
+npm run db:studio    # Prisma Studio
+npm run db:migrate   # Crear migración nueva (via prisma-safe.sh)
+npm run db:deploy    # Aplicar migraciones (via prisma-safe.sh)
+npm run db:backup    # Backup manual de la base
 ```
 
-Cada handler debe:
-1. Validar el `doctorId` con Supabase Auth
-2. Ejecutar la operación con Prisma
-3. Retornar `{ success: true, data: {...} }` o `{ success: false, error: "..." }`
+> ⚠️ **Base de datos**: los comandos destructivos de Prisma están bloqueados por `scripts/prisma-safe.sh`. Leer `CLAUDE.md` antes de tocar el schema — hay reglas obligatorias de backup y un historial de por qué existen.
+
+### Crons (GitHub Actions)
+
+Los workflows en `.github/workflows/` llaman a los endpoints `/api/cron/*` con el header `x-cron-secret`. Incluyen: recordatorios de citas y cumpleaños, recordatorios manuales por WhatsApp, expiración de trials y tokens, publicación programada de posts, encuestas de satisfacción y **backup diario de la base de datos** (2am UTC, descargable desde Actions → Artifacts).
 
 ---
 
 ## Arquitectura Multi-tenant
 
-Cada médico en MedSara tiene datos completamente aislados por `doctorId`:
-- Todos los modelos incluyen `doctorId` como campo obligatorio
-- Las queries siempre filtran por `doctorId` del usuario autenticado
-- No hay riesgo de filtración de datos entre doctors
-
----
+Cada médico tiene datos aislados por `doctorId`:
+- Todos los modelos clínicos incluyen `doctorId` obligatorio
+- Las queries siempre filtran por el `doctorId` de la sesión JWT
+- Tests de aislamiento en `test/security/doctor-isolation.test.ts`
 
 ## Seguridad
 
-- Autenticación via Supabase Auth (JWT)
-- Row Level Security (RLS) en Supabase para aislamiento de datos
-- Variables de entorno para todas las credenciales
-- Validación de inputs con Zod en API routes
-- HTTPS enforced en producción
+- Supabase Auth (JWT) + middleware con rate limiting (Upstash)
+- OTP anti-enumeración y timing-safe en portal de pacientes
+- Comparación timing-safe de `CRON_SECRET` en todos los crons
+- DOMPurify antes de renderizar contenido clínico
+- Vulnerabilidades conocidas/aceptadas documentadas en `CLAUDE.md`
 
 ---
 
-## Deploy en Vercel
-
-```bash
-# Instalar Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-Configura las variables de entorno en el dashboard de Vercel.
-
----
-
-## Créditos
-
-- **Doctora**: Dra. Stéfanny Medrano - Especialista en Medicina Interna
-- **Asistente IA**: Sara (powered by DeepSeek via OpenRouter)
-- **Desarrollo**: [Nexus Solutions](https://nexus-ia.com.es/) - Web & Automatizaciones
-
----
-
-*MedSara - Transformando la práctica médica con inteligencia artificial*
+*Sara Medical — Transformando la práctica médica con inteligencia artificial*
