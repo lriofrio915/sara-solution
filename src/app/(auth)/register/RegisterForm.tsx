@@ -8,9 +8,17 @@ import { CheckCircle, Gift, Mail } from 'lucide-react'
 
 interface Props {
   referralCode?: string
+  /** Prefill del funnel de onboarding por WhatsApp */
+  prefill?: {
+    firstName?: string
+    lastName?: string
+    specialty?: string
+    email?: string
+    whatsapp?: string
+  }
 }
 
-export default function RegisterForm({ referralCode }: Props) {
+export default function RegisterForm({ referralCode, prefill }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
@@ -19,12 +27,12 @@ export default function RegisterForm({ referralCode }: Props) {
   const [honeypot, setHoneypot] = useState('')
   const [loadedAt] = useState(() => Date.now())
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    specialty: '',
-    email: '',
+    firstName: prefill?.firstName ?? '',
+    lastName: prefill?.lastName ?? '',
+    specialty: prefill?.specialty ?? '',
+    email: prefill?.email ?? '',
     phone: '',
-    whatsapp: '',
+    whatsapp: prefill?.whatsapp ?? '',
     password: '',
     confirmPassword: '',
   })
