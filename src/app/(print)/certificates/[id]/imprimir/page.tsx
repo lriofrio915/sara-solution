@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import PrintButton from '@/components/PrintButton'
+import FirmaStamp from '@/components/FirmaStamp'
+import { getConfiguredSignerSubject } from '@/lib/firma-signer'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,13 +38,18 @@ function calcAge(birthDate: Date | null): string {
   return `${Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} años`
 }
 
-export default async function CertificatePrintPage(props: { params: Promise<{ id: string }> }) {
+export default async function CertificatePrintPage(props: { params: Promise<{ id: string }>; searchParams: Promise<{ signedBy?: string; signedAt?: string }> }) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const data = await getData(params.id)
   if (!data) notFound()
 
   const { doctor, certificate, patientChart } = data
   const doctorDisplayName = doctor.titlePrefix ? `${doctor.titlePrefix} ${doctor.name}` : doctor.name
+  // Sello FirmaEC: el PDF descargado pasa ?signedBy/?signedAt; en el preview
+  // se muestra el titular del certificado configurado (sin fecha)
+  const stampSigner = searchParams.signedBy ?? (await getConfiguredSignerSubject(doctor.id))
+  const stampSignedAt = searchParams.signedBy ? searchParams.signedAt ?? null : null
 
   const dateStr = new Date(certificate.date).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
@@ -159,7 +166,11 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
                 <p>{doctor.canton || doctor.province || 'Tena'}, {dateStr}</p>
               </div>
               <div className="text-center">
-                <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto" />
+                {stampSigner ? (
+                  <FirmaStamp signedBy={stampSigner} signedAt={stampSignedAt} />
+                ) : (
+                  <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto" />
+                )}
                 <p className="font-bold text-gray-900 text-sm">{doctorDisplayName}</p>
                 <p className="text-xs text-gray-500">{doctor.specialty}</p>
                 {doctor.mspCode && <p className="text-xs text-gray-500 mt-0.5">MSP: {doctor.mspCode}</p>}

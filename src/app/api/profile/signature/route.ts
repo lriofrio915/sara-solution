@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
-import { validateP12, encryptPassword, decryptPassword } from '@/lib/firma-ec'
+import { validateP12, encryptPassword } from '@/lib/firma-ec'
+import { getConfiguredSignerSubject } from '@/lib/firma-signer'
 
 export const dynamic = 'force-dynamic'
 
@@ -193,6 +194,7 @@ export async function GET() {
     const doctor = await prisma.doctor.findFirst({
       where: { OR: [{ id: user.id }, { email: user.email! }] },
       select: {
+        id: true,
         signaturePath: true,
         signatureIv: true,
         signatureTag: true,
@@ -220,20 +222,7 @@ export async function GET() {
 
     // Titular del certificado (CN) — usado por las páginas de impresión para
     // previsualizar el sello de firma antes de generar el PDF firmado.
-    let subject: string | undefined
-    if (fileExists && doctor.signatureIv && doctor.signatureTag && doctor.signatureEncPass) {
-      try {
-        const { data, error: dlError } = await adminClient.storage
-          .from('firma-ec')
-          .download(doctor.signaturePath.replace(/^firma-ec\//, ''))
-        if (!dlError && data) {
-          const buffer = Buffer.from(await data.arrayBuffer())
-          const password = decryptPassword(doctor.signatureIv, doctor.signatureTag, doctor.signatureEncPass)
-          const validation = validateP12(buffer, password)
-          if (validation.valid) subject = validation.subject
-        }
-      } catch { /* preview no disponible — no bloquea el status */ }
-    }
+    const subject = fileExists ? (await getConfiguredSignerSubject(doctor.id)) ?? undefined : undefined
 
     return NextResponse.json({
       configured: true,
