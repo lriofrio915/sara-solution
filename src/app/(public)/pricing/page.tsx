@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import SaraLogo from '@/components/SaraLogo'
+import DoctorTestimonial from '@/components/DoctorTestimonial'
 import { HOTMART } from '@/lib/plan'
 import { Check, X } from 'lucide-react'
 
@@ -252,6 +253,9 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
+
+        {/* Testimonio real (flag `testimonial` + contenido en DoctorTestimonial.tsx) */}
+        <DoctorTestimonial />
 
         {/* FAQ */}
         <div className="mb-14">

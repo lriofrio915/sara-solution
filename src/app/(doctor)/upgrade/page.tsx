@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getEffectivePlan, getTrialDaysLeft, HOTMART } from '@/lib/plan'
+import DoctorTestimonial from '@/components/DoctorTestimonial'
 
 export const metadata: Metadata = { title: 'Actualizar Plan — Sara Medical' }
 export const dynamic = 'force-dynamic'
@@ -151,6 +152,9 @@ export default async function UpgradePage() {
           </a>
         </div>
       </div>
+
+      {/* Testimonio real (flag `testimonial` + contenido en DoctorTestimonial.tsx) */}
+      <DoctorTestimonial />
 
       {/* FAQ rápido */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
