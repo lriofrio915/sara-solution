@@ -109,9 +109,11 @@ export default function PrescriptionPrintPage() {
   const isDraft = typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('draft') === '1'
 
-  // ?signatureUrl=... signed URL para imagen de firma (generada por el endpoint de download)
-  const signatureUrl = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('signatureUrl')
+  // ?signedBy=... nombre del titular del certificado FirmaEC (lo pasa el
+  // endpoint de download). El documento se firma criptográficamente después
+  // de renderizar; aquí solo se dibuja el sello visual estándar.
+  const signedBy = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('signedBy')
     : null
 
   const loadData = useCallback(async () => {
@@ -276,7 +278,7 @@ export default function PrescriptionPrintPage() {
               {/* Header */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={44} height={44} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '44px', height: '44px', borderRadius: doctor.clinicLogo ? '4px' : '50%' }} />
+                  <Image src={logoUrl} alt="Logo" width={44} height={44} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '44px', height: '44px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '44px', height: '44px', backgroundColor: '#2c5282', fontSize: '16px' }}>{initials}</div>
                 )}
@@ -389,9 +391,12 @@ export default function PrescriptionPrintPage() {
               )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  {signatureUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={signatureUrl} alt="Firma digital" style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', margin: '0 auto 2px' }} />
+                  {signedBy ? (
+                    /* Sello visual FirmaEC — la firma criptográfica se aplica al PDF después */
+                    <div className="mx-auto mb-1 text-left inline-block" style={{ border: '1px solid #94a3b8', borderRadius: '3px', padding: '4px 10px' }}>
+                      <p style={{ fontSize: '7px', color: '#4a5568' }}>Firmado electrónicamente por:</p>
+                      <p className="font-bold" style={{ fontSize: '9px', color: '#1a202c', lineHeight: 1.3 }}>{signedBy.toUpperCase()}</p>
+                    </div>
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
@@ -417,7 +422,7 @@ export default function PrescriptionPrintPage() {
               {/* Header compact */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={36} height={36} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '36px', height: '36px', borderRadius: doctor.clinicLogo ? '4px' : '50%' }} />
+                  <Image src={logoUrl} alt="Logo" width={36} height={36} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '36px', height: '36px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
                 ) : (
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '36px', height: '36px', backgroundColor: '#2c5282', fontSize: '14px' }}>{initials}</div>
                 )}
@@ -497,9 +502,12 @@ export default function PrescriptionPrintPage() {
               {/* Signature area */}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  {signatureUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={signatureUrl} alt="Firma digital" style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', margin: '0 auto 2px' }} />
+                  {signedBy ? (
+                    /* Sello visual FirmaEC — la firma criptográfica se aplica al PDF después */
+                    <div className="mx-auto mb-1 text-left inline-block" style={{ border: '1px solid #94a3b8', borderRadius: '3px', padding: '4px 10px' }}>
+                      <p style={{ fontSize: '7px', color: '#4a5568' }}>Firmado electrónicamente por:</p>
+                      <p className="font-bold" style={{ fontSize: '9px', color: '#1a202c', lineHeight: 1.3 }}>{signedBy.toUpperCase()}</p>
+                    </div>
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
