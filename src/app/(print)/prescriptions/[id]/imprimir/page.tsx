@@ -50,6 +50,7 @@ interface PrescriptionData {
   }
   doctor: {
     name: string
+    titlePrefix?: string | null
     specialty: string
     email: string
     phone: string | null
@@ -220,6 +221,8 @@ export default function PrescriptionPrintPage() {
   const patient = data.patient
   const medications = Array.isArray(data.medications) ? data.medications : []
   const initials = getInitials(doctor.name)
+  // "Dra. Stéfanny Medrano" — el prefijo (Dr./Dra./etc.) se configura en Perfil
+  const doctorDisplayName = doctor.titlePrefix ? `${doctor.titlePrefix} ${doctor.name}` : doctor.name
   const rxNumber = data.rxNumber ?? '—'
   const allergies = patient.allergies?.filter(Boolean).join(', ') || 'Sin alergias conocidas'
   const expiresFormatted = data.expiresAt
@@ -327,7 +330,7 @@ export default function PrescriptionPrintPage() {
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '44px', height: '44px', backgroundColor: '#2c5282', fontSize: '16px' }}>{initials}</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctor.name}</p>
+                  <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctorDisplayName}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
@@ -440,7 +443,7 @@ export default function PrescriptionPrintPage() {
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
-                  <p className="font-bold text-gray-800">{doctor.name}</p>
+                  <p className="font-bold text-gray-800">{doctorDisplayName}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                   {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}
@@ -467,7 +470,7 @@ export default function PrescriptionPrintPage() {
                   <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '36px', height: '36px', backgroundColor: '#2c5282', fontSize: '14px' }}>{initials}</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctor.name}</p>
+                  <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctorDisplayName}</p>
                   <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
@@ -547,7 +550,7 @@ export default function PrescriptionPrintPage() {
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
-                  <p className="font-bold text-gray-800">{doctor.name}</p>
+                  <p className="font-bold text-gray-800">{doctorDisplayName}</p>
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                   {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}

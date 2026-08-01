@@ -13,7 +13,7 @@ async function getData(id: string) {
 
   const doctor = await prisma.doctor.findFirst({
     where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true, name: true, specialty: true, email: true, phone: true, address: true, mspCode: true, whatsapp: true, specialtyRegCode: true, province: true, canton: true },
+    select: { id: true, name: true, titlePrefix: true, specialty: true, email: true, phone: true, address: true, mspCode: true, whatsapp: true, specialtyRegCode: true, province: true, canton: true },
   })
   if (!doctor) return null
 
@@ -42,6 +42,7 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
   if (!data) notFound()
 
   const { doctor, certificate, patientChart } = data
+  const doctorDisplayName = doctor.titlePrefix ? `${doctor.titlePrefix} ${doctor.name}` : doctor.name
 
   const dateStr = new Date(certificate.date).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
@@ -78,7 +79,7 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
                   {doctor.name.charAt(0)}
                 </div>
                 <div>
-                  <h1 className="font-bold text-gray-900 text-lg leading-tight">{doctor.name}</h1>
+                  <h1 className="font-bold text-gray-900 text-lg leading-tight">{doctorDisplayName}</h1>
                   <p className="text-primary font-medium text-sm">{doctor.specialty}</p>
                 </div>
               </div>
@@ -99,7 +100,7 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
           <div className="px-8 py-8 space-y-6 min-h-[400px]">
             {/* Doctor declaration */}
             <p className="text-sm text-gray-700 leading-relaxed">
-              Yo, <strong>{doctor.name}</strong>, {doctor.specialty}, en calidad de médico tratante, certifico que:
+              Yo, <strong>{doctorDisplayName}</strong>, {doctor.specialty}, en calidad de médico tratante, certifico que:
             </p>
 
             {/* Patient data */}
@@ -159,7 +160,7 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
               </div>
               <div className="text-center">
                 <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto" />
-                <p className="font-bold text-gray-900 text-sm">{doctor.name}</p>
+                <p className="font-bold text-gray-900 text-sm">{doctorDisplayName}</p>
                 <p className="text-xs text-gray-500">{doctor.specialty}</p>
                 {doctor.mspCode && <p className="text-xs text-gray-500 mt-0.5">MSP: {doctor.mspCode}</p>}
                 {doctor.specialtyRegCode && <p className="text-xs text-gray-500">Reg. Esp.: {doctor.specialtyRegCode}</p>}
@@ -168,7 +169,7 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
           </div>
 
           <div className="px-8 py-3 bg-primary text-white text-xs flex flex-wrap items-center justify-between gap-2">
-            <span>{doctor.name} — {doctor.specialty}</span>
+            <span>{doctorDisplayName} — {doctor.specialty}</span>
             <span className="flex gap-4">
               {doctor.whatsapp && <span>WhatsApp: {doctor.whatsapp}</span>}
               {doctor.email && <span>{doctor.email}</span>}
