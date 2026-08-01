@@ -35,3 +35,25 @@ Captura leads de Facebook/Instagram Lead Ads, los guarda en Sara Medical y enví
 N8N_LEAD_NOTIFY_URL=https://tu-n8n.com/webhook/landing-lead-notify
 LEADS_WEBHOOK_SECRET=tu_secret_aqui
 ```
+
+---
+
+## Funnel de onboarding de médicos por WhatsApp
+
+Endpoint: `POST /api/onboarding/whatsapp` (distinto del de pacientes `/api/sara/whatsapp`).
+
+**Enrutar en n8n/Evolution:** los mensajes entrantes de la instancia **Nexus**
+(número de captación de médicos) se envían a:
+
+```
+POST https://www.consultorio.site/api/onboarding/whatsapp
+Header: x-api-secret: <WHATSAPP_API_SECRET>
+Body:   { "phone": "{{remoteJid}}", "message": "{{texto}}", "pushName": "{{pushName}}" }
+```
+
+La respuesta `{ "reply": "..." }` se reenvía al prospecto por Evolution API
+(mismo patrón que el flujo de pacientes). Sara guía: nombre → especialidad →
+email → link de registro pre-llenado con trial de 21 días. Cada prospecto
+aparece como Lead (source WHATSAPP, campaign `wa-onboarding`) en el CRM desde
+el primer mensaje, y el admin recibe alertas por Nexus WA cuando alguien
+completa el funnel o pide hablar con una persona (`NEXUS_ADMIN_PHONE`).
