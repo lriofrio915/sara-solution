@@ -109,7 +109,7 @@ export default function CertificatesPage() {
               <button
                 onClick={(e) => { e.stopPropagation(); router.push(`/certificates/${item.id}/imprimir`) }}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">
-                Ver / Imprimir
+                Ver Certificado
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(item.id) }}
