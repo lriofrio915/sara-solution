@@ -318,12 +318,6 @@ export default function PrescriptionPrintPage() {
           )}
           {downloading ? 'Generando...' : 'Descargar PDF Firmado'}
         </button>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          🖨️ Imprimir / PDF
-        </button>
       </div>
 
       {/* A4 Landscape container */}
