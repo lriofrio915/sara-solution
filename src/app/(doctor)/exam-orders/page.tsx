@@ -118,7 +118,7 @@ export default function ExamOrdersPage() {
                 <button
                   onClick={() => router.push(`/exam-orders/${item.id}/imprimir`)}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-600 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap">
-                  Ver / Imprimir
+                  Ver Orden
                 </button>
                 <button
                   onClick={() => handleDelete(item.id)}
