@@ -13,7 +13,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
 import { generatePdfFromPrintPage } from '@/lib/pdf-generator'
-import { signPdf, decryptPassword } from '@/lib/firma-ec'
+import { signPdf, decryptPassword, validateP12 } from '@/lib/firma-ec'
 
 export const dynamic = 'force-dynamic'
 // PDF generation can take a few seconds
@@ -101,36 +101,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
       doctor.signatureEncPass
     )
 
-    // 8. Generate signed URL for doctor's signature image (A2: Puppeteer can't access private Supabase storage)
-    let signatureUrl: string | undefined
-    if (hasSignatureConfigured && doctor.signaturePath) {
-      try {
-        const storage = createAdminClient().storage
-        const { data: signedData } = await storage
-          .from('firma-ec')
-          .createSignedUrl(doctor.signaturePath.replace(/^firma-ec\//, ''), 300)
-        if (signedData?.signedUrl) signatureUrl = signedData.signedUrl
-      } catch { /* non-blocking */ }
-    }
-
-    // 9. Generate PDF — pass ?draft=1 when no signature configured (AM 0009-2017)
-    // Read cookies from the request store, NOT the raw header: if getUser()
-    // refreshed an expired access token (rotating the refresh token), the raw
-    // header still carries the stale session and Puppeteer would be redirected
-    // to /login by the middleware/PrintLayout.
-    const cookieStore = await cookies()
-    const cookieHeader = cookieStore.getAll()
-      .map((c) => `${c.name}=${c.value}`)
-      .join('; ')
-    const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
-    let pdfQuery = hasSignatureConfigured ? '' : '?draft=1'
-    if (signatureUrl) pdfQuery = (pdfQuery ? pdfQuery + '&' : '?') + `signatureUrl=${encodeURIComponent(signatureUrl)}`
-    const pdfPath = `${printPath}${pdfQuery}`
-    let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
-
-    // 10. Apply digital signature (required by AM 0009-2017 for legal validity)
-    let signed = false
+    // 8. Prepare the P12 BEFORE rendering: the print page shows the FirmaEC
+    // visual stamp ("Firmado electrónicamente por: <CN del certificado>"), so
+    // we need the certificate subject up front. The .p12 is NOT an image —
+    // passing a signed URL to it as <img src> renders a broken icon (bug fixed
+    // here); the stamp is text, per the FirmaEC/BCE convention.
     let signWarning: string | undefined
+    let p12Buffer: Buffer | undefined
+    let p12Password: string | undefined
+    let signedBy: string | undefined
 
     if (hasSignatureConfigured) {
       try {
@@ -141,10 +120,45 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
 
         if (dlError) throw new Error(`Storage error: ${dlError.message}`)
 
-        const p12Buffer = Buffer.from(await data.arrayBuffer())
-        const password = decryptPassword(doctor.signatureIv!, doctor.signatureTag!, doctor.signatureEncPass!)
+        p12Buffer = Buffer.from(await data.arrayBuffer())
+        p12Password = decryptPassword(doctor.signatureIv!, doctor.signatureTag!, doctor.signatureEncPass!)
+        const validation = validateP12(p12Buffer, p12Password)
+        if (!validation.valid) throw new Error(validation.error ?? 'Certificado .p12 inválido')
+        signedBy = validation.subject || doctor.name
+      } catch (prepErr) {
+        // Certificado ilegible/expirado — generar sin firma con advertencia
+        const msg = prepErr instanceof Error ? prepErr.message : String(prepErr)
+        console.error('FirmaEC preparation failed:', msg)
+        signWarning = msg
+        p12Buffer = undefined
+        p12Password = undefined
+      }
+    } else {
+      signWarning = 'FirmaEC no configurada. Configure su certificado digital BCE en Perfil > Firma Digital.'
+    }
 
-        pdfBytes = await signPdf(pdfBytes, p12Buffer, password, {
+    // 9. Generate PDF — pass ?draft=1 when no signature available (AM 0009-2017)
+    // Read cookies from the request store, NOT the raw header: if getUser()
+    // refreshed an expired access token (rotating the refresh token), the raw
+    // header still carries the stale session and Puppeteer would be redirected
+    // to /login by the middleware/PrintLayout.
+    const cookieStore = await cookies()
+    const cookieHeader = cookieStore.getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join('; ')
+    const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
+    const pdfQuery = signedBy
+      ? `?signedBy=${encodeURIComponent(signedBy)}`
+      : '?draft=1'
+    const pdfPath = `${printPath}${pdfQuery}`
+    let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
+
+    // 10. Apply digital signature (required by AM 0009-2017 for legal validity)
+    let signed = false
+
+    if (p12Buffer && p12Password) {
+      try {
+        pdfBytes = await signPdf(pdfBytes, p12Buffer, p12Password, {
           reason: `${FILE_LABELS[type]} firmado digitalmente por ${doctor.name}`,
           contactInfo: user.email ?? '',
           name: doctor.name,
@@ -157,8 +171,6 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
         console.error('FirmaEC signing failed:', msg)
         signWarning = msg
       }
-    } else {
-      signWarning = 'FirmaEC no configurada. Configure su certificado digital BCE en Perfil > Firma Digital.'
     }
 
     const filename = `${FILE_LABELS[type]}-${params.id.slice(-6)}${signed ? '-firmado' : '-sin-firma'}.pdf`

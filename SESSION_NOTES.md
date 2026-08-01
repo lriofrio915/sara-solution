@@ -1,5 +1,33 @@
 # Session Notes
 
+## Sesión 2026-08-01 — Revisión de estado + deps + fix firma visual en receta
+
+### Completado
+- Revisión completa de estado: typecheck/lint/tests/build verdes sobre `d5e4d3f`; crons y backups diarios OK en GitHub Actions (informe entregado como artifact al usuario).
+- **Deps**: next 16.2.4 → 16.2.12 (+ eslint-config-next). Las advisories de next NO desaparecen — el fix vive en la línea 16.3 (aún preview); re-evaluar cuando salga estable. `npm audit fix` para transitivas (fast-uri, form-data, protobufjs, undici, js-yaml, brace-expansion, etc.). Eliminado `mercadopago` (0 imports en todo el repo — dependencia huérfana). npm audit: 30 → **7** (4 = cadena @signpdf aceptada; 3 = next/postcss/sharp sin fix estable).
+- **Fix firma rota en PDF de receta** (reporte del usuario con captura): el endpoint de download generaba una signed URL al **.p12** (certificado PKCS#12, no imagen) y la pasaba como `signatureUrl` → `<img src=p12>` → icono de imagen rota. Nunca existió una imagen de firma en storage; `signaturePath` siempre fue el certificado. Fix en `download/route.ts`: el P12 se descarga/valida ANTES de renderizar, se extrae el CN del certificado y se pasa `?signedBy=<CN>`; la página de impresión dibuja el sello textual estándar FirmaEC ("Firmado electrónicamente por: NOMBRE"). Bonus: el P12 ya no se descarga dos veces; si el certificado es ilegible, el PDF sale como draft con advertencia.
+- **Logo blanco en header de receta** (pedido del usuario): `filter: brightness(0) invert(1)` sobre el clinicLogo en los dos headers azules (#1B3A6B). Solo aplica a clinicLogo, no a la foto del médico; la marca de agua conserva el color original.
+- README.md reescrito con datos reales: Next 16, dominio consultorio.site, planes FREE/TRIAL/PRO_MENSUAL($29)/PRO_ANUAL($249)/ENTERPRISE($129), Hotmart+Stripe, OpenRouter/DeepSeek, crons, seguridad.
+- **Testimonio (decisión #32)**: componente `DoctorTestimonial` maquetado en /pricing y /upgrade, tras flag `testimonial` + contenido no vacío (doble guard: sin ambos no renderiza). Usuario eligió "maquetar sin datos" — falta la cita/nombre/foto del médico real.
+- **Funnel de onboarding de médicos por WhatsApp** (PR #7, rama `claude/wa-onboarding-funnel` desde main): máquina de estados pura en `src/lib/wa-onboarding.ts` (nombre → especialidad → email → link de /register pre-llenado con trial). Endpoint `POST /api/onboarding/whatsapp` (x-api-secret timing-safe + zod). Estado en Lead.notes (campaign wa-onboarding), lead → INTERESADO al completar, alertas al admin vía Nexus WA. /register acepta prefill por query params. 8 tests nuevos (145 total). Falta post-merge: enrutar la instancia Nexus en n8n al endpoint (documentado en n8n-flows/README.md).
+
+### PRs abiertos
+- **#6** (esta rama): deps + fix firma + logo blanco + README + testimonio.
+- **#7** (`claude/wa-onboarding-funnel`): funnel WhatsApp. Independiente de #6.
+
+### Pendiente
+- Verificar en producción la receta descargada: sello "Firmado electrónicamente por" + logo blanco (el sandbox no alcanza consultorio.site).
+- Contenido real del testimonio (cita + nombre + foto) → completar `DoctorTestimonial.tsx` y activar flag `testimonial` en Vercel.
+- Post-merge #7: configurar routing n8n de la instancia Nexus y (opcional) `NEXUS_ADMIN_PHONE` en Vercel.
+- Migración db push → migraciones versionadas (deferred desde abril).
+
+### Decisiones tomadas
+- El sello visual de firma es TEXTO (convención FirmaEC), no imagen: no existe imagen de firma manuscrita en el sistema y el .p12 no contiene una.
+- next se sube a 16.2.12 aunque no limpia las advisories (8 patches de fixes); el salto a 16.3 se hará cuando sea estable.
+- mercadopago eliminado en vez de actualizado: cero uso en el código.
+- Funnel WA determinista (sin LLM): respuestas predecibles, costo cero por mensaje, testeable. En rama separada a pedido del usuario.
+- Sin testimonios inventados: el componente queda inerte hasta tener contenido de un médico real con consentimiento.
+
 ## Sesión 2026-07-06 — Cierre del hardening de seguridad
 
 ### Completado

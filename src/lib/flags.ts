@@ -25,6 +25,7 @@ export type FeatureFlag =
   | 'sara-notes'
   | 'analytics-dashboard'
   | 'beta-modules-banner'
+  | 'testimonial'
 
 /** Flags enabled by default for every user. Empty = nothing on by default. */
 const DEFAULT_FLAGS: ReadonlySet<FeatureFlag> = new Set<FeatureFlag>([])
