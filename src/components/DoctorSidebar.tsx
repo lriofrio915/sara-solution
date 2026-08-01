@@ -54,7 +54,8 @@ const receptionItem = { href: '/reception', icon: ClipboardList, label: 'Recepci
 
 // Mobile bottom tab bar — lista explícita (no derivada de clinicalItems) para
 // que agregar un ítem al sidebar no reordene ni saque tabs del móvil.
-const mobileClinical = ['/appointments', '/patients', '/prescriptions', '/exam-orders']
+// El menú hamburguesa sí muestra todos los ítems; esto son los accesos rápidos.
+const mobileClinical = ['/appointments', '/patients', '/atenciones', '/prescriptions', '/exam-orders']
   .map(href => clinicalItems.find(i => i.href === href)!)
 const tabItems = [topItem, ...mobileClinical]
 const assistantTabItems = [receptionItem, ...mobileClinical]
@@ -625,7 +626,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
           const locked = plan === 'FREE' && FREE_LOCKED.has(href)
           return (
             <Link key={href} href={href}
-              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
+              className={`flex-1 min-w-0 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
                 isActive(href)
                   ? 'text-primary'
                   : locked
@@ -641,7 +642,7 @@ export default function DoctorSidebar({ firstName, specialty, initials, avatarUr
                   </svg>
                 )}
               </div>
-              <span className="text-[10px] mt-0.5">{label}</span>
+              <span className="text-[10px] mt-0.5 max-w-full truncate px-0.5">{label}</span>
             </Link>
           )
         })}

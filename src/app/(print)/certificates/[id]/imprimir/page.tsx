@@ -38,7 +38,7 @@ function calcAge(birthDate: Date | null): string {
   return `${Math.floor((Date.now() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} años`
 }
 
-export default async function CertificatePrintPage(props: { params: Promise<{ id: string }>; searchParams: Promise<{ signedBy?: string; signedAt?: string; draft?: string }> }) {
+export default async function CertificatePrintPage(props: { params: Promise<{ id: string }>; searchParams: Promise<{ signedBy?: string; signedAt?: string }> }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const data = await getData(params.id)
@@ -50,7 +50,6 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
   // se muestra el titular del certificado configurado (sin fecha)
   const stampSigner = searchParams.signedBy ?? (await getConfiguredSignerSubject(doctor.id))
   const stampSignedAt = searchParams.signedBy ? searchParams.signedAt ?? null : null
-  const isDraft = searchParams.draft === '1'
 
   const dateStr = new Date(certificate.date).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
@@ -167,11 +166,6 @@ export default async function CertificatePrintPage(props: { params: Promise<{ id
                 <p>{doctor.canton || doctor.province || 'Tena'}, {dateStr}</p>
               </div>
               <div className="text-center">
-                {isDraft && (
-                  <p className="mb-2" style={{ fontSize: '9px', color: '#b91c1c', fontWeight: 700 }}>
-                    SIN FIRMA DIGITAL — Documento sin validez legal (AM 0009-2017)
-                  </p>
-                )}
                 {stampSigner ? (
                   <FirmaStamp signedBy={stampSigner} signedAt={stampSignedAt} />
                 ) : (
