@@ -8,7 +8,7 @@ import {
   Calendar, Users, Pill, FlaskConical, FileText,
   BarChart2, Megaphone, ShieldCheck,
   User, Bell, AlarmClock, BookOpen, Receipt, UserPlus, Gift, UsersRound, ClipboardList,
-  ChevronsUpDown, Plug,
+  ChevronsUpDown, Plug, Stethoscope,
 } from 'lucide-react'
 import SaraLogo from '@/components/SaraLogo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -36,6 +36,7 @@ const topItem = { href: '/dashboard', icon: BarChart2, label: 'Resumen IA' }
 const clinicalItems = [
   { href: '/appointments',  icon: Calendar,     label: 'Citas' },
   { href: '/patients',      icon: Users,        label: 'Pacientes' },
+  { href: '/atenciones',    icon: Stethoscope,  label: 'Atenciones' },
   { href: '/prescriptions', icon: Pill,         label: 'Recetario' },
   { href: '/exam-orders',   icon: FlaskConical, label: 'Órdenes' },
   { href: '/certificates',  icon: FileText,     label: 'Certificados' },
@@ -51,10 +52,12 @@ const adminItems = [
 // Item exclusivo para ASSISTANT — aparece primero en la navegación
 const receptionItem = { href: '/reception', icon: ClipboardList, label: 'Recepción' }
 
-// Mobile bottom tab bar: Reportes + primeros 4 clínicos (para OWNER)
-// Para ASSISTANT: Recepción + primeros 4 clínicos
-const tabItems = [topItem, ...clinicalItems.slice(0, 4)]
-const assistantTabItems = [receptionItem, ...clinicalItems.slice(0, 4)]
+// Mobile bottom tab bar — lista explícita (no derivada de clinicalItems) para
+// que agregar un ítem al sidebar no reordene ni saque tabs del móvil.
+const mobileClinical = ['/appointments', '/patients', '/prescriptions', '/exam-orders']
+  .map(href => clinicalItems.find(i => i.href === href)!)
+const tabItems = [topItem, ...mobileClinical]
+const assistantTabItems = [receptionItem, ...mobileClinical]
 
 const gearItems = [
   { href: '/profile',       icon: User,       label: 'Mi Perfil' },

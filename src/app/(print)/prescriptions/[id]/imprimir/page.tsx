@@ -399,7 +399,13 @@ export default function PrescriptionPrintPage() {
                     {doctor.address}
                   </span>
                 )}
-                {doctor.establishmentName && <span>📍 {doctor.establishmentName}{doctor.establishmentCode ? ` [${doctor.establishmentCode}]` : ''}</span>}
+                {/* Pin como SVG: los emoji no existen en las fuentes del Chromium serverless del PDF */}
+                {doctor.establishmentName && (
+                  <span className="flex items-center gap-1">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#4a5568" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {doctor.establishmentName}{doctor.establishmentCode ? ` [${doctor.establishmentCode}]` : ''}
+                  </span>
+                )}
                 {doctor.establishmentRuc && <span>RUC: {doctor.establishmentRuc}</span>}
               </div>
 
