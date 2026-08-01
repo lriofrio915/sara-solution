@@ -110,10 +110,6 @@ export default function PrescriptionPrintPage() {
   // y en la impresión del navegador (el PDF descargado usa ?signedBy=)
   const [previewSigner, setPreviewSigner] = useState<string | null>(null)
 
-  // ?draft=1 indica que el PDF se genera sin firma (AM 0009-2017)
-  const isDraft = typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('draft') === '1'
-
   // ?signedBy=... nombre del titular del certificado FirmaEC (lo pasa el
   // endpoint de download). El documento se firma criptográficamente después
   // de renderizar; aquí solo se dibuja el sello visual estándar.
@@ -244,13 +240,11 @@ export default function PrescriptionPrintPage() {
         }
       `}} />
 
-      {/* Advertencia firma — LOPDP / AM 0009-2017 */}
-      {(signWarning || isDraft) && (
+      {/* Aviso solo si la firma estaba configurada y falló (ej. certificado expirado) */}
+      {signWarning && (
         <div className="no-print bg-amber-50 border-b border-amber-300 px-4 py-3 text-amber-800 text-sm flex items-start gap-2">
           <span className="font-bold flex-shrink-0">Aviso AM 0009-2017:</span>
-          <span>
-            {signWarning ?? 'Documento generado sin firma digital. Configure su certificado FirmaEC en Perfil > Firma Digital para que este documento tenga validez legal.'}
-          </span>
+          <span>{signWarning}</span>
         </div>
       )}
 
@@ -416,12 +410,6 @@ export default function PrescriptionPrintPage() {
                   <span className="font-semibold">Válida hasta:</span> {expiresFormatted}
                 </div>
               )}
-              {/* Marca de agua sin firma */}
-              {isDraft && (
-                <div className="relative z-10 px-5 pb-2 text-right" style={{ fontSize: '8px', color: '#b91c1c', fontWeight: 700 }}>
-                  SIN FIRMA DIGITAL — No válido para dispensación (AM 0009-2017)
-                </div>
-              )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
                   {stampSigner ? (
@@ -532,11 +520,6 @@ export default function PrescriptionPrintPage() {
               {expiresFormatted && (
                 <div className="relative z-10 px-5 pb-1 text-right" style={{ fontSize: '8px', color: '#4a5568' }}>
                   <span className="font-semibold">Válida hasta:</span> {expiresFormatted}
-                </div>
-              )}
-              {isDraft && (
-                <div className="relative z-10 px-5 pb-2 text-right" style={{ fontSize: '8px', color: '#b91c1c', fontWeight: 700 }}>
-                  SIN FIRMA DIGITAL — No válido para dispensación (AM 0009-2017)
                 </div>
               )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>

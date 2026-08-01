@@ -133,11 +133,12 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
         p12Buffer = undefined
         p12Password = undefined
       }
-    } else {
-      signWarning = 'FirmaEC no configurada. Configure su certificado digital BCE en Perfil > Firma Digital.'
     }
+    // Sin certificado configurado NO es un error: el documento se emite con el
+    // espacio de firma en blanco para que el médico lo firme a mano. Solo se
+    // avisa cuando había un certificado y la firma falló (ej. expirado).
 
-    // 9. Generate PDF — pass ?draft=1 when no signature available (AM 0009-2017)
+    // 9. Generate PDF — sin firma disponible se emite con el espacio en blanco
     // Read cookies from the request store, NOT the raw header: if getUser()
     // refreshed an expired access token (rotating the refresh token), the raw
     // header still carries the stale session and Puppeteer would be redirected
@@ -149,7 +150,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ type: str
     const printPath = `${PRINT_PATHS[type]}/${params.id}/imprimir`
     const pdfQuery = signedBy
       ? `?signedBy=${encodeURIComponent(signedBy)}&signedAt=${encodeURIComponent(new Date().toISOString())}`
-      : '?draft=1'
+      : ''
     const pdfPath = `${printPath}${pdfQuery}`
     let pdfBytes = await generatePdfFromPrintPage(pdfPath, cookieHeader)
 
