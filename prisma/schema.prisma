@@ -385,6 +385,7 @@ model MedicalCertificate {
   patientId     String
   doctorId      String
   appointmentId String?
+  attentionId   String?  // link to the Attention that generated this certificate
   date          DateTime @default(now())
   content       String   @db.Text
   diagnosis     String?
@@ -399,10 +400,12 @@ model MedicalCertificate {
   patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
   doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  attention   Attention?   @relation(fields: [attentionId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
   @@index([doctorId])
   @@index([appointmentId])
+  @@index([attentionId])
   @@index([doctorId, date])
 }
 
@@ -768,6 +771,7 @@ model Attention {
   doctor           Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   diagnosisRecords Diagnosis[]
   examOrders       ExamOrder[]
+  certificates     MedicalCertificate[]
 
   @@index([patientId])
   @@index([doctorId])

@@ -43,6 +43,7 @@ export async function POST(
       data: {
         patientId: params.id,
         doctorId: doctor.id,
+        attentionId: attention.id,
         date: attention.datetime,
         content: contentLines.join('\n'),
         diagnosis: diagnosis ?? null,
