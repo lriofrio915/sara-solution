@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
-import { validateP12, encryptPassword } from '@/lib/firma-ec'
+import { validateP12, encryptPassword, decryptPassword } from '@/lib/firma-ec'
 
 export const dynamic = 'force-dynamic'
 
@@ -218,9 +218,27 @@ export async function GET() {
     const fileExists =
       !listError && Array.isArray(fileList) && fileList.length > 0
 
+    // Titular del certificado (CN) — usado por las páginas de impresión para
+    // previsualizar el sello de firma antes de generar el PDF firmado.
+    let subject: string | undefined
+    if (fileExists && doctor.signatureIv && doctor.signatureTag && doctor.signatureEncPass) {
+      try {
+        const { data, error: dlError } = await adminClient.storage
+          .from('firma-ec')
+          .download(doctor.signaturePath.replace(/^firma-ec\//, ''))
+        if (!dlError && data) {
+          const buffer = Buffer.from(await data.arrayBuffer())
+          const password = decryptPassword(doctor.signatureIv, doctor.signatureTag, doctor.signatureEncPass)
+          const validation = validateP12(buffer, password)
+          if (validation.valid) subject = validation.subject
+        }
+      } catch { /* preview no disponible — no bloquea el status */ }
+    }
+
     return NextResponse.json({
       configured: true,
       path: fileExists,
+      subject,
     })
   } catch (err) {
     console.error('GET /api/profile/signature:', err)

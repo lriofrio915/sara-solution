@@ -144,6 +144,9 @@ export default function PrescriptionPrintPage() {
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [signWarning, setSignWarning] = useState<string | null>(null)
+  // Titular del certificado FirmaEC para previsualizar el sello en pantalla
+  // y en la impresión del navegador (el PDF descargado usa ?signedBy=)
+  const [previewSigner, setPreviewSigner] = useState<string | null>(null)
 
   // ?draft=1 indica que el PDF se genera sin firma (AM 0009-2017)
   const isDraft = typeof window !== 'undefined' &&
@@ -174,6 +177,20 @@ export default function PrescriptionPrintPage() {
   }, [id])
 
   useEffect(() => { loadData() }, [loadData])
+
+  // Vista previa del sello: si la firma está configurada, mostrar QR + titular
+  // también en pantalla y en Imprimir (no solo en el PDF descargado)
+  useEffect(() => {
+    if (signedBy) return
+    fetch('/api/profile/signature')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.configured && typeof json.subject === 'string' && json.subject) {
+          setPreviewSigner(json.subject)
+        }
+      })
+      .catch(() => {/* sin preview de firma */})
+  }, [signedBy])
 
   const handleDownload = useCallback(async () => {
     setDownloading(true)
@@ -228,7 +245,13 @@ export default function PrescriptionPrintPage() {
   const expiresFormatted = data.expiresAt
     ? new Date(data.expiresAt).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' })
     : null
-  const { main: mainInstructions, alarmSigns } = extractAlarmSigns(data.instructions)
+  const { main: rawInstructions, alarmSigns } = extractAlarmSigns(data.instructions)
+  // La plantilla ya imprime el rótulo "Recomendaciones:" — si el texto del
+  // médico también empieza con esa palabra, quitarla para no duplicarla
+  const mainInstructions = rawInstructions.replace(/^\s*recomendaciones:?\s*/i, '')
+  // Sello de firma: el nombre definitivo viene en ?signedBy= (PDF); en pantalla
+  // se usa el titular del certificado configurado como vista previa
+  const stampSigner = signedBy ?? previewSigner
   const website = doctor.website ?? (doctor.slug ? `consultorio.site/${doctor.slug}` : null)
   const patientAge = calcAge(patient.birthDate)
   const diagLines = parseDiagnosis(data.diagnosis)
@@ -439,8 +462,8 @@ export default function PrescriptionPrintPage() {
               )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  {signedBy ? (
-                    <FirmaStamp signedBy={signedBy} signedAt={signedAt} />
+                  {stampSigner ? (
+                    <FirmaStamp signedBy={stampSigner} signedAt={signedBy ? signedAt : null} />
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
@@ -556,8 +579,8 @@ export default function PrescriptionPrintPage() {
               )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
-                  {signedBy ? (
-                    <FirmaStamp signedBy={signedBy} signedAt={signedAt} />
+                  {stampSigner ? (
+                    <FirmaStamp signedBy={stampSigner} signedAt={signedBy ? signedAt : null} />
                   ) : (
                     <div className="border-b border-gray-400 mb-1 mx-auto" style={{ width: '100px' }} />
                   )}
