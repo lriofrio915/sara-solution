@@ -1,11 +1,21 @@
 -- Add attentionId FK to MedicalCertificate — links certificates created from a medical attention back to the attention record
+-- Nota: PostgreSQL no soporta ADD CONSTRAINT IF NOT EXISTS; se usa un bloque DO.
 ALTER TABLE "MedicalCertificate" ADD COLUMN IF NOT EXISTS "attentionId" TEXT;
-ALTER TABLE "MedicalCertificate" ADD CONSTRAINT IF NOT EXISTS "MedicalCertificate_attentionId_fkey"
-  FOREIGN KEY ("attentionId") REFERENCES "Attention"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'MedicalCertificate_attentionId_fkey'
+  ) THEN
+    ALTER TABLE "MedicalCertificate" ADD CONSTRAINT "MedicalCertificate_attentionId_fkey"
+      FOREIGN KEY ("attentionId") REFERENCES "Attention"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS "MedicalCertificate_attentionId_idx" ON "MedicalCertificate"("attentionId");
 
--- Backfill opcional: vincula certificados existentes con la atención del mismo
--- paciente y la misma fecha/hora exacta (solo cuando hay una única coincidencia).
+-- Backfill: vincula certificados existentes con la atención del mismo
+-- paciente/médico y la misma fecha/hora exacta (solo con coincidencia única).
 UPDATE "MedicalCertificate" mc
 SET "attentionId" = a.id
 FROM "Attention" a
