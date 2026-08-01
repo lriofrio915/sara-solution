@@ -126,7 +126,12 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
                     <div className="space-y-1">
                       {(exams[cat.key] ?? []).map(exam => (
                         <div key={exam} className="flex items-center gap-2 text-sm text-gray-800">
-                          <span className="w-4 h-4 border-2 border-gray-400 rounded-sm flex-shrink-0 flex items-center justify-center text-primary font-bold text-xs">✓</span>
+                          {/* Visto como SVG: el glifo ✓ no existe en las fuentes del Chromium serverless que genera el PDF */}
+                          <span className="w-4 h-4 border-2 border-gray-400 rounded-sm flex-shrink-0 flex items-center justify-center text-primary">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
                           {exam}
                         </div>
                       ))}
