@@ -335,6 +335,7 @@ export default function PrescriptionPrintPage() {
                   {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
                     {contactPhone && <span>{contactPhone}</span>}
+                    {doctor.email && <span>{doctor.email}</span>}
                     {website && <span>{website}</span>}
                   </div>
                 </div>
@@ -462,17 +463,17 @@ export default function PrescriptionPrintPage() {
                 )}
               </div>
 
-              {/* Header compact */}
+              {/* Header — idéntico al de la mitad izquierda para que ambas bandas midan lo mismo */}
               <div className="relative z-10 flex items-center gap-3 px-5 py-3" style={{ backgroundColor: '#1B3A6B' }}>
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Logo" width={52} height={52} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '52px', height: '52px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
+                  <Image src={logoUrl} alt="Logo" width={64} height={64} className={`flex-shrink-0 object-contain${doctor.clinicLogo ? '' : ' rounded-full object-cover'}`} style={{ width: '64px', height: '64px', borderRadius: doctor.clinicLogo ? '4px' : '50%', filter: doctor.clinicLogo ? 'brightness(0) invert(1)' : undefined }} />
                 ) : (
-                  <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '36px', height: '36px', backgroundColor: '#2c5282', fontSize: '14px' }}>{initials}</div>
+                  <div className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-bold" style={{ width: '44px', height: '44px', backgroundColor: '#2c5282', fontSize: '16px' }}>{initials}</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold leading-tight" style={{ fontSize: '11px' }}>{doctorDisplayName}</p>
-                  <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
-                  {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '7px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
+                  <p className="text-white font-bold leading-tight" style={{ fontSize: '13px' }}>{doctorDisplayName}</p>
+                  <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.specialty}</p>
+                  {doctor.establishmentName && <p className="text-blue-200 uppercase tracking-widest" style={{ fontSize: '8px', letterSpacing: '0.15em' }}>{doctor.establishmentName}</p>}
                   <div className="flex flex-wrap gap-x-3 mt-0.5" style={{ fontSize: '7px', color: '#bee3f8' }}>
                     {contactPhone && <span>{contactPhone}</span>}
                     {doctor.email && <span>{doctor.email}</span>}
@@ -542,7 +543,17 @@ export default function PrescriptionPrintPage() {
                 </div>
               </div>
 
-              {/* Signature area */}
+              {/* Vigencia + firma — mismo layout que la mitad izquierda para que queden a la misma altura */}
+              {expiresFormatted && (
+                <div className="relative z-10 px-5 pb-1 text-right" style={{ fontSize: '8px', color: '#4a5568' }}>
+                  <span className="font-semibold">Válida hasta:</span> {expiresFormatted}
+                </div>
+              )}
+              {isDraft && (
+                <div className="relative z-10 px-5 pb-2 text-right" style={{ fontSize: '8px', color: '#b91c1c', fontWeight: 700 }}>
+                  SIN FIRMA DIGITAL — No válido para dispensación (AM 0009-2017)
+                </div>
+              )}
               <div className="relative z-10 border-t border-gray-200 px-5 py-3 flex justify-end" style={{ fontSize: '9px' }}>
                 <div className="text-center">
                   {signedBy ? (
@@ -554,7 +565,6 @@ export default function PrescriptionPrintPage() {
                   <p className="text-gray-500">{doctor.specialty}</p>
                   {doctor.mspCode && <p className="text-gray-400">MSP: {doctor.mspCode}</p>}
                   {doctor.specialtyRegCode && <p className="text-gray-400">Reg. SENESCYT: {doctor.specialtyRegCode}</p>}
-                  {expiresFormatted && <p className="text-gray-400 mt-0.5">Válida hasta: {expiresFormatted}</p>}
                 </div>
               </div>
             </div>
