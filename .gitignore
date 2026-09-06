@@ -46,3 +46,6 @@ next-env.d.ts
 prisma/migrations/dev.db
 .mcp.json
 .claude/
+# Vercel CLI añade `.env*` al hacer env pull; se acota para no tapar .env.example,
+# que sí va versionado. Las reglas .env / .env*.local de arriba ya cubren lo sensible.
+!.env.example
