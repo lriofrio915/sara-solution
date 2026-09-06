@@ -27,12 +27,10 @@ Medición contra producción antes del fix:
 Las que devuelven 404 también tardan 4.4s: el tiempo se va en el middleware **antes de
 enrutar**. Explica por qué la trivia de carga se puso justo en pacientes y recetas.
 
-### ⚠️ PENDIENTE Y REQUIERE AL USUARIO: la instancia de Upstash sigue caída
-El código ya no puede tardar más de 300ms, pero el rate limiting **sigue sin funcionar**.
-Hay que entrar a la consola de Upstash y ver si la base fue borrada, pausada o si el token
-rotó; recrearla en región **us-west** y actualizar `UPSTASH_REDIS_REST_URL` y
-`UPSTASH_REDIS_REST_TOKEN` en Vercel Production. Hasta entonces `/api/patients`,
-`/api/prescriptions`, `/api/arco`, `/api/auth` y las rutas públicas no tienen límite por IP.
+### La instancia vieja de Upstash quedó inalcanzable
+`major-wolf-96255.upstash.io` dejó de responder. No se pudo diagnosticar desde el entorno
+de desarrollo porque tiene bloqueado el dominio `upstash.io` a nivel DNS. Se resolvió
+reaprovisionando desde el Marketplace de Vercel (ver más abajo) en vez de recuperarla.
 
 ### Completado — Fase 1, commit `737ac57`
 - `src/lib/rate-limit.ts` (extraído del middleware para poder testearlo): `retry: { retries: 1 }`
@@ -74,11 +72,32 @@ médico. La consulta de pacientes se comparte entre página y API en
   secciones con lógica de filtrado real. En las otras tres habría sido indirección sin valor.
 - Se conserva `MedicalLoadingScreen` en pacientes y atenciones, pero solo para búsquedas.
 
+### Completado — Upstash reaprovisionado desde el Marketplace de Vercel
+- Recurso `sara-ratelimit` (producto `upstash/upstash-kv`) creado y conectado a
+  production, preview y development. Estado: Available.
+- Se eligió `upstash/upstash-kv` y no el producto `redis` de Redis Inc.: este último
+  entrega una URL TCP y el middleware corre en Edge, donde solo sirve el REST de Upstash.
+- **La integración inyecta `KV_REST_API_URL` / `KV_REST_API_TOKEN`, no `UPSTASH_REDIS_REST_*`.**
+  El commit `49ed5c0` había añadido soporte para ambas nomenclaturas justo antes; sin él la
+  base habría quedado provisionada y el rate limiting igualmente desactivado en silencio.
+- Las 4 variables viejas `UPSTASH_REDIS_REST_URL`/`TOKEN` (production y development,
+  apuntando a la instancia muerta `major-wolf-96255`) fueron eliminadas: tenían prioridad
+  en el `||` y habrían ensombrecido a las nuevas.
+- `vercel integration add` ejecuta un `env pull` que apendea `.env*` al `.gitignore`, lo que
+  taparía `.env.example`. Acotado en `86c7288`.
+
+### ⚠️ Incidente: tres deploys de producción en Error por vercel.json
+El commit `737ac57` añadió a `vercel.json` una clave `"//"` como comentario junto a
+`regions`. Vercel valida el esquema y rechaza propiedades desconocidas:
+`schema validation failed: should NOT have additional property "//"`.
+Resultado: los deploys quedaron en Error y **las mejoras de rendimiento no estuvieron en
+producción durante ~40 minutos**, aunque el build local pasaba. Corregido en `128820b`,
+validado antes con un deploy de preview. `vercel.json` no admite comentarios de ningún tipo.
+
 ### Pendiente
-- **Arreglar la instancia de Upstash** (ver arriba). Es lo único que queda de la causa raíz.
-- **Sin push todavía.** Los dos commits están en local.
-- Verificar en producción tras desplegar: las rutas con rate limiting deben bajar de 4.4s a
-  <300ms, y cronometrar clic a clic entre secciones con sesión real.
+- Verificar en producción: las rutas con rate limiting deben bajar de 4.4s a ~0.12s (con
+  Redis vivo vuelve a haber límite real por IP), y cronometrar clic a clic entre secciones
+  con sesión real.
 - El cambio de región a `pdx1` solo tiene efecto tras el próximo deploy.
 - Fuera de alcance, detectado: las 42 páginas cliente restantes; `SaraFAB` importa
   estáticamente `SaraChatPanel` (502 líneas) aunque casi nunca se abra; y hay 63 lookups
