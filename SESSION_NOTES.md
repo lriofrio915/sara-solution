@@ -1,5 +1,90 @@
 # Session Notes
 
+## Sesión 2026-09-06 (tarde) — Latencia de navegación en el panel del médico
+
+### Causa raíz principal: el rate limiter de Upstash cuesta 4.24s por request
+
+`@upstash/redis@1.37.0` trae por defecto `attempts: 5` y `backoff: n => Math.exp(n)*50`.
+La suma de los backoff de los reintentos 1-4 es **exactamente 4240 ms**. La instancia de
+Redis no responde, el SDK reintenta las 5 veces y el `catch {}` del middleware falla en
+abierto. Resultado: cero protección real y 4.2s de coste por request.
+
+Medición contra producción antes del fix:
+
+| Ruta | ¿Rate-limited? | Código | TTFB |
+|---|---|---|---|
+| `/api/patients` | sí | 401 | 4.45 s |
+| `/api/prescriptions` | sí | 401 | 4.47 s |
+| `/api/arco` | sí | 404 | 4.47 s |
+| `/api/auth/callback` | sí | 404 | 4.42 s |
+| `/api/contact` | sí | 405 | 4.47 s |
+| `/api/fhir` | sí | 404 | 4.41 s |
+| `/api/certificates` | no | 401 | 0.12 s |
+| `/api/appointments` | no | 401 | 0.14 s |
+| `/api/exam-orders` | no | 401 | 0.12 s |
+| `/api/atenciones` | no | 401 | 0.11 s |
+
+Las que devuelven 404 también tardan 4.4s: el tiempo se va en el middleware **antes de
+enrutar**. Explica por qué la trivia de carga se puso justo en pacientes y recetas.
+
+### ⚠️ PENDIENTE Y REQUIERE AL USUARIO: la instancia de Upstash sigue caída
+El código ya no puede tardar más de 300ms, pero el rate limiting **sigue sin funcionar**.
+Hay que entrar a la consola de Upstash y ver si la base fue borrada, pausada o si el token
+rotó; recrearla en región **us-west** y actualizar `UPSTASH_REDIS_REST_URL` y
+`UPSTASH_REDIS_REST_TOKEN` en Vercel Production. Hasta entonces `/api/patients`,
+`/api/prescriptions`, `/api/arco`, `/api/auth` y las rutas públicas no tienen límite por IP.
+
+### Completado — Fase 1, commit `737ac57`
+- `src/lib/rate-limit.ts` (extraído del middleware para poder testearlo): `retry: { retries: 1 }`
+  y techo duro de 300ms con `Promise.race`. 6 tests nuevos, incluido el de regresión que
+  falla si un Redis colgado vuelve a tardar más de 500ms.
+- `getDoctorFromUser` y `getAssistantDoctors` envueltos en `cache()` de React. Ojo al
+  detalle: `cache()` memoiza por identidad de argumento, así que la clave son primitivos
+  (`authId`, `email`, `activeDoctorId`) y no el objeto `user`, que nunca habría acertado.
+- `titlePrefix` y `avatarUrl` movidos a `DOCTOR_SELECT`: elimina la segunda consulta del
+  layout raíz a la fila recién leída, y una tercera en la rama de asistente cuyo resultado
+  se descartaba.
+- Los 13 layouts anidados pasan de `getUser()` (round-trip de red, 200-800ms) a
+  `getSession()` vía el nuevo helper `requireDoctorLayout()`. Cada layout baja de 18 a 8
+  líneas. **`admin/layout.tsx` mantiene `getUser()` a propósito**: es frontera de privilegio
+  de superadmin y `getSession()` no valida la firma del JWT en servidor.
+- **Bug de seguridad latente cerrado**: el lookup usaba `{ email: user.email! }`; con email
+  `undefined`, Prisma descarta la condición y ese elemento del `OR` queda como `{}`, que
+  hace match con CUALQUIER médico y devolvía uno arbitrario. Ahora la cláusula solo se
+  añade si hay email.
+- `loading.tsx` en las secciones principales reutilizando `MedicalLoadingScreen`. Ahora sí
+  cubre el hueco correcto (antes vivía dentro del componente cliente, o sea que solo
+  aparecía **después** de que el servidor respondiera) y hace que el prefetch de `<Link>`
+  sirva de algo en rutas dinámicas.
+- `next.config.js`: `staleTimes: { dynamic: 30, static: 180 }` y `optimizePackageImports`
+  para `lucide-react`. `vercel.json`: `regions: ["pdx1"]` para colocar las funciones junto
+  a la BD, que está en `us-west-2` (corrían en `iad1`, confirmado por `x-vercel-id`).
+
+### Completado — Fase 2, commit `023667c`
+`patients`, `prescriptions`, `exam-orders` y `atenciones` pasan de componente cliente con
+`useEffect` a server component + componente cliente hermano que recibe la primera tanda por
+props. Ahorra por sección una hidratación, un `fetch`, un `getUser()` de red y un lookup de
+médico. La consulta de pacientes se comparte entre página y API en
+`src/lib/patients-query.ts`; las rutas API se mantienen todas.
+
+### Decisiones tomadas
+- `getSession()` en los layouts del panel, `getUser()` en las rutas API y en admin. Los
+  layouts solo deciden qué renderizar; la validación fuerte vive donde se tocan los datos.
+- Solo se extrajo módulo compartido de consulta para pacientes: es la única de las cuatro
+  secciones con lógica de filtrado real. En las otras tres habría sido indirección sin valor.
+- Se conserva `MedicalLoadingScreen` en pacientes y atenciones, pero solo para búsquedas.
+
+### Pendiente
+- **Arreglar la instancia de Upstash** (ver arriba). Es lo único que queda de la causa raíz.
+- **Sin push todavía.** Los dos commits están en local.
+- Verificar en producción tras desplegar: las rutas con rate limiting deben bajar de 4.4s a
+  <300ms, y cronometrar clic a clic entre secciones con sesión real.
+- El cambio de región a `pdx1` solo tiene efecto tras el próximo deploy.
+- Fuera de alcance, detectado: las 42 páginas cliente restantes; `SaraFAB` importa
+  estáticamente `SaraChatPanel` (502 líneas) aunque casi nunca se abra; y hay 63 lookups
+  `OR: [{ id: user.id }, { email }]` que usan `id` donde `doctor-auth.ts` usa `authId` —
+  son campos distintos y esa inconsistencia merece su propia sesión.
+
 ## Sesión 2026-09-06 — Bugs del módulo de consulta + overhaul de SEO
 
 ### Completado — Parte A (3 bugs reportados por una médica), commit `5bc2d94`
