@@ -1,5 +1,100 @@
 # Session Notes
 
+## Sesión 2026-09-06 — Bugs del módulo de consulta + overhaul de SEO
+
+### Completado — Parte A (3 bugs reportados por una médica), commit `5bc2d94`
+
+**A2 (crítico) — la orden de laboratorio incluía los ítems de imágenes.**
+Causa raíz: `src/app/(print)/attention-exams/[attentionId]/page.tsx` recorría todas las
+claves del JSON `attention.exams` (que guarda laboratorio e imagen mezclados) y solo
+excluía las claves `__otros`. El print de imágenes sí filtraba, y `exam-orders/[id]/imprimir`
+también, con criterios distintos cada uno.
+Fix: nuevo `src/lib/exam-split.ts` como única fuente de verdad (`splitExamsByType`,
+`hasAnyExam`, `selectedCategories`), aplicado en los tres puntos de impresión. También se
+eliminó la heurística `key.includes('imag')` del print de imágenes, que podía colar
+categorías de laboratorio.
+
+**A3 — la sección "Órdenes" salía vacía.**
+Causa raíz: el PATCH de atención (`src/app/api/patients/[id]/atenciones/[aid]/route.ts`)
+sincronizaba la receta pero no las órdenes; solo el POST creaba `ExamOrder`. En el flujo
+real la atención se guarda primero y los exámenes se añaden después, así que la orden nunca
+se creaba. Agravantes: `GET /api/exam-orders` ignoraba el `attentionId` que el formulario sí
+enviaba, y el listado etiquetaba con el catálogo de laboratorio, así que una orden de
+imágenes habría salido como "—".
+Fix: campo `ExamOrder.type` (enum `LAB`/`IMAGING`), `src/lib/exam-order-sync.ts` llamado
+desde POST y PATCH, filtros `attentionId`/`type` en la API con validación 400, badges de
+tipo en ambos listados y título/catálogo por tipo en el print. De paso se arregló el
+`countExams` de `/patients/[id]/ordenes`, que crasheaba con las claves de metadatos string.
+
+**A1 — la presentación escrita a mano no llegaba a la receta impresa.**
+Causa raíz: en `AttentionForm.tsx`, al elegir "Otros…" el `<select>` se cambiaba por un
+input libre cuyo valor solo se guardaba en `item.presentation` si se pulsaba Enter o el
+botón ✓. Si la médica escribía y guardaba o imprimía directo, el texto quedaba en un state
+local y se perdía. Segundo efecto: las presentaciones custom viven en `localStorage`, así
+que en otro navegador el valor guardado no existía como `<option>` y el campo se veía vacío.
+Fix: input con `datalist` que persiste en cada tecla; las sugerencias incluyen las
+presentaciones ya usadas en la receta actual, no solo las de localStorage.
+
+**¿A1 y A3 comparten causa?** No. A1 es un bug de commit en la UI. A2 y A3 sí comparten
+raíz: el JSON `exams` mezclaba ambos mundos y `ExamOrder` no tenía discriminador.
+
+**Tests**: `test/lib/exam-split.test.ts` (8) y `test/lib/exam-order-sync.test.ts` (7).
+Suite: 152/152 verdes. Typecheck, lint y build limpios.
+
+### PENDIENTE ANTES DE DESPLEGAR Parte A — la BD todavía no tiene la columna
+El código ya consulta `ExamOrder.type`. Desplegar antes de aplicar el SQL rompe producción.
+Orden obligatorio:
+1. `npm run db:backup`
+2. Aplicar `prisma/migrations/add_exam_order_type.sql` (aditivo: crea el enum, la columna
+   con default `LAB` y un índice; no borra ni reescribe nada).
+3. `npx tsx scripts/backfill-exam-order-type.ts` → revisar el dry-run → repetir con `--apply`.
+   Reclasifica las órdenes existentes y parte en dos las que traen laboratorio e imagen.
+4. Recién entonces `git push origin main`.
+
+### Completado — Parte B (SEO y previsualización), commit `318d20d`
+- Estado previo: no existían `sitemap.ts`, `robots.ts`, `manifest.ts` ni carpeta `public/`.
+- `src/lib/seo.ts`: helper tipado `buildMetadata` + constantes `SITE` + `NOINDEX`.
+  Base canónica `https://www.consultorio.site` (el apex responde 307 y una OG detrás de un
+  redirect no la renderiza WhatsApp).
+- `robots.ts` (lista de prefijos privados en `src/lib/seo-routes.ts`), `sitemap.ts` dinámico
+  (páginas fijas + perfiles de médico activos con `lastModified` real), `manifest.ts`.
+- `noindex` en los layouts `(doctor)`, `(patient)`, `(print)` y `(auth)`, además del guard.
+- OG 1200x630 generada con `next/og` para el sitio y para cada perfil público, más
+  `icon.tsx` y `apple-icon.tsx`. Ninguna OG toca datos de paciente.
+- JSON-LD: `Organization` + `SoftwareApplication` (`MedicalApplication`) + `FAQPage` en la
+  landing, `Product`/`Offer` USD + `BreadcrumbList` en precios, `Physician` +
+  `BreadcrumbList` en los perfiles. Inyectado desde componente de servidor con escapado.
+- **Eliminado el `aggregateRating` 4.9/200** de la landing: no corresponde a reseñas
+  públicas verificables y exponía el dominio a penalización por datos estructurados
+  engañosos.
+- `<img>` → `next/image` en landing, perfil y reserva. Metadata propia (vía layout) para
+  las páginas cliente: `/buscar-medico` indexable, `/portal`, `/encuesta/[token]` y
+  `/[slug]/reservar` en noindex.
+
+### Decisiones tomadas
+- Órdenes: se optó por dos registros con `type` (migración) en vez de una orden mixta.
+  Es el fix estructural que también blinda A2 contra futuras regresiones.
+- No existe blog en el proyecto; lo previsto para el blog se aplicó a los perfiles
+  públicos `/[slug]`, que son el contenido dinámico con valor SEO real.
+- Assets OG y favicons generados por código (`next/og`), no como binarios: el repo no tiene
+  carpeta `public/`.
+
+### Pendiente
+- Aplicar la migración y el backfill (ver arriba) y luego hacer push.
+- Verificación manual de Parte A en dev con un paciente de prueba (lab + imagen en la misma
+  consulta, presentación escrita a mano sin pulsar Enter).
+- Checklist de Parte B: Facebook Sharing Debugger, Twitter Card Validator, Rich Results Test,
+  compartir un link real por WhatsApp, y `curl` de `/robots.txt` y `/sitemap.xml` verificando
+  que no aparece ninguna URL privada.
+- El `middleware.ts` no protege `/analytics`, `/leads`, `/team`, `/integraciones`,
+  `/referidos`, `/upgrade`, `/reception` ni `/attention-*`; dependen solo del guard del
+  layout. El bloqueo SEO ya los cubre, pero conviene revisar el matcher aparte.
+- Fuera de alcance, detectado durante la investigación: `POST /api/prescriptions` y
+  `PATCH /api/prescriptions/[id]` guardan `medications` sin normalizar; hay tres catálogos
+  de presentación divergentes (`BASE_PRESENTATIONS`, `PHARMA_FORMS`,
+  `CatalogoMedicamento.formaFarmaceutica`) y `/api/medications` no tiene ningún consumidor;
+  `exam-orders/new` no permite pedir imágenes.
+
 ## Sesión 2026-08-01 — Revisión de estado + deps + fix firma visual en receta
 
 ### Completado
