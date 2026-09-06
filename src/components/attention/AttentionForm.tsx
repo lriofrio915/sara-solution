@@ -309,8 +309,6 @@ export default function AttentionForm({
   // Presentaciones farmacéuticas (base + custom desde localStorage)
   const BASE_PRESENTATIONS = ['Tabletas', 'Cápsulas', 'Ampollas', 'Jarabe']
   const [customPresentations, setCustomPresentations] = useState<string[]>([])
-  const [customPresInput, setCustomPresInput] = useState<Record<number, string>>({})
-  const [showCustomInput, setShowCustomInput] = useState<Record<number, boolean>>({})
   useEffect(() => {
     try {
       const saved = localStorage.getItem('sara_pres_custom')
@@ -364,6 +362,14 @@ export default function AttentionForm({
     prescriptionValidUntil: initialData?.prescriptionValidUntil ?? addBusinessDays(new Date(), 5),
     prescriptionNextAppointment: initialData?.prescriptionNextAppointment ?? '',
   })
+  // Las presentaciones custom viven en localStorage, así que en otro navegador o
+  // dispositivo no existían como opción y el campo se veía vacío pese a estar guardado.
+  // Se incluyen también las que ya traen los ítems de esta receta.
+  const presentationOptions = Array.from(new Set([
+    ...BASE_PRESENTATIONS,
+    ...customPresentations,
+    ...form.prescriptionItems.map(it => it.presentation).filter(Boolean),
+  ]))
 
   // Chronometer
   useEffect(() => {
@@ -1133,62 +1139,28 @@ export default function AttentionForm({
                             />
                           </td>
                           <td className="px-3 py-2">
-                            {showCustomInput[i] ? (
-                              <div className="flex gap-1">
-                                <input
-                                  className="input text-sm py-1 w-full"
-                                  autoFocus
-                                  placeholder="Ej. Supositorios"
-                                  value={customPresInput[i] ?? ''}
-                                  onChange={(e) => setCustomPresInput(prev => ({ ...prev, [i]: e.target.value }))}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const val = customPresInput[i]?.trim()
-                                      if (val) {
-                                        addCustomPresentation(val)
-                                        const next = [...form.prescriptionItems]
-                                        next[i] = { ...next[i], presentation: val }
-                                        update('prescriptionItems', next)
-                                      }
-                                      setShowCustomInput(prev => ({ ...prev, [i]: false }))
-                                    }
-                                    if (e.key === 'Escape') setShowCustomInput(prev => ({ ...prev, [i]: false }))
-                                  }}
-                                />
-                                <button type="button" className="text-xs text-primary px-1"
-                                  onClick={() => {
-                                    const val = customPresInput[i]?.trim()
-                                    if (val) {
-                                      addCustomPresentation(val)
-                                      const next = [...form.prescriptionItems]
-                                      next[i] = { ...next[i], presentation: val }
-                                      update('prescriptionItems', next)
-                                    }
-                                    setShowCustomInput(prev => ({ ...prev, [i]: false }))
-                                  }}>✓</button>
-                              </div>
-                            ) : (
-                              <select
-                                className="input text-sm py-1 w-full"
-                                value={item.presentation ?? ''}
-                                onChange={(e) => {
-                                  if (e.target.value === '__otros__') {
-                                    setShowCustomInput(prev => ({ ...prev, [i]: true }))
-                                    setCustomPresInput(prev => ({ ...prev, [i]: '' }))
-                                  } else {
-                                    const next = [...form.prescriptionItems]
-                                    next[i] = { ...next[i], presentation: e.target.value }
-                                    update('prescriptionItems', next)
-                                  }
-                                }}
-                              >
-                                <option value="">— Seleccionar —</option>
-                                {[...BASE_PRESENTATIONS, ...customPresentations].map(p => (
-                                  <option key={p} value={p}>{p}</option>
-                                ))}
-                                <option value="__otros__">Otros…</option>
-                              </select>
-                            )}
+                            {/* Input libre con sugerencias en vez de <select> + input oculto:
+                                antes la presentación escrita a mano solo se guardaba si la
+                                médica pulsaba Enter o el botón ✓, así que al imprimir directo
+                                el campo llegaba vacío a la receta. Ahora cada tecla se
+                                persiste en el ítem y no existe estado sin confirmar. */}
+                            <input
+                              className="input text-sm py-1 w-full"
+                              list={`presentaciones-${i}`}
+                              placeholder="Tabletas, Supositorios…"
+                              value={item.presentation ?? ''}
+                              onChange={(e) => {
+                                const next = [...form.prescriptionItems]
+                                next[i] = { ...next[i], presentation: e.target.value }
+                                update('prescriptionItems', next)
+                              }}
+                              onBlur={(e) => addCustomPresentation(e.target.value)}
+                            />
+                            <datalist id={`presentaciones-${i}`}>
+                              {presentationOptions.map(p => (
+                                <option key={p} value={p} />
+                              ))}
+                            </datalist>
                           </td>
                           <td className="px-3 py-2">
                             <input

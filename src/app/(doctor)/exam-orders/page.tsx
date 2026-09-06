@@ -3,22 +3,30 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
+
+type ExamOrderType = 'LAB' | 'IMAGING'
 
 interface ExamOrder {
   id: string
   date: string
-  exams: Record<string, string[]>
+  type: ExamOrderType
+  exams: Record<string, string[] | string>
   attentionId: string | null
   patient: { id: string; name: string; documentId: string | null }
 }
 
-function countExams(exams: Record<string, string[]>) {
-  return Object.values(exams).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0)
+function countExams(exams: Record<string, string[] | string>) {
+  return Object.values(exams).reduce<number>((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0)
 }
 
-function topCategories(exams: Record<string, string[]>): string {
-  const cats = EXAM_CATEGORIES.filter(c => (exams[c.key] ?? []).length > 0).map(c => c.label)
+// El catálogo depende del tipo de orden: etiquetar una orden de imagen con el catálogo
+// de laboratorio la dejaba siempre en "—" aunque tuviera exámenes pedidos.
+function topCategories(exams: Record<string, string[] | string>, type: ExamOrderType): string {
+  const catalog = type === 'IMAGING' ? IMAGING_CATEGORIES : EXAM_CATEGORIES
+  const cats = catalog
+    .filter(c => Array.isArray(exams[c.key]) && (exams[c.key] as string[]).length > 0)
+    .map(c => c.label)
   if (cats.length === 0) return '—'
   if (cats.length <= 2) return cats.join(', ')
   return `${cats.slice(0, 2).join(', ')} +${cats.length - 2}`
@@ -63,7 +71,7 @@ export default function ExamOrdersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Órdenes de Examen</h1>
           <p className="text-gray-500 dark:text-slate-300 text-sm mt-0.5">
-            {total > 0 ? `${total} orden${total !== 1 ? 'es' : ''} emitida${total !== 1 ? 's' : ''}` : 'Solicitudes de exámenes de laboratorio'}
+            {total > 0 ? `${total} orden${total !== 1 ? 'es' : ''} emitida${total !== 1 ? 's' : ''}` : 'Solicitudes de exámenes de laboratorio e imagen'}
           </p>
         </div>
       </div>
@@ -103,7 +111,16 @@ export default function ExamOrdersPage() {
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.patient.name}</p>
                 {item.patient.documentId && <p className="text-xs text-gray-400">{item.patient.documentId}</p>}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px]">{topCategories(item.exams)}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px]">
+                <span className={`inline-block mb-0.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ${
+                  item.type === 'IMAGING'
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300'
+                    : 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300'
+                }`}>
+                  {item.type === 'IMAGING' ? 'Imágenes' : 'Laboratorio'}
+                </span>
+                <span className="block truncate">{topCategories(item.exams, item.type)}</span>
+              </div>
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold">
                 {countExams(item.exams)}
               </span>

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import PrintButton from '@/components/PrintButton'
 import Link from 'next/link'
+import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import { splitExamsByType, selectedCategories } from '@/lib/exam-split'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,18 +27,16 @@ export default async function AttentionExamsPrintPage(props: { params: Promise<{
   })
   if (!attention) notFound()
 
-  const exams = attention.exams as Record<string, string[] | string> | null ?? {}
   const dateStr = new Date(attention.datetime).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
   })
 
-  const selectedExams: { category: string; items: string[] }[] = []
-  for (const [key, value] of Object.entries(exams)) {
-    if (key.endsWith('__otros') || key.endsWith('__') ) continue
-    if (Array.isArray(value) && value.length > 0) {
-      selectedExams.push({ category: key, items: value })
-    }
-  }
+  // Esta orden es SOLO de laboratorio. Antes se recorrían todas las claves del JSON
+  // `exams`, que guarda laboratorio e imagen juntos, y la orden impresa salía mezclada:
+  // un pedido clínico con exámenes que no le corresponden. Se filtra contra el catálogo
+  // de laboratorio, el mismo criterio que ya usa /exam-orders/[id]/imprimir.
+  const { lab } = splitExamsByType(attention.exams)
+  const selectedExams = selectedCategories(lab, EXAM_CATEGORIES)
 
   return (
     <>
@@ -84,9 +84,9 @@ export default async function AttentionExamsPrintPage(props: { params: Promise<{
 
             {selectedExams.length > 0 ? (
               <div className="space-y-4">
-                {selectedExams.map(({ category, items }) => (
-                  <div key={category}>
-                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 border-b border-gray-200 pb-1">{category}</h3>
+                {selectedExams.map(({ category, items, otros }) => (
+                  <div key={category.key}>
+                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 border-b border-gray-200 pb-1">{category.label}</h3>
                     <ul className="space-y-1">
                       {items.map((item, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm text-gray-800">
@@ -95,8 +95,8 @@ export default async function AttentionExamsPrintPage(props: { params: Promise<{
                         </li>
                       ))}
                     </ul>
-                    {(exams[`${category}__otros`] as string | undefined) && (
-                      <p className="text-sm text-gray-600 mt-1">Otros: {exams[`${category}__otros`] as string}</p>
+                    {otros && (
+                      <p className="text-sm text-gray-600 mt-1">Otros: {otros}</p>
                     )}
                   </div>
                 ))}

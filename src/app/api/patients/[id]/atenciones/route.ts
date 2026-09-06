@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { syncExamOrders } from '@/lib/exam-order-sync'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
 import { auditAttention, getClientIp } from '@/lib/audit'
 
@@ -170,22 +171,19 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       }
     }
 
-    // Sync exam order: create an ExamOrder record if the attention has exam selections
-    const hasExams = exams && Object.values(exams as Record<string, unknown>)
-      .some(v => Array.isArray(v) && v.length > 0)
-    if (hasExams) {
+    // Sync exam orders: laboratorio e imagen se emiten como órdenes separadas para que
+    // cada una se imprima y se liste sola (antes compartían un único registro mezclado).
+    if (exams !== undefined) {
       try {
-        await prisma.examOrder.create({
-          data: {
-            patientId: params.id,
-            doctorId: doctor.id,
-            attentionId: attention.id,
-            exams: exams as Record<string, string[]>,
-            date: attention.datetime,
-          },
+        await syncExamOrders({
+          attentionId: attention.id,
+          patientId: params.id,
+          doctorId: doctor.id,
+          exams,
+          date: attention.datetime,
         })
       } catch (examErr) {
-        console.error('Error creating exam order from attention:', examErr)
+        console.error('Error creating exam orders from attention:', examErr)
         // Non-blocking: don't fail attention creation if exam order sync fails
       }
     }

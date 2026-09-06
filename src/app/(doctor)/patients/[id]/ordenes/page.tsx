@@ -3,13 +3,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
 import MedicalLoadingScreen from '@/components/MedicalLoadingScreen'
+
+type ExamOrderType = 'LAB' | 'IMAGING'
 
 interface ExamOrder {
   id: string
   date: string
-  exams: Record<string, string[]>
+  type: ExamOrderType
+  exams: Record<string, string[] | string>
   otrosExams: string | null
   notes: string | null
 }
@@ -35,13 +38,17 @@ export default function PatientOrdenesPage() {
 
   useEffect(() => { load() }, [load])
 
-  function countExams(exams: Record<string, string[]>): number {
-    return Object.values(exams).reduce((acc, arr) => acc + arr.length, 0)
+  // El JSON de exámenes también guarda claves de metadatos con valor string
+  // (`hematologia__otros`, `radiologia__inguinal_lado`); sumarles `.length` como si
+  // fueran arrays rompía el contador.
+  function countExams(exams: Record<string, string[] | string>): number {
+    return Object.values(exams).reduce<number>((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0)
   }
 
-  function getCategories(exams: Record<string, string[]>): string[] {
-    return EXAM_CATEGORIES
-      .filter((cat) => (exams[cat.key]?.length ?? 0) > 0)
+  function getCategories(exams: Record<string, string[] | string>, type: ExamOrderType): string[] {
+    const catalog = type === 'IMAGING' ? IMAGING_CATEGORIES : EXAM_CATEGORIES
+    return catalog
+      .filter((cat) => Array.isArray(exams[cat.key]) && (exams[cat.key] as string[]).length > 0)
       .map((cat) => cat.label)
   }
 
@@ -94,7 +101,7 @@ export default function PatientOrdenesPage() {
       </div>
 
       {orders.map((order) => {
-        const categories = getCategories(order.exams)
+        const categories = getCategories(order.exams, order.type)
         const examCount = countExams(order.exams)
         return (
           <div
@@ -104,11 +111,18 @@ export default function PatientOrdenesPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
                   {new Date(order.date).toLocaleDateString('es-EC', {
                     timeZone: 'America/Guayaquil',
                     dateStyle: 'long',
                   })}
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ${
+                    order.type === 'IMAGING'
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300'
+                      : 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300'
+                  }`}>
+                    {order.type === 'IMAGING' ? 'Imágenes' : 'Laboratorio'}
+                  </span>
                 </p>
                 <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">
                   {examCount} examen{examCount !== 1 ? 'es' : ''}

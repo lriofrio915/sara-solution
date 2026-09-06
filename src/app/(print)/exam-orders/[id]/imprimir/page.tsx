@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma'
 import PrintButton from '@/components/PrintButton'
 import FirmaStamp from '@/components/FirmaStamp'
 import { getConfiguredSignerSubject } from '@/lib/firma-signer'
-import { EXAM_CATEGORIES } from '@/lib/exam-categories'
+import { EXAM_CATEGORIES, IMAGING_CATEGORIES } from '@/lib/exam-categories'
+import { selectedCategories } from '@/lib/exam-split'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,8 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
   // se muestra el titular del certificado configurado (sin fecha)
   const stampSigner = searchParams.signedBy ?? (await getConfiguredSignerSubject(doctor.id))
   const stampSignedAt = searchParams.signedBy ? searchParams.signedAt ?? null : null
-  const exams = (order.exams ?? {}) as Record<string, string[]>
+  const exams = (order.exams ?? {}) as Record<string, string[] | string>
+  const isImaging = order.type === 'IMAGING'
 
   const dateStr = new Date(order.date).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
@@ -54,7 +56,10 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
 
   const age = calcAge(order.patient.birthDate)
 
-  const categoriesWithExams = EXAM_CATEGORIES.filter(c => (exams[c.key] ?? []).length > 0)
+  // El catálogo y el título salen del tipo de la orden: laboratorio e imagen se emiten
+  // como registros separados y cada uno debe imprimir únicamente sus propios ítems.
+  const catalog = isImaging ? IMAGING_CATEGORIES : EXAM_CATEGORIES
+  const categoriesWithExams = selectedCategories(exams, catalog)
 
   return (
     <>
@@ -101,7 +106,9 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
 
           {/* Title */}
           <div className="px-8 py-4 text-center border-b border-gray-200">
-            <h2 className="font-bold text-gray-900 text-base uppercase tracking-wider">Orden de Exámenes de Laboratorio</h2>
+            <h2 className="font-bold text-gray-900 text-base uppercase tracking-wider">
+              {isImaging ? 'Orden de Imágenes Diagnósticas' : 'Orden de Exámenes de Laboratorio'}
+            </h2>
           </div>
 
           {/* Patient info */}
@@ -118,13 +125,13 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
           <div className="px-8 py-6">
             {categoriesWithExams.length === 0 && order.otrosExams ? null : (
               <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-                {categoriesWithExams.map(cat => (
-                  <div key={cat.key} className="exam-grid">
+                {categoriesWithExams.map(({ category, items, otros }) => (
+                  <div key={category.key} className="exam-grid">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-primary border-b border-primary/30 pb-1 mb-2">
-                      {cat.label}
+                      {category.label}
                     </h3>
                     <div className="space-y-1">
-                      {(exams[cat.key] ?? []).map(exam => (
+                      {items.map(exam => (
                         <div key={exam} className="flex items-center gap-2 text-sm text-gray-800">
                           {/* Visto como SVG: el glifo ✓ no existe en las fuentes del Chromium serverless que genera el PDF */}
                           <span className="w-4 h-4 border-2 border-gray-400 rounded-sm flex-shrink-0 flex items-center justify-center text-primary">
@@ -136,6 +143,9 @@ export default async function ExamOrderPrintPage(props: { params: Promise<{ id: 
                         </div>
                       ))}
                     </div>
+                    {/* Los "otros" escritos en la consulta viajan dentro del JSON como
+                        `<categoria>__otros`, no en la columna otrosExams, y antes no se imprimían. */}
+                    {otros && <p className="text-sm text-gray-700 mt-1">Otros: {otros}</p>}
                   </div>
                 ))}
               </div>

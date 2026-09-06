@@ -60,12 +60,12 @@ enum PostStatus {
 }
 
 enum CredentialType {
-  SENESCYT       // Registro de título SENESCYT
-  TITULO_TERCER  // Título de Tercer Nivel
-  TITULO_CUARTO  // Título de Cuarto Nivel / Especialidad
-  CERTIFICADO    // Certificado / Diploma
-  CURSO          // Curso de capacitación
-  SEMINARIO      // Seminario / Congreso
+  SENESCYT // Registro de título SENESCYT
+  TITULO_TERCER // Título de Tercer Nivel
+  TITULO_CUARTO // Título de Cuarto Nivel / Especialidad
+  CERTIFICADO // Certificado / Diploma
+  CURSO // Curso de capacitación
+  SEMINARIO // Seminario / Congreso
 }
 
 enum ContentType {
@@ -91,39 +91,39 @@ enum MemberRole {
 // ─── Doctor ─────────────────────────────────────────────────
 
 model Doctor {
-  id        String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  titlePrefix String?  // Dr., Dra., MD, Lcdo., Lcda., Esp., Mg., PhD
-  specialty   String
-  email     String   @unique
-  phone     String?
-  plan         Plan      @default(FREE)
-  trialEndsAt  DateTime?
-  active       Boolean   @default(true)
-  avatarUrl String?
-  bannerUrl String?  // Foto para la sección CTA al final de la página pública
-  bio       String?
-  address   String?
-  whatsapp          String?   // WhatsApp Business — número visible en la página pública
-  evolutionInstance String?   // Nombre de la instancia en Evolution API (agente Sara por doctor)
-  webhookUrl        String?   // n8n webhook personalizado del médico
-  branches    String?   // JSON: [{name, address}] sucursales adicionales
-  schedules String?
-  services  String?   // JSON: [{name, description, price, emoji}]
-  appointmentDuration Int @default(30)
-  authId String? @unique
-  prescriptionCounter Int @default(0)
+  id                  String    @id @default(cuid())
+  slug                String    @unique
+  name                String
+  titlePrefix         String? // Dr., Dra., MD, Lcdo., Lcda., Esp., Mg., PhD
+  specialty           String
+  email               String    @unique
+  phone               String?
+  plan                Plan      @default(FREE)
+  trialEndsAt         DateTime?
+  active              Boolean   @default(true)
+  avatarUrl           String?
+  bannerUrl           String? // Foto para la sección CTA al final de la página pública
+  bio                 String?
+  address             String?
+  whatsapp            String? // WhatsApp Business — número visible en la página pública
+  evolutionInstance   String? // Nombre de la instancia en Evolution API (agente Sara por doctor)
+  webhookUrl          String? // n8n webhook personalizado del médico
+  branches            String? // JSON: [{name, address}] sucursales adicionales
+  schedules           String?
+  services            String? // JSON: [{name, description, price, emoji}]
+  appointmentDuration Int       @default(30)
+  authId              String?   @unique
+  prescriptionCounter Int       @default(0)
 
   // Sistema de referidos
-  referralCode      String?  @unique  // Código único para invitar colegas
-  referredById      String?           // ID del doctor que lo refirió
-  freeMonthsBalance Int      @default(0) // Meses gratis acumulados por referidos
+  referralCode      String? @unique // Código único para invitar colegas
+  referredById      String? // ID del doctor que lo refirió
+  freeMonthsBalance Int     @default(0) // Meses gratis acumulados por referidos
 
   // Datos legales y profesionales
-  cedulaId         String?  // Cédula de Identidad (10 dígitos)
-  mspCode          String?  // Código MSP / Registro ACESS Tercer Nivel
-  specialtyRegCode String?  // Registro SENESCYT/ACESS Especialidad Cuarto Nivel
+  cedulaId         String? // Cédula de Identidad (10 dígitos)
+  mspCode          String? // Código MSP / Registro ACESS Tercer Nivel
+  specialtyRegCode String? // Registro SENESCYT/ACESS Especialidad Cuarto Nivel
 
   // Establecimiento médico (para recetas y documentos legales)
   establishmentName String? // Nombre del consultorio/clínica
@@ -137,9 +137,9 @@ model Doctor {
   consultationModes String? // JSON: ["IN_PERSON","TELECONSULT","HOME_VISIT"]
 
   // Personalización de Sara IA
-  saraPersonality          String? @db.Text // Instrucciones de comportamiento de Sara con el médico
-  saraPatientInstructions  String? @db.Text // Instrucciones de Sara para el trato con pacientes
-  patientFaq               String? @db.Text // JSON: [{question, answer}] — FAQs para Sara de pacientes
+  saraPersonality         String? @db.Text // Instrucciones de comportamiento de Sara con el médico
+  saraPatientInstructions String? @db.Text // Instrucciones de Sara para el trato con pacientes
+  patientFaq              String? @db.Text // JSON: [{question, answer}] — FAQs para Sara de pacientes
 
   // Métodos de pago y datos bancarios
   paymentData String? // JSON: {methods:[...], bankName, accountNumber, accountHolder, accountType}
@@ -150,50 +150,50 @@ model Doctor {
   website    String? // Sitio web opcional del médico (ej. https://miclinica.com)
 
   // Firma Electrónica (BCE / FirmaEC)
-  signaturePath    String?  // Supabase Storage path to .p12 (private bucket 'firma-ec')
-  signatureIv      String?  // AES-256-GCM IV (hex)
-  signatureTag     String?  // AES-256-GCM auth tag (hex)
-  signatureEncPass String?  // AES-256-GCM encrypted .p12 password (hex)
+  signaturePath    String? // Supabase Storage path to .p12 (private bucket 'firma-ec')
+  signatureIv      String? // AES-256-GCM IV (hex)
+  signatureTag     String? // AES-256-GCM auth tag (hex)
+  signatureEncPass String? // AES-256-GCM encrypted .p12 password (hex)
 
   // Redes Sociales — tokens OAuth (AES-256-GCM encriptado)
-  socialTokens     String?  @db.Text  // JSON: {instagram:{accessToken,userId,expiresAt}, facebook:{...}, linkedin:{...}, tiktok:{...}}
+  socialTokens String? @db.Text // JSON: {instagram:{accessToken,userId,expiresAt}, facebook:{...}, linkedin:{...}, tiktok:{...}}
 
   // Referidos — preferencia de recompensa
-  rewardPreference String   @default("FREE_MONTH")  // "FREE_MONTH" | "CASH"
+  rewardPreference String @default("FREE_MONTH") // "FREE_MONTH" | "CASH"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patients               Patient[]
-  appointments           Appointment[]
-  medicalRecords         MedicalRecord[]
-  prescriptions          Prescription[]
-  examOrders             ExamOrder[]
-  medicalCertificates    MedicalCertificate[]
-  saraConversations      SaraConversation[]
-  saraMemories           SaraMemory[]
-  saraUnanswered         SaraUnansweredQuestion[]
-  reminders              Reminder[]
-  socialPosts            SocialPost[]
-  knowledgeDocuments     KnowledgeDocument[]
-  availabilitySchedules  AvailabilitySchedule[]
-  brandProfile           BrandProfile?
-  brandImages            BrandImage[]
-  contentCalendars       ContentCalendar[]
-  patientCharts          PatientChart[]
-  attentions             Attention[]
-  diagnoses              Diagnosis[]
-  auditLogs              AuditLog[]
-  credentials            DoctorCredential[]
-  consentRecords         ConsentRecord[]
-  patientLeads           PatientLead[]
-  givenReferrals         Referral[]    @relation("GivenReferrals")
-  receivedReferral       Referral?     @relation("ReceivedReferral")
-  doctorMembers          DoctorMember[]
-  satisfactionSurveys    SatisfactionSurvey[]
-  credit                 DoctorCredit?
-  creditTransactions     CreditTransaction[]
-  creditRecharges        CreditRecharge[]
+  patients              Patient[]
+  appointments          Appointment[]
+  medicalRecords        MedicalRecord[]
+  prescriptions         Prescription[]
+  examOrders            ExamOrder[]
+  medicalCertificates   MedicalCertificate[]
+  saraConversations     SaraConversation[]
+  saraMemories          SaraMemory[]
+  saraUnanswered        SaraUnansweredQuestion[]
+  reminders             Reminder[]
+  socialPosts           SocialPost[]
+  knowledgeDocuments    KnowledgeDocument[]
+  availabilitySchedules AvailabilitySchedule[]
+  brandProfile          BrandProfile?
+  brandImages           BrandImage[]
+  contentCalendars      ContentCalendar[]
+  patientCharts         PatientChart[]
+  attentions            Attention[]
+  diagnoses             Diagnosis[]
+  auditLogs             AuditLog[]
+  credentials           DoctorCredential[]
+  consentRecords        ConsentRecord[]
+  patientLeads          PatientLead[]
+  givenReferrals        Referral[]               @relation("GivenReferrals")
+  receivedReferral      Referral?                @relation("ReceivedReferral")
+  doctorMembers         DoctorMember[]
+  satisfactionSurveys   SatisfactionSurvey[]
+  credit                DoctorCredit?
+  creditTransactions    CreditTransaction[]
+  creditRecharges       CreditRecharge[]
 
   @@index([slug])
   @@index([email])
@@ -223,28 +223,28 @@ model AvailabilitySchedule {
 // ─── Patient ────────────────────────────────────────────────
 
 model Patient {
-  id         String    @id @default(cuid())
-  doctorId   String
-  authId     String?   // No unique — un médico puede ser paciente de otro médico con la misma cuenta
-  name       String
-  email      String?
-  phone      String?
-  birthDate  DateTime?
-  bloodType  BloodType @default(UNKNOWN)
-  allergies  String[]
-  notes      String?
-  avatarUrl  String?
+  id           String    @id @default(cuid())
+  doctorId     String
+  authId       String? // No unique — un médico puede ser paciente de otro médico con la misma cuenta
+  name         String
+  email        String?
+  phone        String?
+  birthDate    DateTime?
+  bloodType    BloodType @default(UNKNOWN)
+  allergies    String[]
+  notes        String?
+  avatarUrl    String?
   documentId   String?
   documentType String?
 
   // LOPDP — Retención legal y soft delete
-  deletedAt   DateTime?  // Soft delete: datos médicos se retienen aunque el paciente solicite baja
-  retainUntil DateTime?  // Fecha límite de retención legal (AM 0009-2017: 15 años desde última atención)
+  deletedAt   DateTime? // Soft delete: datos médicos se retienen aunque el paciente solicite baja
+  retainUntil DateTime? // Fecha límite de retención legal (AM 0009-2017: 15 años desde última atención)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  doctor              Doctor              @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor              Doctor               @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   appointments        Appointment[]
   medicalRecords      MedicalRecord[]
   prescriptions       Prescription[]
@@ -261,7 +261,7 @@ model Patient {
   @@index([email])
   @@index([doctorId, name])
   @@index([deletedAt])
-  @@index([doctorId, createdAt])   // dashboard new-patients count by month
+  @@index([doctorId, createdAt]) // dashboard new-patients count by month
 }
 
 // ─── Appointment ────────────────────────────────────────────
@@ -326,10 +326,10 @@ model Prescription {
   patientId     String
   doctorId      String
   appointmentId String?
-  attentionId   String?   // link to the Attention that generated this prescription
+  attentionId   String? // link to the Attention that generated this prescription
   date          DateTime  @default(now())
-  medications   Json      // [{ name, dose, frequency, duration, notes }]
-  instructions  String?   @db.Text  // INDICACIONES (right column)
+  medications   Json // [{ name, dose, frequency, duration, notes }]
+  instructions  String?   @db.Text // INDICACIONES (right column)
   diagnosis     String?
   issuedAt      DateTime  @default(now())
   expiresAt     DateTime?
@@ -347,20 +347,28 @@ model Prescription {
   @@index([appointmentId])
   @@index([attentionId])
   @@index([date])
-  @@index([doctorId, date])        // dashboard prescription count by month
+  @@index([doctorId, date]) // dashboard prescription count by month
 }
 
 // ─── Exam Order (Orden de Examen) ────────────────────────────
 
+// Discrimina la orden de laboratorio de la de imagen. Sin este campo ambas vivían
+// en el mismo registro y era imposible imprimir o listar una sin la otra.
+enum ExamOrderType {
+  LAB
+  IMAGING
+}
+
 model ExamOrder {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   patientId     String
   doctorId      String
   appointmentId String?
   attentionId   String?
-  date          DateTime @default(now())
-  exams         Json     // { hematologia: [...], bioquimica: [...], ... }
-  otrosExams    String?  @db.Text
+  type          ExamOrderType @default(LAB)
+  date          DateTime      @default(now())
+  exams         Json // { hematologia: [...], bioquimica: [...], ... }
+  otrosExams    String?       @db.Text
   notes         String?
 
   createdAt DateTime @default(now())
@@ -375,13 +383,14 @@ model ExamOrder {
   @@index([doctorId])
   @@index([appointmentId])
   @@index([attentionId])
+  @@index([attentionId, type])
   @@index([doctorId, date])
 }
 
 // ─── Medical Certificate (Certificado Médico) ────────────────
 
 model MedicalCertificate {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   patientId     String
   doctorId      String
   appointmentId String?
@@ -412,10 +421,10 @@ model MedicalCertificate {
 // ─── Sara Memory ────────────────────────────────────────────
 
 model SaraMemory {
-  id        String   @id @default(cuid())
-  doctorId  String
-  category  String   @default("general") // preference | protocol | schedule_rule | patient_info | billing | general
-  content   String   @db.Text
+  id       String @id @default(cuid())
+  doctorId String
+  category String @default("general") // preference | protocol | schedule_rule | patient_info | billing | general
+  content  String @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -431,7 +440,7 @@ model SaraMemory {
 model SaraUnansweredQuestion {
   id        String   @id @default(cuid())
   doctorId  String
-  question  String   @db.Text  // Pregunta del paciente que Sara no pudo responder
+  question  String   @db.Text // Pregunta del paciente que Sara no pudo responder
   source    String   @default("public_chat") // public_chat | whatsapp
   createdAt DateTime @default(now())
 
@@ -444,13 +453,13 @@ model SaraUnansweredQuestion {
 // ─── Sara Conversation ──────────────────────────────────────
 
 model SaraConversation {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   doctorId  String
   patientId String?
   messages  Json
   context   String?
   title     String?
-  humanMode Boolean  @default(false)  // true = Sara paused, doctor handles manually
+  humanMode Boolean @default(false) // true = Sara paused, doctor handles manually
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -466,14 +475,14 @@ model SaraConversation {
 // ─── Reminder ───────────────────────────────────────────────
 
 model Reminder {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   doctorId    String
   title       String
   description String?
   dueDate     DateTime
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  priority    String   @default("MEDIUM")
+  priority    String    @default("MEDIUM")
   category    String?
 
   createdAt DateTime @default(now())
@@ -507,28 +516,28 @@ model KnowledgeDocument {
 // ─── Social Post ────────────────────────────────────────────
 
 model SocialPost {
-  id             String         @id @default(cuid())
-  doctorId       String
-  content        String         @db.Text
-  imageUrl       String?
-  videoUrl       String?
-  platforms      Json
-  publishedAt    DateTime?
-  scheduledAt    DateTime?
-  approvedAt     DateTime?
-  status         PostStatus     @default(DRAFT)
-  hashtags       String[]
-  externalIds    Json?
+  id               String         @id @default(cuid())
+  doctorId         String
+  content          String         @db.Text
+  imageUrl         String?
+  videoUrl         String?
+  platforms        Json
+  publishedAt      DateTime?
+  scheduledAt      DateTime?
+  approvedAt       DateTime?
+  status           PostStatus     @default(DRAFT)
+  hashtags         String[]
+  externalIds      Json?
   // Marketing fields
-  contentType    ContentType    @default(POST)
-  targetPlatform SocialPlatform @default(INSTAGRAM)
-  topic          String?
-  carouselSlides Json?
-  reelScript     String?        @db.Text
-  imagePrompt    String?
-  suggestedTime  String?
-  aiGenerated    Boolean        @default(false)
-  linkedinStrategy String?     // 'B2B' (Sara admin buscando médicos) | 'B2C' (médico buscando pacientes)
+  contentType      ContentType    @default(POST)
+  targetPlatform   SocialPlatform @default(INSTAGRAM)
+  topic            String?
+  carouselSlides   Json?
+  reelScript       String?        @db.Text
+  imagePrompt      String?
+  suggestedTime    String?
+  aiGenerated      Boolean        @default(false)
+  linkedinStrategy String? // 'B2B' (Sara admin buscando médicos) | 'B2C' (médico buscando pacientes)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -672,13 +681,13 @@ model PatientChart {
   stimulation           Json?
 
   // Medicación habitual y antecedentes quirúrgicos
-  currentMedication String?  @db.Text
-  surgicalHistory   Json?    // [{procedure, date, reason, hospital, complications, anesthesia}]
+  currentMedication String? @db.Text
+  surgicalHistory   Json? // [{procedure, date, reason, hospital, complications, anesthesia}]
 
   // Controles médicos especiales
-  vaccineRecords  Json?   // [{id, vaccine, scheduledAgeMonths, scheduledLabel, dose, appliedDate, lot, notes}]
-  growthRecords   Json?   // [{date, ageMonths, weight, height, headCirc}]
-  pregnancyData   Json?   // {fum, fpp, method, controls:[{date, week, weight, bp, fuAltura, notes}]}
+  vaccineRecords Json? // [{id, vaccine, scheduledAgeMonths, scheduledLabel, dose, appliedDate, lot, notes}]
+  growthRecords  Json? // [{date, ageMonths, weight, height, headCirc}]
+  pregnancyData  Json? // {fum, fpp, method, controls:[{date, week, weight, bp, fuAltura, notes}]}
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -701,9 +710,9 @@ model PatientLead {
   email   String?
   message String? @db.Text // Motivo de consulta o mensaje del chat
 
-  source   String @default("FORMULARIO") // FORMULARIO | CHAT | WHATSAPP | REFERIDO | OTRO
+  source   String  @default("FORMULARIO") // FORMULARIO | CHAT | WHATSAPP | REFERIDO | OTRO
   campaign String?
-  status   String @default("NUEVO")      // NUEVO | CONTACTADO | AGENDADO | PERDIDO
+  status   String  @default("NUEVO") // NUEVO | CONTACTADO | AGENDADO | PERDIDO
   notes    String?
 
   createdAt DateTime @default(now())
@@ -739,7 +748,7 @@ model Lead {
 
 // ─── Attention (Consulta Clínica) ────────────────────────────
 model Attention {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   patientId String
   doctorId  String
 
@@ -748,7 +757,7 @@ model Attention {
   service         String? // Consulta | Emergencia | Hospitalización
   attentionType   String?
   insurance       String?
-  datetime        DateTime @default(now())
+  datetime        DateTime  @default(now())
   nextAppointment DateTime?
   durationMins    Int?
 
@@ -776,8 +785,8 @@ model Attention {
   @@index([patientId])
   @@index([doctorId])
   @@index([doctorId, datetime])
-  @@index([patientId, datetime])   // patient history sorted by date
-  @@index([doctorId, service])     // dashboard filter by service type
+  @@index([patientId, datetime]) // patient history sorted by date
+  @@index([doctorId, service]) // dashboard filter by service type
 }
 
 // ─── Diagnosis (HL7 FHIR / ICD-11 normalizado) ───────────────
@@ -816,14 +825,14 @@ model Diagnosis {
 // ─── AuditLog (LOPDP) ────────────────────────────────────────
 model AuditLog {
   id        String   @id @default(cuid())
-  userId    String   // doctorId o 'system'
+  userId    String // doctorId o 'system'
   patientId String?
-  resource  String   // 'PatientChart' | 'Prescription' | 'Attention' | ...
-  action    String   // READ | CREATE | UPDATE | DELETE
-  metadata  Json?    // {ip, route, changedFields, ...}
+  resource  String // 'PatientChart' | 'Prescription' | 'Attention' | ...
+  action    String // READ | CREATE | UPDATE | DELETE
+  metadata  Json? // {ip, route, changedFields, ...}
   createdAt DateTime @default(now())
 
-  doctor  Doctor?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  doctor Doctor? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([patientId])
@@ -837,13 +846,13 @@ model DoctorCredential {
   id          String         @id @default(cuid())
   doctorId    String
   type        CredentialType
-  title       String         // "Médico Cirujano", "Especialidad en Cardiología", etc.
-  institution String?        // "Universidad Central del Ecuador"
-  year        Int?           // Año de obtención
-  storagePath String         // Supabase Storage path
-  fileUrl     String         // URL pública del archivo
-  mimeType    String         // "application/pdf" | "image/jpeg" | ...
-  fileSize    Int            // bytes
+  title       String // "Médico Cirujano", "Especialidad en Cardiología", etc.
+  institution String? // "Universidad Central del Ecuador"
+  year        Int? // Año de obtención
+  storagePath String // Supabase Storage path
+  fileUrl     String // URL pública del archivo
+  mimeType    String // "application/pdf" | "image/jpeg" | ...
+  fileSize    Int // bytes
 
   createdAt DateTime @default(now())
 
@@ -856,17 +865,17 @@ model DoctorCredential {
 // ─── Referral (Sistema de Referidos) ─────────────────────────
 
 model Referral {
-  id          String    @id @default(cuid())
-  referrerId  String                         // Doctor que refirió
-  referredId  String    @unique              // Doctor que fue referido (solo puede tener un referidor)
-  status      String    @default("PENDING")  // PENDING | REWARDED
-  rewardedAt  DateTime?                      // Cuándo se otorgó la recompensa
+  id         String    @id @default(cuid())
+  referrerId String // Doctor que refirió
+  referredId String    @unique // Doctor que fue referido (solo puede tener un referidor)
+  status     String    @default("PENDING") // PENDING | REWARDED
+  rewardedAt DateTime? // Cuándo se otorgó la recompensa
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  referrer Doctor @relation("GivenReferrals",   fields: [referrerId], references: [id], onDelete: Cascade)
-  referred Doctor @relation("ReceivedReferral",  fields: [referredId], references: [id], onDelete: Cascade)
+  referrer Doctor @relation("GivenReferrals", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred Doctor @relation("ReceivedReferral", fields: [referredId], references: [id], onDelete: Cascade)
 
   @@index([referrerId])
   @@index([status])
@@ -874,14 +883,14 @@ model Referral {
 
 // ─── CatalogoMedicamento (CNMB) ──────────────────────────────
 model CatalogoMedicamento {
-  id               String  @id @default(cuid())
-  codigoAtc        String  // Código ATC e.g. "J01CA04"
-  dci              String  // Denominación Común Internacional (genérico)
-  concentracion    String? // e.g. "500 mg"
+  id                String   @id @default(cuid())
+  codigoAtc         String // Código ATC e.g. "J01CA04"
+  dci               String // Denominación Común Internacional (genérico)
+  concentracion     String? // e.g. "500 mg"
   formaFarmaceutica String? // Tableta | Jarabe | Inyectable | ...
-  nivel            Int?    // Nivel CNMB: 1 | 2 | 3
-  activo           Boolean @default(true)
-  createdAt        DateTime @default(now())
+  nivel             Int? // Nivel CNMB: 1 | 2 | 3
+  activo            Boolean  @default(true)
+  createdAt         DateTime @default(now())
 
   @@index([dci])
   @@index([codigoAtc])
@@ -890,23 +899,23 @@ model CatalogoMedicamento {
 // ─── DoctorMember (Multi-usuario: médico + asistente) ────────
 
 model DoctorMember {
-  id       String     @id @default(cuid())
-  doctorId String
-  authId   String     // Supabase Auth UID del miembro — sin @unique para permitir N médicos
-  email    String
-  name     String
-  role     MemberRole @default(ASSISTANT)
-  active   Boolean    @default(true)
-  canSign  Boolean    @default(false)  // El médico puede autorizar a la asistente a firmar documentos
-  avatarUrl String?                    // Foto de perfil propia de la asistente
-  phone    String?                     // Teléfono de contacto de la asistente
+  id        String     @id @default(cuid())
+  doctorId  String
+  authId    String // Supabase Auth UID del miembro — sin @unique para permitir N médicos
+  email     String
+  name      String
+  role      MemberRole @default(ASSISTANT)
+  active    Boolean    @default(true)
+  canSign   Boolean    @default(false) // El médico puede autorizar a la asistente a firmar documentos
+  avatarUrl String? // Foto de perfil propia de la asistente
+  phone     String? // Teléfono de contacto de la asistente
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
-  @@unique([doctorId, authId])  // Una asistente no puede estar duplicada en el mismo médico
+  @@unique([doctorId, authId]) // Una asistente no puede estar duplicada en el mismo médico
   @@index([doctorId])
   @@index([authId])
 }
@@ -914,17 +923,17 @@ model DoctorMember {
 // ─── SatisfactionSurvey (Encuestas post-consulta) ────────────
 
 model SatisfactionSurvey {
-  id            String    @id @default(cuid())
-  doctorId      String
-  patientId     String?
-  appointmentId String?   @unique   // una encuesta por cita
-  token         String    @unique   // UUID para acceso público sin autenticación
-  sentAt        DateTime  @default(now())
-  answeredAt    DateTime?
-  score         Int?      // 1-5 estrellas
-  comment       String?   @db.Text
+  id             String    @id @default(cuid())
+  doctorId       String
+  patientId      String?
+  appointmentId  String?   @unique // una encuesta por cita
+  token          String    @unique // UUID para acceso público sin autenticación
+  sentAt         DateTime  @default(now())
+  answeredAt     DateTime?
+  score          Int? // 1-5 estrellas
+  comment        String?   @db.Text
   wouldRecommend Boolean?
-  source        String    @default("whatsapp") // whatsapp | email | manual
+  source         String    @default("whatsapp") // whatsapp | email | manual
 
   doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   patient     Patient?     @relation(fields: [patientId], references: [id], onDelete: SetNull)
@@ -944,7 +953,7 @@ model ConsentRecord {
   consentType   String    @default("HEALTH_DATA_PROCESSING")
   // "HEALTH_DATA_PROCESSING" | "MARKETING" | "RESEARCH"
   version       String    @default("1.0")
-  text          String?   @db.Text  // Texto exacto del consentimiento presentado
+  text          String?   @db.Text // Texto exacto del consentimiento presentado
   acceptedAt    DateTime  @default(now())
   ipAddress     String?
   userAgent     String?
@@ -964,15 +973,15 @@ model ConsentRecord {
 // ─── TrendingTopic (temas de actualidad para LinkedIn) ────────
 
 model TrendingTopic {
-  id          String   @id @default(cuid())
-  title       String
-  summary     String?  @db.Text
-  source      String   // "google_news" | "pubmed" | "who" | "manual"
-  sourceUrl   String?
-  category    String   // "saas_medico" | "salud_digital" | "medicina_general" | "tecnologia"
-  relevance   Float    @default(0.5) // 0.0 - 1.0
-  fetchedAt   DateTime @default(now())
-  expiresAt   DateTime
+  id        String   @id @default(cuid())
+  title     String
+  summary   String?  @db.Text
+  source    String // "google_news" | "pubmed" | "who" | "manual"
+  sourceUrl String?
+  category  String // "saas_medico" | "salud_digital" | "medicina_general" | "tecnologia"
+  relevance Float    @default(0.5) // 0.0 - 1.0
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
 
   @@index([category])
   @@index([expiresAt])
@@ -987,37 +996,37 @@ model DoctorCredit {
   credits   Int      @default(0)
   updatedAt DateTime @updatedAt
 
-  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 }
 
 model CreditTransaction {
   id          String   @id @default(cuid())
   doctorId    String
-  type        String   // 'RECHARGE' | 'IMAGE' | 'VIDEO'
-  credits     Int      // positivo = recarga, negativo = gasto
+  type        String // 'RECHARGE' | 'IMAGE' | 'VIDEO'
+  credits     Int // positivo = recarga, negativo = gasto
   description String
   kieTaskId   String?
   createdAt   DateTime @default(now())
 
-  doctor      Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
   @@index([doctorId, createdAt])
 }
 
 model CreditRecharge {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   doctorId   String
   credits    Int
-  amountUsd  Decimal  @db.Decimal(10, 2)
-  status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  amountUsd  Decimal   @db.Decimal(10, 2)
+  status     String    @default("PENDING") // PENDING | APPROVED | REJECTED
   notes      String?
-  proofUrl   String?   // URL del comprobante en Supabase Storage
-  payMethod  String?   // 'TRANSFER' | 'CRYPTO' | 'CARD'
+  proofUrl   String? // URL del comprobante en Supabase Storage
+  payMethod  String? // 'TRANSFER' | 'CRYPTO' | 'CARD'
   approvedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
-  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
   @@index([status])

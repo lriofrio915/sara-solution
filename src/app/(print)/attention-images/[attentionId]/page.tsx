@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import PrintButton from '@/components/PrintButton'
+import { IMAGING_CATEGORIES } from '@/lib/exam-categories'
+import { splitExamsByType, selectedCategories } from '@/lib/exam-split'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,28 +27,15 @@ export default async function AttentionImagesPrintPage(props: { params: Promise<
   })
   if (!attention) notFound()
 
-  const exams = attention.exams as Record<string, string[] | string> | null ?? {}
   const dateStr = new Date(attention.datetime).toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil',
   })
 
-  const selectedImages: { category: string; items: string[] }[] = []
-  for (const [key, value] of Object.entries(exams)) {
-    if (key.endsWith('__otros') || key.endsWith('__')) continue
-    if (Array.isArray(value) && value.length > 0 && key.toLowerCase().includes('imag')) {
-      selectedImages.push({ category: key, items: value })
-    }
-  }
-
-  // Also capture any imaging categories not matched by key name
-  const { IMAGING_CATEGORIES } = await import('@/lib/exam-categories')
-  const imagingKeys = new Set(IMAGING_CATEGORIES.map(c => c.key))
-  for (const [key, value] of Object.entries(exams)) {
-    if (!imagingKeys.has(key)) continue
-    if (Array.isArray(value) && value.length > 0 && !selectedImages.find(s => s.category === key)) {
-      selectedImages.push({ category: key, items: value })
-    }
-  }
+  // Se filtra contra el catálogo de imagen en vez de la heurística `key.includes('imag')`,
+  // que podía colar una categoría de laboratorio cuyo nombre contuviera esa subcadena.
+  // Mismo criterio, invertido, que la orden de laboratorio: una sola fuente de verdad.
+  const { imaging } = splitExamsByType(attention.exams)
+  const selectedImages = selectedCategories(imaging, IMAGING_CATEGORIES)
 
   return (
     <>
@@ -94,9 +83,9 @@ export default async function AttentionImagesPrintPage(props: { params: Promise<
 
             {selectedImages.length > 0 ? (
               <div className="space-y-4">
-                {selectedImages.map(({ category, items }) => (
-                  <div key={category}>
-                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 border-b border-gray-200 pb-1">{category}</h3>
+                {selectedImages.map(({ category, items, otros }) => (
+                  <div key={category.key}>
+                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 border-b border-gray-200 pb-1">{category.label}</h3>
                     <ul className="space-y-1">
                       {items.map((item, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm text-gray-800">
@@ -105,8 +94,8 @@ export default async function AttentionImagesPrintPage(props: { params: Promise<
                         </li>
                       ))}
                     </ul>
-                    {(exams[`${category}__otros`] as string | undefined) && (
-                      <p className="text-sm text-gray-600 mt-1">Otros: {exams[`${category}__otros`] as string}</p>
+                    {otros && (
+                      <p className="text-sm text-gray-600 mt-1">Otros: {otros}</p>
                     )}
                   </div>
                 ))}

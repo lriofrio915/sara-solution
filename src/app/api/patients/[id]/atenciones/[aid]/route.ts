@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { syncExamOrders } from '@/lib/exam-order-sync'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
 
 export const dynamic = 'force-dynamic'
@@ -134,6 +135,24 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       } catch (rxErr) {
         console.error('Error syncing prescription on attention update:', rxErr)
         // Non-blocking: don't fail the attention update if prescription sync fails
+      }
+    }
+
+    // Sync exam orders: este bloque faltaba. La receta sí se sincronizaba al editar la
+    // atención, las órdenes no, y como los exámenes se suelen añadir después de guardar
+    // por primera vez, la orden nunca llegaba a existir y la sección "Órdenes" salía vacía.
+    if (exams !== undefined) {
+      try {
+        await syncExamOrders({
+          attentionId: params.aid,
+          patientId: params.id,
+          doctorId: doctor.id,
+          exams,
+          date: attention.datetime,
+        })
+      } catch (examErr) {
+        console.error('Error syncing exam orders on attention update:', examErr)
+        // Non-blocking: don't fail the attention update if exam order sync fails
       }
     }
 
