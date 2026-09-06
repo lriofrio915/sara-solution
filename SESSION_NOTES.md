@@ -1,6 +1,6 @@
 # Session Notes
 
-## Sesión 2026-09-06 (noche) — Previsualización de enlaces (Open Graph)
+## Sesión 2026-09-06 (noche) — Previsualización de enlaces y nombres de médico
 
 Reporte: al compartir el perfil de una médica por WhatsApp salía solo texto, sin foto ni
 tarjeta. Se pedía que se viera profesional.
@@ -55,11 +55,49 @@ código compile.**
 Las cuatro condiciones de WhatsApp se cumplen en todas: 200, **sin redirects**, 1200x630
 declarado y <300 KB. `twitter:image` presente en las ocho.
 
+### Fallback sin foto — verificado
+**8 de los 9 perfiles con slug no tienen `avatarUrl`**, así que el fallback es el caso
+mayoritario, no el borde. Probados tres en producción: 200, ~44 KB, iniciales sobre el
+degradado de marca. En perfiles sin ciudad ni establecimiento el layout se adapta sin
+dejar huecos.
+
+### Bug 3 — se perdía el apellido en los nombres, commit `512ca31`
+"Patricio David Gavilanes Carrasco" se mostraba como **"Dr. Patricio David"**: dos nombres
+de pila y ningún apellido, con un slug que decía `patricio-gavilanes`. Las iniciales
+heredaban el fallo ("PD" en vez de "PG").
+
+Causa: el corte `parts.slice(0, 2)`, duplicado en **cuatro sitios** (tarjeta OG, página del
+perfil y dos ramas del layout del panel). Funciona con "Stéfanny Medrano" pero no con los
+nombres ecuatorianos de dos nombres + dos apellidos.
+
+Fix: `shortPersonName` en `src/lib/utils.ts`, usado por los cuatro. Con 4+ palabras toma la
+1.ª y la 3.ª; **con 3 conserva las dos primeras a propósito**, porque el caso es ambiguo
+("María José Melchiade" puede ser dos nombres + apellido o nombre + dos apellidos). La
+página del perfil tenía además su propia copia local de `getInitials`, ahora eliminada.
+
+### Bug 4 — la página llamaba "Dr." a las médicas, commit `8faaae3`
+Detectado al comparar página y tarjeta: la tarjeta decía "Dra. Marcela Castillo" y la
+página "Dr. Marcela Castillo". La página resolvía el tratamiento buscando las palabras
+"Dra."/"médica" **dentro del nombre**, así que una médica sin `titlePrefix` caía al "Dr."
+por defecto; la tarjeta sí usaba `detectDoctorTitle`.
+
+Fix: `formatDoctorDisplayName` en `src/lib/utils.ts` como fuente única para ambas
+superficies, con precedencia `titlePrefix` → palabra femenina explícita en el nombre →
+heurística por terminación. Afectaba a 4 de los 7 perfiles.
+
+**El patrón de fondo de los bugs 3 y 4 es el mismo**: la misma regla implementada por
+separado en varios sitios acaba divergiendo. Al tocar cómo se muestra un nombre, buscar
+antes si ya existe el helper en `src/lib/utils.ts`.
+
 ### Pendiente
 - Los enlaces ya compartidos tienen cacheado el 500 antiguo. Refrescar pasándolos por el
   Sharing Debugger de Facebook (Scrape Again); WhatsApp comparte esa caché.
-- No se probó un médico **sin** `avatarUrl`: el fallback a iniciales está implementado y se
-  validó con un slug inexistente, pero no con un perfil real sin foto.
+- La heurística de `detectDoctorTitle` falla con nombres masculinos terminados en -a
+  (Nicola, Elía). La solución de fondo es que el médico rellene `titlePrefix` en su
+  perfil, que siempre tiene prioridad.
+- El perfil de María José aparece en mayúsculas ("Dra. MARIA MELCHIADE") porque así está
+  el dato en la base: la página pública no normaliza la capitalización, el panel sí.
+  Decisión de producto pendiente, no se tocó.
 
 ## Sesión 2026-09-06 (tarde) — Latencia de navegación en el panel del médico
 
