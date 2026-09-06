@@ -21,11 +21,27 @@ const RATE_LIMIT_TIMEOUT_MS = 300
 
 let rl: RateLimits | null = null
 
+/**
+ * Credenciales del Redis REST.
+ *
+ * Se aceptan dos nomenclaturas porque dependen de cómo se aprovisione la base: una
+ * instancia creada a mano en Upstash usa `UPSTASH_REDIS_REST_*`, mientras que la
+ * integración de Marketplace de Vercel inyecta además el par `KV_REST_API_*`. Leer las
+ * dos evita que la protección quede desactivada en silencio por una diferencia de nombre.
+ */
+function getRedisCredentials(): { url: string; token: string } | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  if (!url || !token) return null
+  return { url, token }
+}
+
 function getRateLimits(): RateLimits | null {
   if (rl) return rl
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  if (!url || !token) return null
+  const credentials = getRedisCredentials()
+  // Sin credenciales el rate limiting se salta por completo, sin coste de latencia.
+  if (!credentials) return null
+  const { url, token } = credentials
   const redis = new Redis({
     url,
     token,

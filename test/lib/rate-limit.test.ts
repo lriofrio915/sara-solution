@@ -75,4 +75,18 @@ describe('applyRateLimit', () => {
     const fresh = await import('@/lib/rate-limit')
     expect(await fresh.applyRateLimit(req('/api/patients'), '/api/patients')).toBeNull()
   })
+
+  it('acepta las credenciales KV_REST_API_* que inyecta el Marketplace de Vercel', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    process.env.KV_REST_API_URL = 'https://fake.upstash.io'
+    process.env.KV_REST_API_TOKEN = 'fake-token'
+    vi.resetModules()
+    const fresh = await import('@/lib/rate-limit')
+    limitMock.mockResolvedValue({ success: false, limit: 60, remaining: 0, reset: Date.now() + 30_000 })
+    const res = await fresh.applyRateLimit(req('/api/patients'), '/api/patients')
+    expect(res?.status).toBe(429)
+    delete process.env.KV_REST_API_URL
+    delete process.env.KV_REST_API_TOKEN
+  })
 })
