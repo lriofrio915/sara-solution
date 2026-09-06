@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDoctorFromUser } from '@/lib/doctor-auth'
+import { listPatients } from '@/lib/patients-query'
 import { auditPatient, getClientIp } from '@/lib/audit'
 
 export const dynamic = 'force-dynamic'
@@ -19,44 +20,10 @@ export async function GET(req: NextRequest) {
     const q = req.nextUrl.searchParams.get('q')?.trim() ?? ''
     const page = Math.max(1, parseInt(req.nextUrl.searchParams.get('page') ?? '1'))
     const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get('limit') ?? '20'))
-    const skip = (page - 1) * limit
 
-    const where = {
-      doctorId: doctor.id,
-      deletedAt: null,  // Excluir pacientes con soft delete (LOPDP B6)
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' as const } },
-              { email: { contains: q, mode: 'insensitive' as const } },
-              { phone: { contains: q } },
-              { documentId: { contains: q } },
-            ],
-          }
-        : {}),
-    }
-
-    const [patients, total] = await Promise.all([
-      prisma.patient.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { name: 'asc' },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          birthDate: true,
-          bloodType: true,
-          documentId: true,
-          allergies: true,
-          createdAt: true,
-          _count: { select: { appointments: true } },
-        },
-      }),
-      prisma.patient.count({ where }),
-    ])
+    // Misma consulta que usa la página en el servidor, para que búsqueda y primera carga
+    // no puedan divergir en filtros ni en campos devueltos.
+    const { patients, total } = await listPatients({ doctorId: doctor.id, q, page, limit })
 
     return NextResponse.json(
       { patients, total, page, limit },
