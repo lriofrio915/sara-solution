@@ -46,6 +46,9 @@ next-env.d.ts
 prisma/migrations/dev.db
 .mcp.json
 .claude/
-# Vercel CLI añade `.env*` al hacer env pull; se acota para no tapar .env.example,
-# que sí va versionado. Las reglas .env / .env*.local de arriba ya cubren lo sensible.
+
+# `vercel env pull` (lo ejecuta `vercel integration add`) apendea `.env*` al final de
+# este archivo cada vez que corre. La negación va después a propósito: en gitignore gana
+# la última regla que coincide, y .env.example sí va versionado.
+.env*
 !.env.example
