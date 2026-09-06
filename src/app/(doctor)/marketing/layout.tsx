@@ -1,6 +1,4 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { requireDoctorLayout } from '@/lib/doctor-auth'
 import { getEffectivePlan } from '@/lib/plan'
 import PlanGate from '@/components/PlanGate'
 import MarketingNav from './_nav'
@@ -9,17 +7,7 @@ import CreditBalance, { CreditProvider } from '@/components/marketing/CreditBala
 export const dynamic = 'force-dynamic'
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const doctor = await prisma.doctor.findFirst({
-    where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { plan: true, trialEndsAt: true },
-  })
-  if (!doctor) redirect('/login')
-
-  const plan = getEffectivePlan(doctor)
+  const plan = getEffectivePlan(await requireDoctorLayout())
 
   return (
     <PlanGate

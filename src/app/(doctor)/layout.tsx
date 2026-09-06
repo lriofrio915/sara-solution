@@ -34,16 +34,10 @@ export default async function DoctorLayout({ children }: { children: React.React
     // null means either: not a doctor/assistant, OR multi-doctor assistant without selection
     if (!doctorWithRole) redirect('/select-doctor')
 
-    // For display purposes fetch avatar + titlePrefix (only available on Doctor model)
-    const doctorProfile = doctorWithRole.role === 'OWNER'
-      ? await prisma.doctor.findFirst({
-          where: { id: doctorWithRole.id },
-          select: { titlePrefix: true, avatarUrl: true },
-        })
-      : await prisma.doctorMember.findFirst({
-          where: { authId: user.id },
-          select: { name: true },
-        }).then(() => ({ titlePrefix: null as string | null, avatarUrl: null as string | null }))
+    // titlePrefix y avatarUrl ya vienen en getDoctorFromUser. Antes esto disparaba una
+    // segunda consulta a la misma fila que se acababa de leer, y en la rama de asistente
+    // una tercera cuyo resultado se descartaba.
+    const doctorProfile = { titlePrefix: doctorWithRole.titlePrefix, avatarUrl: doctorWithRole.avatarUrl }
 
     const isSuperAdmin = user?.email === 'lriofrio915@gmail.com'
 

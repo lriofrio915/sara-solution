@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // El Router Cache del cliente para rutas dinámicas es 0s por defecto, así que
+    // volver a una sección ya visitada re-pedía todo al servidor. 30s hace que ir y
+    // venir entre secciones sea instantáneo sin servir datos clínicos rancios.
+    staleTimes: { dynamic: 30, static: 180 },
+    // La barra lateral importa 20 iconos sueltos de lucide-react; sin esto el barrel
+    // arrastra el paquete entero al bundle del layout, que está en todas las páginas.
+    optimizePackageImports: ['lucide-react'],
+  },
   serverExternalPackages: [
     '@prisma/client',
     'prisma',

@@ -6,6 +6,9 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
+  // Aquí sí se paga el round-trip de getUser(): el resto de layouts del panel usan
+  // getSession() por rendimiento, pero esto es una frontera de privilegio de superadmin
+  // y getSession() no valida la firma del JWT contra el servidor de Supabase.
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user || user.email !== 'lriofrio915@gmail.com') {

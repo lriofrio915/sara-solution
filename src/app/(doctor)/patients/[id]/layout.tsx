@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { requireDoctorLayout } from '@/lib/doctor-auth'
 import PatientTabNav from '@/components/PatientTabNav'
 
 export const dynamic = 'force-dynamic'
@@ -25,15 +25,7 @@ export default async function PatientLayout(
     children
   } = props;
 
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) redirect('/login')
-
-  const doctor = await prisma.doctor.findFirst({
-    where: { OR: [{ id: user.id }, { email: user.email! }] },
-    select: { id: true },
-  })
-  if (!doctor) redirect('/login')
+  const doctor = await requireDoctorLayout()
 
   const patient = await prisma.patient.findFirst({
     where: { id: params.id, doctorId: doctor.id },
