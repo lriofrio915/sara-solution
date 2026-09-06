@@ -1,5 +1,66 @@
 # Session Notes
 
+## Sesión 2026-09-06 (noche) — Previsualización de enlaces (Open Graph)
+
+Reporte: al compartir el perfil de una médica por WhatsApp salía solo texto, sin foto ni
+tarjeta. Se pedía que se viera profesional.
+
+### Bug 1 — la imagen del perfil devolvía HTTP 500, commit `fff2aa6`
+`src/app/(public)/[slug]/opengraph-image.tsx` tipaba `params` como objeto plano, pero en
+esta versión de Next es una **Promise**: `params.slug` quedaba en `undefined`, Prisma
+lanzaba y la ruta respondía 500. Los meta tags (`og:title`, `og:image`, `twitter:card`)
+estaban todos correctos y apuntaban a una imagen que nunca llegaba a generarse.
+
+TypeScript no lo detectó porque el tipo escrito era una aserción, no una comprobación
+contra la firma real de Next. Solo se ve pidiendo la URL de la imagen y mirando el código.
+
+Además la tarjeta se rehízo para que sea una presentación real: foto del médico (círculo),
+título Dr./Dra. resuelto con `detectDoctorTitle` de `src/lib/utils.ts` —el mismo helper que
+usa la página—, especialidad 🩺, ciudad 📍, establecimiento 🏥 y CTA "Agenda tu cita".
+
+Tres decisiones de implementación:
+- **La foto se descarga en el handler y se incrusta como data URI**, con timeout de 3s y
+  tope de 1.5MB. Si se deja que Satori resuelva la `<img>` y esa petición falla, revienta
+  la generación entera y se vuelve al enlace sin preview; así degrada a las iniciales.
+- **`emoji: 'twemoji'`** en las opciones de `ImageResponse`: las fuentes por defecto de
+  Satori no traen emojis y salían como cuadros vacíos.
+- Cantón y provincia se deduplican (quedaba "Pastaza, Pastaza") y el nombre del
+  establecimiento se trunca a 42 caracteres para que no desborde a dos líneas.
+- Sin médico resuelto (slug inexistente) la tarjeta cae a la marca genérica y **oculta el
+  CTA de cita**, que no tendría a quién referirse. Devuelve 200, no 500.
+
+### Bug 2 — el resto de páginas públicas tampoco tenía imagen, commit `e290d28`
+Al verificar el fix anterior se descubrió que **solo `/[slug]` tenía `og:image`**. Landing,
+precios, legales, buscar-medico y `/[slug]/chat` salían con título y descripción pero sin
+imagen.
+
+Causa: **un `opengraph-image.tsx` solo cubre su propio segmento de ruta.** El de
+`src/app/` no se hereda a las páginas dentro de `(public)`. El perfil funcionaba porque su
+archivo está en el mismo segmento que su `page.tsx`.
+
+Fix: `buildMetadata` (`src/lib/seo.ts`) declara `image = '/opengraph-image'` por defecto, y
+`/[slug]` pasa **`image: null`** para que siga mandando su archivo propio con la foto —
+declarar una imagen en la metadata sobrescribiría la del archivo.
+
+Esto venía del overhaul de SEO de la sesión anterior: se dio por bueno sin comprobar el
+HTML resuelto de cada ruta. **Verificar los meta tags de la página servida, no solo que el
+código compile.**
+
+### Verificado en producción (8/8)
+| Ruta | HTTP | Tamaño | Imagen |
+|---|---|---|---|
+| `/`, `/pricing`, `/privacy`, `/terms`, `/eliminar-datos`, `/buscar-medico`, `/[slug]/chat` | 200 | 79 KB | marca |
+| `/stefanny-medrano` | 200 | 149 KB | tarjeta con foto |
+
+Las cuatro condiciones de WhatsApp se cumplen en todas: 200, **sin redirects**, 1200x630
+declarado y <300 KB. `twitter:image` presente en las ocho.
+
+### Pendiente
+- Los enlaces ya compartidos tienen cacheado el 500 antiguo. Refrescar pasándolos por el
+  Sharing Debugger de Facebook (Scrape Again); WhatsApp comparte esa caché.
+- No se probó un médico **sin** `avatarUrl`: el fallback a iniciales está implementado y se
+  validó con un slug inexistente, pero no con un perfil real sin foto.
+
 ## Sesión 2026-09-06 (tarde) — Latencia de navegación en el panel del médico
 
 ### Causa raíz principal: el rate limiter de Upstash cuesta 4.24s por request
@@ -94,11 +155,15 @@ Resultado: los deploys quedaron en Error y **las mejoras de rendimiento no estuv
 producción durante ~40 minutos**, aunque el build local pasaba. Corregido en `128820b`,
 validado antes con un deploy de preview. `vercel.json` no admite comentarios de ningún tipo.
 
+### Verificado en producción
+- `x-vercel-id: iad1::pdx1::` — las funciones ya corren junto a la base de datos.
+- **Rate limiting funcionando de verdad**: 70 peticiones seguidas a `/api/patients`
+  (límite 60/min por IP) devolvieron 55 → 401 y 15 → **429**. No es una inferencia por
+  latencia: es el limiter contando y bloqueando, cosa que llevaba meses sin hacer.
+- Latencia de `/api/patients`: de 4.45s a ~0.29-0.41s. El usuario confirma que el panel
+  "ya carga rápido".
+
 ### Pendiente
-- Verificar en producción: las rutas con rate limiting deben bajar de 4.4s a ~0.12s (con
-  Redis vivo vuelve a haber límite real por IP), y cronometrar clic a clic entre secciones
-  con sesión real.
-- El cambio de región a `pdx1` solo tiene efecto tras el próximo deploy.
 - Fuera de alcance, detectado: las 42 páginas cliente restantes; `SaraFAB` importa
   estáticamente `SaraChatPanel` (502 líneas) aunque casi nunca se abra; y hay 63 lookups
   `OR: [{ id: user.id }, { email }]` que usan `id` donde `doctor-auth.ts` usa `authId` —
