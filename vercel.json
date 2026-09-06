@@ -1,6 +1,5 @@
 {
   "buildCommand": "prisma generate && next build",
-  "//": "pdx1 = Portland. La base Supabase vive en us-west-2; con las funciones en iad1 cada consulta cruzaba el país (~60-80ms) y hay varias por navegación.",
   "regions": ["pdx1"],
   "functions": {
     "src/app/api/documents/[type]/[id]/download/route.ts": {
