@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { prisma } from '@/lib/prisma'
 import { BRAND, OG_SIZE, OG_CONTENT_TYPE } from '@/lib/og/brand'
-import { getInitials, detectDoctorTitle, shortPersonName } from '@/lib/utils'
+import { getInitials, formatDoctorDisplayName } from '@/lib/utils'
 
 // Tarjeta de previsualización del perfil público (WhatsApp, Facebook, X, LinkedIn).
 // Solo usa datos que el médico ya publica en su propia página: nombre, especialidad,
@@ -9,20 +9,6 @@ import { getInitials, detectDoctorTitle, shortPersonName } from '@/lib/utils'
 export const alt = 'Perfil profesional en Sara Medical'
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE
-
-const TITLE_WORDS = new Set([
-  'medico', 'médico', 'medica', 'médica', 'cirujano', 'cirujana',
-  'doctor', 'doctora', 'especialista', 'licenciado', 'licenciada',
-  'ing', 'lic', 'dr', 'lic.', 'dr.', 'dra', 'dra.',
-])
-
-/** "Dra. Stéfanny Medrano" a partir del nombre completo y el prefijo configurado. */
-function formatDoctorName(fullName: string, titlePrefix?: string | null): string {
-  const parts = fullName.split(' ').filter(w => !TITLE_WORDS.has(w.toLowerCase()))
-  const shortName = shortPersonName(parts.join(' '))
-  const title = titlePrefix || detectDoctorTitle(parts[0] ?? fullName)
-  return `${title} ${shortName}`.trim()
-}
 
 /**
  * Descarga la foto y la incrusta como data URI.
@@ -63,7 +49,7 @@ export default async function ProfileOpengraphImage(
     },
   })
 
-  const displayName = doctor ? formatDoctorName(doctor.name, doctor.titlePrefix) : 'Sara Medical'
+  const displayName = doctor ? formatDoctorDisplayName(doctor.name, doctor.titlePrefix) : 'Sara Medical'
   const specialty = doctor?.specialty ?? 'Software médico con IA'
   // Cantón y provincia coinciden a menudo (ej. "Pastaza, Pastaza"); se deduplica para
   // que no quede repetido en la tarjeta.

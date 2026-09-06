@@ -5,7 +5,7 @@
  * dos nombres de pila sin apellido, tanto en el perfil público como en su tarjeta OG.
  */
 import { describe, it, expect } from 'vitest'
-import { shortPersonName, getInitials } from '@/lib/utils'
+import { shortPersonName, getInitials, formatDoctorDisplayName } from '@/lib/utils'
 
 describe('shortPersonName', () => {
   it('con dos nombres y dos apellidos toma el primer nombre y el primer apellido', () => {
@@ -40,5 +40,32 @@ describe('getInitials', () => {
 
   it('mantiene el comportamiento con nombres de dos palabras', () => {
     expect(getInitials('Stéfanny Medrano')).toBe('SM')
+  })
+})
+
+describe('formatDoctorDisplayName', () => {
+  it('respeta titlePrefix por encima de cualquier heurística', () => {
+    expect(formatDoctorDisplayName('Nicola Rossi Bianchi Verdi', 'Dr.')).toBe('Dr. Nicola Bianchi')
+    expect(formatDoctorDisplayName('Marcela Castillo', 'Dr.')).toBe('Dr. Marcela Castillo')
+  })
+
+  it('usa Dra. para nombres femeninos sin titlePrefix', () => {
+    // Regresión: la página del perfil las mostraba como "Dr." mientras la tarjeta OG
+    // decía "Dra.", porque cada una resolvía el tratamiento por su cuenta.
+    expect(formatDoctorDisplayName('Marcela Patricia Castillo Martínez')).toBe('Dra. Marcela Castillo')
+    expect(formatDoctorDisplayName('Stéfanny Medrano')).toBe('Dra. Stéfanny Medrano')
+  })
+
+  it('usa Dr. para nombres masculinos', () => {
+    expect(formatDoctorDisplayName('Patricio David Gavilanes Carrasco')).toBe('Dr. Patricio Gavilanes')
+  })
+
+  it('una palabra femenina explícita en el nombre gana a la heurística', () => {
+    expect(formatDoctorDisplayName('Dra. Andrea Solís')).toBe('Dra. Andrea Solís')
+    expect(formatDoctorDisplayName('Médica Rosa Núñez')).toBe('Dra. Rosa Núñez')
+  })
+
+  it('descarta los tratamientos del nombre en lugar de repetirlos', () => {
+    expect(formatDoctorDisplayName('Dr. Carlos Mendoza')).toBe('Dr. Carlos Mendoza')
   })
 })

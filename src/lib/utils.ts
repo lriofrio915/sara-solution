@@ -75,6 +75,41 @@ export function getInitials(name: string): string {
     .toUpperCase()
 }
 
+/** Palabras de tratamiento o profesión que no forman parte del nombre. */
+const TITLE_WORDS = new Set([
+  'medico', 'médico', 'medica', 'médica', 'cirujano', 'cirujana',
+  'doctor', 'doctora', 'especialista', 'licenciado', 'licenciada',
+  'ing', 'lic', 'lic.', 'dr', 'dra', 'dr.', 'dra.',
+])
+
+/** De esas, las que indican explícitamente que la profesional es mujer. */
+const FEMININE_WORDS = new Set(['médica', 'medica', 'cirujana', 'doctora', 'licenciada', 'dra', 'dra.'])
+
+/**
+ * Nombre para mostrar de un médico: "Dra. Stéfanny Medrano".
+ *
+ * Fuente única para la página pública del perfil y su tarjeta de Open Graph, que antes
+ * resolvían el tratamiento por su cuenta y discrepaban: la tarjeta decía "Dra. Marcela
+ * Castillo" y la página "Dr. Marcela Castillo".
+ *
+ * Precedencia, de más fiable a menos:
+ *   1. `titlePrefix`, que el propio médico configura en su perfil.
+ *   2. Una palabra femenina explícita dentro del nombre ("Dra. María…", "Médica …").
+ *   3. La heurística de `detectDoctorTitle` sobre el primer nombre.
+ *
+ * La heurística falla con nombres masculinos terminados en -a (Nicola, Elía). La solución
+ * de fondo es que el médico rellene `titlePrefix`, que siempre gana.
+ */
+export function formatDoctorDisplayName(fullName: string, titlePrefix?: string | null): string {
+  const parts = fullName.split(/\s+/).filter(w => w && !TITLE_WORDS.has(w.toLowerCase()))
+  const shortName = shortPersonName(parts.join(' '))
+  if (titlePrefix) return `${titlePrefix} ${shortName}`.trim()
+
+  const hasFeminineWord = fullName.split(/\s+/).some(w => FEMININE_WORDS.has(w.toLowerCase()))
+  const title = hasFeminineWord ? 'Dra.' : detectDoctorTitle(parts[0] ?? fullName)
+  return `${title} ${shortName}`.trim()
+}
+
 /** Detects 'Dr.' or 'Dra.' from the doctor's first name using Spanish name heuristics */
 export function detectDoctorTitle(firstName: string): string {
   const normalized = firstName
