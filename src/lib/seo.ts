@@ -28,8 +28,13 @@ type BuildMetadataArgs = {
   description: string
   /** Ruta absoluta dentro del sitio, ej. '/pricing'. */
   path: string
-  /** Ruta a la imagen OG. Por defecto la que genera app/opengraph-image.tsx. */
-  image?: string
+  /**
+   * Imagen OG. Por defecto la tarjeta de marca del sitio.
+   *
+   * `null` para las rutas que tienen su propio `opengraph-image.tsx`: ahí manda el
+   * archivo y declararla aquí lo sobrescribiría.
+   */
+  image?: string | null
   imageAlt?: string
   /** Marca la página como no indexable (todo lo que hay detrás de autenticación). */
   noindex?: boolean
@@ -41,7 +46,10 @@ export function buildMetadata({
   title,
   description,
   path,
-  image,
+  // Un `opengraph-image.tsx` solo cubre su propio segmento de ruta: el de la raíz no se
+  // hereda a las páginas de (public), así que la landing, precios, legales y el chat del
+  // médico se compartían sin imagen. Se declara explícitamente por defecto.
+  image = '/opengraph-image',
   imageAlt,
   noindex = false,
   keywords,

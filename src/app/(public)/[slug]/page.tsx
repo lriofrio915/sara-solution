@@ -57,12 +57,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     description,
     path: `/${params.slug}`,
     type: 'profile',
+    // image: null → manda opengraph-image.tsx de esta misma ruta, que compone la tarjeta
+    // con la foto del médico. Declarar una imagen aquí la sobrescribiría.
+    image: null,
     // Un perfil desactivado sigue siendo alcanzable por URL, pero no debe indexarse.
     noindex: !doctor.active,
   })
-  // La imagen OG la aporta opengraph-image.tsx de esta misma ruta: se genera con la
-  // plantilla de marca en 1200x630, en vez del avatar recortado que Facebook y WhatsApp
-  // mostraban deformado.
 }
 
 export default async function DoctorPublicPage(props: Props) {
