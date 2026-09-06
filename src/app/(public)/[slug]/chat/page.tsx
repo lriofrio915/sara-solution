@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { buildMetadata, NOINDEX } from '@/lib/seo'
 import { prisma } from '@/lib/prisma'
 import DoctorChatUI from '@/components/public/DoctorChatUI'
 
@@ -13,11 +14,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     where: { slug: params.slug },
     select: { name: true, specialty: true },
   })
-  if (!doctor) return { title: 'Chat no disponible' }
-  return {
+  if (!doctor) return { title: 'Chat no disponible', ...NOINDEX }
+  return buildMetadata({
     title: `Chat con Sara — Asistente de ${doctor.name}`,
     description: `Agenda tu cita con ${doctor.name} a través de Sara, la asistente médico IA.`,
-  }
+    path: `/${params.slug}/chat`,
+  })
 }
 
 export default async function DoctorChatPage(props: Props) {

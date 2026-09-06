@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CalendarDays, Clock, User, Phone, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react'
 
 const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -171,8 +172,8 @@ export default function ReservarPage() {
           ) : doctor ? (
             <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center gap-4 shadow-sm">
               {doctor.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={doctor.avatarUrl} alt={doctor.name} className="w-12 h-12 rounded-full object-cover" />
+                <Image src={doctor.avatarUrl} alt={`Foto de ${doctor.name}`} width={48} height={48}
+                  className="w-12 h-12 rounded-full object-cover" />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
                   {doctor.name.charAt(0)}

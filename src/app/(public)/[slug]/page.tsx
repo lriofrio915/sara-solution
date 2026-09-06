@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { buildMetadata, absoluteUrl, SITE, NOINDEX } from '@/lib/seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import DoctorContactForm from '@/components/DoctorContactForm'
 import PublicPageActions from '@/components/PublicPageActions'
@@ -44,18 +47,22 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
   const doctor = await prisma.doctor.findUnique({
     where: { slug: params.slug },
-    select: { name: true, specialty: true, bio: true, avatarUrl: true },
+    select: { name: true, specialty: true, bio: true, active: true },
   })
-  if (!doctor) return { title: 'Médico no encontrado' }
-  return {
+  if (!doctor) return { title: 'Médico no encontrado', ...NOINDEX }
+
+  const description = doctor.bio ?? `Agenda tu cita con ${doctor.name}, especialista en ${doctor.specialty}.`
+  return buildMetadata({
     title: `${doctor.name} | ${doctor.specialty}`,
-    description: doctor.bio ?? `Agenda tu cita con ${doctor.name}, especialista en ${doctor.specialty}.`,
-    openGraph: {
-      title: `${doctor.name} — ${doctor.specialty}`,
-      description: doctor.bio ?? '',
-      images: doctor.avatarUrl ? [doctor.avatarUrl] : [],
-    },
-  }
+    description,
+    path: `/${params.slug}`,
+    type: 'profile',
+    // Un perfil desactivado sigue siendo alcanzable por URL, pero no debe indexarse.
+    noindex: !doctor.active,
+  })
+  // La imagen OG la aporta opengraph-image.tsx de esta misma ruta: se genera con la
+  // plantilla de marca en 1200x630, en vez del avatar recortado que Facebook y WhatsApp
+  // mostraban deformado.
 }
 
 export default async function DoctorPublicPage(props: Props) {
@@ -145,8 +152,8 @@ export default async function DoctorPublicPage(props: Props) {
 
   // Avatar helpers
   const AvatarSm = () => doctor.avatarUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    (<img src={doctor.avatarUrl} alt={doctor.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />)
+    (<Image src={doctor.avatarUrl} alt={`Foto de ${displayName}, ${doctor.specialty}`} width={40} height={40}
+      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />)
   ) : (
     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
       style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
@@ -154,8 +161,43 @@ export default async function DoctorPublicPage(props: Props) {
     </div>
   )
 
+  // Datos estructurados del perfil. Todo lo que va aquí es información pública que el
+  // propio médico publica en su página; nunca datos de pacientes.
+  const profileUrl = absoluteUrl(`/${params.slug}`)
+  const jsonLdPhysician = {
+    '@context': 'https://schema.org',
+    '@type': 'Physician',
+    name: displayName,
+    medicalSpecialty: doctor.specialty,
+    url: profileUrl,
+    ...(doctor.bio ? { description: doctor.bio } : {}),
+    ...(doctor.avatarUrl ? { image: doctor.avatarUrl } : {}),
+    ...(doctor.whatsapp ? { telephone: doctor.whatsapp } : {}),
+    ...(doctor.address || locationParts.length > 0
+      ? {
+          address: {
+            '@type': 'PostalAddress',
+            ...(doctor.address ? { streetAddress: doctor.address } : {}),
+            ...(doctor.canton ? { addressLocality: doctor.canton } : {}),
+            ...(doctor.province ? { addressRegion: doctor.province } : {}),
+            addressCountry: 'EC',
+          },
+        }
+      : {}),
+  }
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE.url },
+      { '@type': 'ListItem', position: 2, name: 'Buscar médico', item: absoluteUrl('/buscar-medico') },
+      { '@type': 'ListItem', position: 3, name: displayName, item: profileUrl },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
+      <JsonLd data={[jsonLdPhysician, jsonLdBreadcrumb]} />
       {/* ── FIXED HEADER (scroll-aware) ──────────────────────── */}
       <PublicDoctorHeader
         slug={params.slug}
@@ -177,8 +219,9 @@ export default async function DoctorPublicPage(props: Props) {
                 style={{ background: 'linear-gradient(135deg, #2563EB, #0D9488)' }} />
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl relative z-10">
                 {doctor.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  (<img src={doctor.avatarUrl} alt={doctor.name} className="w-full h-full object-cover" />)
+                  // priority: es la imagen principal del perfil y entra en el LCP.
+                  (<Image src={doctor.avatarUrl} alt={`Foto de ${displayName}, ${doctor.specialty}`} fill sizes="(max-width: 768px) 192px, 256px"
+                    className="object-cover" priority />)
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white font-bold text-5xl"
                     style={{ background: 'linear-gradient(135deg, #2563EB 0%, #0D9488 100%)' }}>
@@ -516,11 +559,11 @@ export default async function DoctorPublicPage(props: Props) {
               <div className="flex flex-col md:flex-row items-stretch">
 
                 {/* Foto */}
-                <div className="w-full md:w-72 flex-shrink-0 overflow-hidden" style={{ minHeight: '260px' }}>
+                {/* relative: next/image con `fill` se posiciona contra este contenedor. */}
+                <div className="relative w-full md:w-72 flex-shrink-0 overflow-hidden" style={{ minHeight: '260px' }}>
                   {ctaPhoto ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    (<img src={ctaPhoto} alt={doctor.name}
-                      className="w-full h-full object-cover object-top" style={{ minHeight: '260px' }} />)
+                    (<Image src={ctaPhoto} alt={`Consulta con ${displayName}`} fill sizes="(max-width: 768px) 100vw, 288px"
+                      className="object-cover object-top" />)
                   ) : (
                     <div className="w-full h-full flex items-center justify-center opacity-20" style={{ minHeight: '260px' }}>
                       <span className="text-white text-8xl font-bold">{initials}</span>

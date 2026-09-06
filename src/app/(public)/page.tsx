@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
+import { buildMetadata, SITE, absoluteUrl } from '@/lib/seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import Link from 'next/link'
+import Image from 'next/image'
 import Script from 'next/script'
 import NavHeader from '@/components/landing/NavHeader'
 import BackToTop from '@/components/landing/BackToTop'
@@ -7,22 +10,12 @@ import SaraChatWidget from '@/components/landing/SaraChatWidget'
 import AuthErrorRedirect from '@/components/AuthErrorRedirect'
 import DemoSection from '@/components/landing/DemoSection'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Sara Medical — Gestiona tu consultorio con IA | Agenda, Fichas y Marketing',
   description:
     'Agenda inteligente 24/7, fichas y recetas digitales, Marketing Suite IA para Instagram, Facebook, TikTok y LinkedIn. Todo en un solo lugar. Prueba gratis 21 días, sin tarjeta.',
-  openGraph: {
-    title: 'Sara Medical — Tu consultorio en autopiloto',
-    description: 'Agenda, fichas médicas, recetas digitales y marketing con IA. El asistente para médicos independientes.',
-    url: 'https://www.consultorio.site',
-    siteName: 'Sara Medical',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sara Medical — Tu consultorio en autopiloto',
-    description: 'Agenda, fichas médicas, recetas digitales y marketing con IA para médicos.',
-  },
-}
+  path: '/',
+})
 
 // ─── Hero ──────────────────────────────────────────────────────────────────────
 
@@ -107,10 +100,11 @@ function Hero() {
             <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl">
               {/* Header mock */}
               <div className="flex items-center gap-3 pb-4 border-b border-white/15 mb-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="https://useileqhvoxljyxpjgfb.supabase.co/storage/v1/object/public/avatars/gemini_sara_perfil.png"
-                  alt="Sara"
+                  alt="Sara, la asistente con IA de Sara Medical"
+                  width={36}
+                  height={36}
                   className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-md"
                 />
                 <div>
@@ -1286,9 +1280,11 @@ const jsonLdSoftware = {
   '@type': 'SoftwareApplication',
   name: 'Sara Medical',
   operatingSystem: 'Web',
-  applicationCategory: 'HealthApplication',
+  applicationCategory: 'MedicalApplication',
   description: 'Plataforma de gestión médica con IA para médicos independientes. Agenda inteligente, fichas, recetas digitales y Marketing Suite para 4 redes sociales.',
-  url: 'https://www.consultorio.site',
+  url: SITE.url,
+  image: absoluteUrl('/opengraph-image'),
+  inLanguage: 'es-EC',
   offers: [
     {
       '@type': 'Offer',
@@ -1305,12 +1301,18 @@ const jsonLdSoftware = {
       description: 'Hasta 5 médicos, white-label, soporte VIP, panel centralizado.',
     },
   ],
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    ratingCount: '200',
-    bestRating: '5',
-  },
+}
+
+// Organization: identifica la marca detrás del producto (logo, sitio, contacto). Google
+// lo usa para el panel de conocimiento; SoftwareApplication describe el producto en sí.
+const jsonLdOrganization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: SITE.url,
+  logo: 'https://res.cloudinary.com/deusntwkn/image/upload/v1773867085/icono_sara_bj4txo.png',
+  description: SITE.description,
+  areaServed: { '@type': 'Country', name: 'Ecuador' },
 }
 
 const jsonLdFaq = {
@@ -1343,16 +1345,9 @@ const jsonLdFaq = {
 export default function LandingPage() {
   return (
     <>
-      <Script
-        id="ld-software"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }}
-      />
-      <Script
-        id="ld-faq"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
-      />
+      {/* JSON-LD desde el componente de servidor y con escapado explícito, en vez de
+          inyectarlo por next/script sin sanitizar. */}
+      <JsonLd data={[jsonLdOrganization, jsonLdSoftware, jsonLdFaq]} />
       <AuthErrorRedirect />
       <NavHeader />
       <main>

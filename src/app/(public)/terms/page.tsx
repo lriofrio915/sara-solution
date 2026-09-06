@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import { buildMetadata } from '@/lib/seo'
 import SaraLogo from '@/components/SaraLogo'
 
-export const metadata = {
+export const metadata = buildMetadata({
   title: 'Términos y Condiciones — Sara',
   description: 'Términos de servicio y condiciones de uso de Sara.',
-}
+  path: '/terms',
+})
 
 export default function TermsPage() {
   return (

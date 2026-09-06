@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import { buildMetadata } from '@/lib/seo'
 import SaraLogo from '@/components/SaraLogo'
 
-export const metadata = {
+export const metadata = buildMetadata({
   title: 'Eliminación de Datos — Sara',
   description: 'Instrucciones para solicitar la eliminación de tus datos personales en Sara.',
-}
+  path: '/eliminar-datos',
+})
 
 export default function DataDeletionPage() {
   return (

@@ -1,4 +1,8 @@
 import SaraLogo from '@/components/SaraLogo'
+import { NOINDEX } from '@/lib/seo'
+
+// Las pantallas de sesión no aportan nada en búsqueda y arrastran parámetros de auth.
+export const metadata = NOINDEX
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

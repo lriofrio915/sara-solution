@@ -1,22 +1,18 @@
 import type { Metadata } from 'next'
+import { buildMetadata, absoluteUrl, SITE } from '@/lib/seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import Link from 'next/link'
 import SaraLogo from '@/components/SaraLogo'
 import DoctorTestimonial from '@/components/DoctorTestimonial'
 import { HOTMART } from '@/lib/plan'
 import { Check, X } from 'lucide-react'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: 'Precios — Sara Medical | Planes para tu consultorio',
   description:
     'Sara Medical automatiza tu agenda, recetas digitales y marketing con IA. Plan Pro $29/mes. Enterprise para clínicas con múltiples médicos. Prueba 21 días sin tarjeta.',
-  openGraph: {
-    title: 'Precios — Sara Medical',
-    description:
-      'Automatiza tu consultorio con IA: agenda, recetas y marketing. Prueba 21 días gratis.',
-    url: 'https://consultorio.site/pricing',
-    siteName: 'Sara Medical',
-  },
-}
+  path: '/pricing',
+})
 
 const ENTERPRISE_HOTMART = 'https://pay.hotmart.com/N104843955S?checkoutMode=2'
 
@@ -80,9 +76,49 @@ const FAQS = [
   },
 ]
 
+// Product + Offer con moneda explícita: sin priceCurrency Google descarta el precio.
+// Los importes se mantienen sincronizados a mano con las tarjetas de abajo ($29 / $129).
+const jsonLdProduct = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Sara Medical',
+  description:
+    'Software médico con IA: agenda inteligente, fichas clínicas, recetas digitales y Marketing Suite.',
+  brand: { '@type': 'Brand', name: SITE.name },
+  url: absoluteUrl('/pricing'),
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Pro Mensual',
+      price: '29.00',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: absoluteUrl('/pricing'),
+    },
+    {
+      '@type': 'Offer',
+      name: 'Enterprise',
+      price: '129.00',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      url: absoluteUrl('/pricing'),
+    },
+  ],
+}
+
+const jsonLdBreadcrumb = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: 'Precios', item: absoluteUrl('/pricing') },
+  ],
+}
+
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={[jsonLdProduct, jsonLdBreadcrumb]} />
 
       {/* Header */}
       <div className="bg-white border-b border-gray-100 py-4 px-6">

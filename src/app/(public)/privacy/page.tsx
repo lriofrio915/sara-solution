@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import { buildMetadata } from '@/lib/seo'
 import SaraLogo from '@/components/SaraLogo'
 
-export const metadata = {
+export const metadata = buildMetadata({
   title: 'Política de Privacidad y Protección de Datos — Sara',
   description: 'Política de privacidad, protección de datos personales y derechos ARCO conforme a la LOPDP Ecuador.',
-}
+  path: '/privacy',
+})
 
 export default function PrivacyPage() {
   return (

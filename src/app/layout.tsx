@@ -3,18 +3,22 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { PostHogPageview } from '@/components/PostHogPageview'
+import { SITE } from '@/lib/seo'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  // metadataBase resuelve a absoluto todo lo relativo (OG, canonical, iconos). Apunta a
+  // www porque el apex responde 307 y una imagen OG detrás de un redirect no la renderiza
+  // ni WhatsApp ni Slack.
+  metadataBase: new URL(SITE.url),
   // 38 chars — dentro del límite recomendado de 60
   title: {
     default: 'Sara Medical | Software Médico con IA',
     template: '%s | Sara Medical',
   },
   // 143 chars — dentro del límite recomendado de 155
-  description:
-    'Automatiza tu consultorio médico con inteligencia artificial. Agenda de citas, recetas digitales, marketing automatizado y más. Prueba gratis.',
+  description: SITE.description,
   keywords: [
     'software médico',
     'gestión de consultorio',
@@ -25,16 +29,28 @@ export const metadata: Metadata = {
     'marketing médico',
     'consultorio Ecuador',
   ],
-  authors: [{ name: 'Sara Medical' }],
-  icons: {
-    icon: 'https://res.cloudinary.com/deusntwkn/image/upload/v1773867085/icono_sara_bj4txo.png',
-    apple: 'https://res.cloudinary.com/deusntwkn/image/upload/v1773867085/icono_sara_bj4txo.png',
+  authors: [{ name: SITE.name, url: SITE.url }],
+  creator: SITE.name,
+  publisher: SITE.name,
+  applicationName: SITE.name,
+  // La app muestra teléfonos y cédulas: sin esto iOS los convierte en enlaces y rompe
+  // el layout de las fichas.
+  formatDetection: { telephone: false, address: false, email: false },
+  alternates: {
+    canonical: SITE.url,
+    languages: { [SITE.lang]: SITE.url },
   },
   openGraph: {
     type: 'website',
-    locale: 'es_EC',
-    url: 'https://consultorio.site',
-    siteName: 'Sara Medical',
+    locale: SITE.locale,
+    url: SITE.url,
+    siteName: SITE.name,
+    title: 'Sara Medical | Software Médico con IA',
+    description:
+      'Automatiza tu consultorio médico con IA. Agenda de citas, recetas digitales, marketing automatizado y más.',
+  },
+  twitter: {
+    card: 'summary_large_image',
     title: 'Sara Medical | Software Médico con IA',
     description:
       'Automatiza tu consultorio médico con IA. Agenda de citas, recetas digitales, marketing automatizado y más.',
