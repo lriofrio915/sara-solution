@@ -49,8 +49,25 @@ export function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+/**
+ * Nombre corto de una persona: primer nombre + primer apellido.
+ *
+ * Los nombres ecuatorianos suelen traer dos nombres y dos apellidos. Cortar por las dos
+ * primeras palabras devolvía los dos nombres de pila y perdía el apellido:
+ * "Patricio David Gavilanes Carrasco" quedaba en "Patricio David".
+ *
+ * Con 4 o más palabras se toman la 1.ª y la 3.ª (nombre1 + apellido1). Con 3 es ambiguo
+ * —"María José Melchiade" puede ser dos nombres + apellido, o nombre + dos apellidos— y
+ * se conservan las dos primeras, que es lo que la app ya hacía. Con 1 o 2, tal cual.
+ */
+export function shortPersonName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length >= 4) return `${parts[0]} ${parts[2]}`
+  return parts.slice(0, 2).join(' ')
+}
+
 export function getInitials(name: string): string {
-  return name
+  return shortPersonName(name)
     .split(' ')
     .slice(0, 2)
     .map((n) => n[0])

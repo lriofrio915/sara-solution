@@ -5,6 +5,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import { getInitials, shortPersonName } from '@/lib/utils'
 import DoctorContactForm from '@/components/DoctorContactForm'
 import PublicPageActions from '@/components/PublicPageActions'
 import DoctorChatWidget from '@/components/DoctorChatWidget'
@@ -13,10 +14,6 @@ import PublicDoctorHeader from '@/components/PublicDoctorHeader'
 export const dynamic = 'force-dynamic'
 
 type Props = { params: Promise<{ slug: string }> }
-
-function getInitials(name: string) {
-  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-}
 
 const TITLE_WORDS = new Set([
   'medico','médico','medica','médica','cirujano','cirujana',
@@ -27,7 +24,9 @@ const FEMININE_WORDS = new Set(['médica','medica','cirujana','doctora','licenci
 
 function formatDoctorName(fullName: string, titlePrefix?: string | null): string {
   const parts = fullName.split(' ').filter((w) => !TITLE_WORDS.has(w.toLowerCase()))
-  const shortName = parts.slice(0, 2).join(' ')
+  // Primer nombre + primer apellido (ver shortPersonName): antes salían los dos nombres
+  // de pila y se perdía el apellido en nombres de cuatro partes.
+  const shortName = shortPersonName(parts.join(' '))
   if (titlePrefix) return `${titlePrefix} ${shortName}`
   const isFeminine = fullName.split(' ').some((w) => FEMININE_WORDS.has(w.toLowerCase()))
   return `${isFeminine ? 'Dra.' : 'Dr.'} ${shortName}`

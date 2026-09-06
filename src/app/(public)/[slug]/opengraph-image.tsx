@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { prisma } from '@/lib/prisma'
 import { BRAND, OG_SIZE, OG_CONTENT_TYPE } from '@/lib/og/brand'
-import { getInitials, detectDoctorTitle } from '@/lib/utils'
+import { getInitials, detectDoctorTitle, shortPersonName } from '@/lib/utils'
 
 // Tarjeta de previsualización del perfil público (WhatsApp, Facebook, X, LinkedIn).
 // Solo usa datos que el médico ya publica en su propia página: nombre, especialidad,
@@ -19,7 +19,7 @@ const TITLE_WORDS = new Set([
 /** "Dra. Stéfanny Medrano" a partir del nombre completo y el prefijo configurado. */
 function formatDoctorName(fullName: string, titlePrefix?: string | null): string {
   const parts = fullName.split(' ').filter(w => !TITLE_WORDS.has(w.toLowerCase()))
-  const shortName = parts.slice(0, 2).join(' ')
+  const shortName = shortPersonName(parts.join(' '))
   const title = titlePrefix || detectDoctorTitle(parts[0] ?? fullName)
   return `${title} ${shortName}`.trim()
 }

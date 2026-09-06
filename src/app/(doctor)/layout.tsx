@@ -7,7 +7,7 @@ import { getDoctorFromUser, getAssistantDoctors } from '@/lib/doctor-auth'
 import DoctorSidebar from '@/components/DoctorSidebar'
 import SaraFAB from '@/components/SaraFAB'
 import PlanBanner from '@/components/PlanBanner'
-import { getInitials, detectDoctorTitle } from '@/lib/utils'
+import { getInitials, detectDoctorTitle, shortPersonName } from '@/lib/utils'
 import { getEffectivePlan, getTrialDaysLeft } from '@/lib/plan'
 
 export const dynamic = 'force-dynamic'
@@ -43,16 +43,19 @@ export default async function DoctorLayout({ children }: { children: React.React
 
     const nameParts = doctorWithRole.name.trim().split(/\s+/)
     const toTitle = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+    // Primer nombre + primer apellido: con dos nombres y dos apellidos, cortar por las dos
+    // primeras palabras dejaba los dos nombres de pila y perdía el apellido.
+    const shortName = shortPersonName(doctorWithRole.name).split(/\s+/).map(toTitle).join(' ')
 
     let displayName: string
     if (doctorWithRole.role === 'ASSISTANT') {
-      displayName = nameParts.map(toTitle).slice(0, 2).join(' ')
+      displayName = shortName
     } else if (isSuperAdmin) {
       // Superadmin: show plain name without medical title prefix
-      displayName = nameParts.map(toTitle).slice(0, 2).join(' ')
+      displayName = shortName
     } else {
       const title = (doctorProfile as { titlePrefix?: string | null })?.titlePrefix || detectDoctorTitle(nameParts[0])
-      displayName = `${title} ${toTitle(nameParts[0])}${nameParts[1] ? ' ' + toTitle(nameParts[1]) : ''}`
+      displayName = `${title} ${shortName}`
     }
 
     const effectivePlan = getEffectivePlan(doctorWithRole)
@@ -73,7 +76,7 @@ export default async function DoctorLayout({ children }: { children: React.React
         getAssistantDoctors(user.id),
       ])
       if (member) {
-        sidebarName = member.name.trim().split(/\s+/).map(toTitle).slice(0, 2).join(' ')
+        sidebarName = shortPersonName(member.name).split(/\s+/).map(toTitle).join(' ')
         sidebarAvatarUrl = member.avatarUrl
       }
       if (allDoctors.length > 1) {
